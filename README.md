@@ -1,70 +1,71 @@
-# Madden League Trade Calculator
+# Madden League Trade Calculator v4.0
 
-A free, single-page web calculator for grading trades in a Madden league. Enter what each team receives, and it values every asset, applies the league's trade rules, and returns a verdict with a plain-language explanation.
+v4.0 is the sole source of truth for evaluating player and draft-pick trades.
 
-Version: **v3.3**
-Live site: `https://bms70.github.io/madden-trade-calculator/`
+## Release files
 
-## How to use it
+- `Madden League Trade Calculator v4.0.xlsx`
+- `index.html`
+- `README.md`
 
-1. Under **Team A receives** and **Team B receives**, add the assets each team is getting. Each side holds up to 9 assets.
-2. For each asset, choose **Player** or **Draft Pick**.
-   - **Player:** enter OVR, age, position, dev trait, cap hit ($M), years remaining, years in league, current role and projected role. **Years remaining must be at least 1.** A rookie is in **Year 0**.
-   - **Draft Pick:** choose the pick and its timing (current draft, next year or two years away).
-3. Watch the asset values, adjusted totals, verdict and explanation update as you type.
+## Draft values
 
-A player row needs OVR, age, position and dev trait before it counts toward the totals. Until then it shows a reminder and is left out.
+Current first-round values:
 
-Your entries are saved in your own browser, so they are still there when you come back. They are not shared with anyone else and are not stored on a server. **Clear this trade** resets the current trade.
+- 1.01-1.08: 90, 83, 77, 71, 67, 63, 60, 57
+- 1.09-1.16: 55, 53, 50, 48, 46, 44, 42, 40
+- 1.17-1.24: 38, 37, 36, 35, 34, 33, 32, 31
+- 1.25-1.32: 30, 29, 28, 27, 26, 25, 24, 23
 
-## How trades are valued
+Other picks:
 
-**Players** start from (OVR − 60) and are multiplied by:
+- Early / Mid / Late 2nd: 19 / 16 / 13
+- Early / Mid / Late 3rd: 9 / 7 / 5
+- 4th / 5th / 6th / 7th: 4 / 3 / 2 / 1
+- Future Early / Mid / Late / Unknown 1st: 67 / 46 / 31 / 44
 
-- Dev trait and age band
-- Position scarcity (QB 1.40, EDGE 1.20, CB/WR 1.15, LT 1.10, DT 1.05, TE/S 1.00, LB 0.95, HB/IOL 0.90, FB/K/P 0.50)
-- Cap-hit tier (separate QB and non-QB scales, from Great 1.15× to Very Expensive 0.80×)
-- Franchise Cornerstone premium (age 26 or younger, 87+ OVR, Superstar or X-Factor): 1.25×
-- Early-career premium: Year 0 1.50×, Year 1 1.30×, Year 2 1.15×, Year 3+ 1.00×
-- Role change (Starter to Backup 0.85×, Backup to Starter 0.95×, Backup to Backup 0.75×)
-- Aging-70s penalty for 70–79 OVR players aged 31 and older
-- Contract control by years remaining (1.00× to 1.34×), reduced for Expensive contracts and removed for Very Expensive ones
-- QB-versus-QB age comparison when both sides include a QB
+Timing multipliers are 1.00x for the current draft, 0.85x for next year, and 0.70x for two years away.
 
-**Draft picks** use a base value (for example 1.01–1.05 is 70) multiplied by timing: 1.00× current, 0.85× next year, 0.70× two years away. Future 1sts use Early, Mid, Late or Unknown base values.
+## Package quality
 
-**Package quality:** on each side, assets are ranked by value and receive 100%, 90%, 75%, 60%, then 50% credit. This stops a pile of small assets from matching a star.
+Assets are ranked on each side and credited at 100%, 90%, 75%, 60%, then 50% for later assets.
 
-## How the verdict works
+## Draft-only trade protection
 
-- **FAIR** when each side's adjusted total meets the required return for the other side's premium assets (1.10× by default, 1.20× for a Franchise Cornerstone, 1.30× for an elite QB aged 26 or younger with 90+ OVR and Superstar or X-Factor).
-- If not FAIR, the value difference sets the grade: under 12% is **QUESTIONABLE**, under 22% is **UNFAIR**, and 22% or more is **LEAGUE-BREAKING**.
-- The explanation under the verdict names the main reason: elite QB protection, cornerstone protection, quantity-for-quality, or the size of the gap.
+- 1.01 acquisition: 1.15x adjusted return
+- 1.02-1.03 acquisition: 1.08x
+- Other meaningful trade-ups: 1.04x
+- Lateral / near-lateral moves: no added premium
+- FAIR window: required target through 8% above the target
 
-## Updating the calculator
+For 1.01 at 90, the FAIR adjusted return is 103.5 through 111.8.
 
-This is a single file, `index.html`. All rule tables are at the top of the script section, so most rule changes mean editing a few numbers.
+Adjacent-pick guidance:
 
-1. Open `index.html` in this repository and click the pencil icon.
-2. Make the change and commit it.
-3. The live site refreshes within a minute or two.
+- Top 10: at least a 5th-round sweetener
+- Later 1st / 2nd: at least a 6th
+- 3rd round or later: at least a 7th
 
-Every commit is saved in the repository history, so any earlier version can be viewed or restored.
+## Player model
 
-## Version history
+Player value uses OVR, age/development, position, cap hit, early-career status, role, contract control, aging adjustments, and QB age comparison.
 
-| Version | Summary |
-| --- | --- |
-| v3.3 | Trade explanations and elite-QB protection (1.30× required return); rebuilt as a single-calculator web app |
-| v3.1–v3.2 | Blockbuster protection, package quality, multi-scenario Excel calculators, documentation rebuild |
-| v3.0 | Contract, rookie, role, aging and QB-age model |
-| v2.x | Tighter verdict bands, current-year pick values, layout cleanup |
-| v1.x | Original calculator, early-career premium |
+Premium acquisition thresholds:
 
-## Hosting
+- Standard premium player: 1.10x
+- Franchise Cornerstone: 1.20x
+- Elite QB: 1.30x
 
-The site is hosted on GitHub Pages from the `main` branch. There is no build step and nothing to install.
+An Elite QB is age 26 or younger, 90+ OVR, and Superstar or X-Factor.
 
-## Credits
+## Verdicts
 
-Originally built as an Excel workbook, `Madden League Trade Calculator v3.3`, and ported here with the same rules.
+If the applicable FAIR test is not met:
+
+- Under 12% adjusted gap: QUESTIONABLE
+- Under 22%: UNFAIR
+- 22% or more: LEAGUE-BREAKING
+
+## Source of truth
+
+If an older workbook, experimental file, prior README, or historical rule conflicts with this release, v4.0 takes precedence.
