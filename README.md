@@ -3,7 +3,7 @@
 A free, single-page web calculator for grading trades in a Madden league. Enter what each team receives, and it values every asset, applies the league's trade rules, and returns a verdict with a plain-language explanation.
 
 Version: **v3.3**
-Live site: `https://YOUR-USERNAME.github.io/YOUR-REPO-NAME/`
+Live site: `https://bms70.github.io/madden-trade-calculator/`
 
 ## How to use it
 
