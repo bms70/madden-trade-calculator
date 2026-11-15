@@ -2,7 +2,8 @@
 
 A free, single-page web calculator for grading trades in a Madden league. Enter what each team receives, and it values every asset, applies the league's trade rules, and returns a verdict with a plain-language explanation.
 
-**Version: v4.0**  
+**Release: v1.0.0**  
+**Ruleset: v4.0**  
 **Live site:** [Madden League Trade Calculator](https://bms70.github.io/madden-trade-calculator/)
 
 ## How to use it
@@ -81,4 +82,4 @@ The calculator is available at [https://bms70.github.io/madden-trade-calculator/
 
 ## Credits
 
-Originally built as an Excel workbook and evolved through multiple releases. **v4.0 is the current source of truth** for the calculator rules.
+Originally built as an Excel workbook and evolved through multiple releases. **Release v1.0.0** is the first public site release and uses **Ruleset v4.0**, which remains the source of truth for calculator rules.
