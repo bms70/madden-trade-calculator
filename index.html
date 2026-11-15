@@ -60,7 +60,6 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 <header>
   <h1>Madden League Trade Calculator v3.3</h1>
   <p>Enter what each team receives. Rookie season is Year 0. Contract control, premium-asset protection and package quality all affect trade value.</p>
-  <div class="tabs" role="tablist" id="tabs"></div>
 </header>
 <main id="app"></main>
 <script>
@@ -123,8 +122,11 @@ function calc(s){
 // ---------- State ----------
 const blank=()=>({t:"Player",pick:"",tim:"Current draft",ovr:"",age:"",pos:"",dev:"",cap:"",yr:"",yil:"",cr:"",pr:""});
 const fresh=()=>({A:[blank(),blank(),blank()],B:[blank(),blank(),blank()]});
-let S=[fresh(),fresh(),fresh()],cur=0;
-try{const d=JSON.parse(localStorage.getItem("madden-trade-v33")||"null");if(Array.isArray(d)&&d.length===3&&d.every(s=>s&&Array.isArray(s.A)&&Array.isArray(s.B)))S=d}catch(e){}
+let S=[fresh()],cur=0;
+try{
+  const d=JSON.parse(localStorage.getItem("madden-trade-v33")||"null");
+  if(Array.isArray(d)&&d.length>=1&&d[0]&&Array.isArray(d[0].A)&&Array.isArray(d[0].B)) S=[d[0]];
+}catch(e){}
 const save=()=>{try{localStorage.setItem("madden-trade-v33",JSON.stringify(S))}catch(e){}};
 
 // ---------- Rendering ----------
@@ -134,7 +136,7 @@ const inp=(k,v,ph)=>`<input data-k="${k}" type="number" inputmode="decimal" step
 const L=(t,h)=>`<label><span>${t}</span>${h}</label>`;
 function rowHtml(side,i,r){
   const f=r.t==="Player"
-    ?L("OVR",inp("ovr",r.ovr,"85"))+L("Age",inp("age",r.age,"25"))+L("Position",sel("pos",POSL,r.pos,"Choose"))+L("Dev trait",sel("dev",DEVL,r.dev,"Choose"))+L("Cap hit ($M)",inp("cap",r.cap,"12.5"))+L("Years remaining",inp("yr",r.yr,"3"))+L("Years in league",inp("yil",r.yil,"0"))+L("Current role",sel("cr",ROLE,r.cr,"Choose"))+L("Projected role",sel("pr",ROLE,r.pr,"Choose"))
+    ?L("OVR",inp("ovr",r.ovr,"85"))+L("Age",inp("age",r.age,"25"))+L("Position",sel("pos",POSL,r.pos,"Choose"))+L("Dev trait",sel("dev",DEVL,r.dev,"Choose"))+L("Cap hit ($M)",inp("cap",r.cap,"12.5"))+L("Years remaining",`<input data-k="yr" type="number" inputmode="numeric" step="1" min="1" placeholder="3" value="${r.yr}">`)+L("Years in league",inp("yil",r.yil,"0"))+L("Current role",sel("cr",ROLE,r.cr,"Choose"))+L("Projected role",sel("pr",ROLE,r.pr,"Choose"))
     :L("Pick",sel("pick",PICKL,r.pick,"Choose a pick"))+L("Timing",sel("tim",TIML,r.tim));
   return `<div class="row" data-s="${side}" data-i="${i}"><div class="rh">${sel("t",["Player","Draft Pick"],r.t)}<span class="tier"></span><span class="v"></span><button class="x" data-a="del" aria-label="Remove asset">✕</button></div><div class="f">${f}</div></div>`;
 }
@@ -143,7 +145,6 @@ function sideHtml(side,title){
   return `<section class="side" data-side="${side}"><h2>${title}<small></small></h2>${rows.map((r,i)=>rowHtml(side,i,r)).join("")}<button class="add" data-a="add" data-s="${side}"${rows.length>=MAXROWS?" disabled":""}>Add asset</button><div class="tot"><span>Adjusted total</span><b class="num"></b></div></section>`;
 }
 function render(){
-  $("tabs").innerHTML=[1,2,3].map((n,i)=>`<button class="tab" role="tab" aria-selected="${i===cur}" data-tab="${i}">Trade ${n}</button>`).join("");
   $("app").innerHTML=`<div class="sides">${sideHtml("A","Team A receives")}${sideHtml("B","Team B receives")}</div><div class="res" id="res" aria-live="polite"><div class="top"><span class="vd" id="vd"></span><span class="meta" id="meta"></span></div><p id="ex"></p></div><div class="foot"><span>Values update as you type and are saved in this browser.</span><button data-a="reset">Clear this trade</button></div>`;
   update();
 }
@@ -183,7 +184,6 @@ app.addEventListener("click",e=>{
   else if(a==="reset"){if(!confirm("Clear everything on this trade?"))return;S[cur]=fresh()}
   render();
 });
-$("tabs").addEventListener("click",e=>{const t=e.target.closest("[data-tab]");if(t){cur=+t.dataset.tab;render()}});
 render();
 </script>
 </body>
