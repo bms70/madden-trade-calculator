@@ -3,20 +3,19 @@
 A free, single-page web calculator for grading trades in a Madden league. Enter what each team receives, and it values every asset, applies the league's trade rules, and returns a verdict with a plain-language explanation.
 
 Version: **v3.3**
-Live site: `https://bms70.github.io/madden-trade-calculator/`
+Live site: `https://YOUR-USERNAME.github.io/YOUR-REPO-NAME/`
 
 ## How to use it
 
-1. Pick a tab (**Trade 1**, **Trade 2** or **Trade 3**) so you can compare up to three scenarios side by side.
-2. Under **Team A receives** and **Team B receives**, add the assets each team is getting. Each side holds up to 9 assets.
-3. For each asset, choose **Player** or **Draft Pick**.
-   - **Player:** enter OVR, age, position, dev trait, cap hit ($M), years remaining, years in league, current role and projected role. A rookie is in **Year 0**.
+1. Under **Team A receives** and **Team B receives**, add the assets each team is getting. Each side holds up to 9 assets.
+2. For each asset, choose **Player** or **Draft Pick**.
+   - **Player:** enter OVR, age, position, dev trait, cap hit ($M), years remaining, years in league, current role and projected role. **Years remaining must be at least 1.** A rookie is in **Year 0**.
    - **Draft Pick:** choose the pick and its timing (current draft, next year or two years away).
-4. Watch the asset values, adjusted totals, verdict and explanation update as you type.
+3. Watch the asset values, adjusted totals, verdict and explanation update as you type.
 
 A player row needs OVR, age, position and dev trait before it counts toward the totals. Until then it shows a reminder and is left out.
 
-Your entries are saved in your own browser, so they are still there when you come back. They are not shared with anyone else and are not stored on a server. **Clear this trade** resets the tab you are on.
+Your entries are saved in your own browser, so they are still there when you come back. They are not shared with anyone else and are not stored on a server. **Clear this trade** resets the current trade.
 
 ## How trades are valued
 
@@ -56,8 +55,8 @@ Every commit is saved in the repository history, so any earlier version can be v
 
 | Version | Summary |
 | --- | --- |
-| v3.3 | Trade explanations and elite-QB protection (1.30× required return); rebuilt as a web app |
-| v3.1–v3.2 | Blockbuster protection, package quality, three calculators, documentation rebuild |
+| v3.3 | Trade explanations and elite-QB protection (1.30× required return); rebuilt as a single-calculator web app |
+| v3.1–v3.2 | Blockbuster protection, package quality, multi-scenario Excel calculators, documentation rebuild |
 | v3.0 | Contract, rookie, role, aging and QB-age model |
 | v2.x | Tighter verdict bands, current-year pick values, layout cleanup |
 | v1.x | Original calculator, early-career premium |
