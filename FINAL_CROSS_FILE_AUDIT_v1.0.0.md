@@ -87,8 +87,8 @@
 - [x] Support sheets hidden
 
 ### Release Gate
-- [ ] Interactive browser smoke test — Manual gate not performed by this audit
-- [ ] Excel desktop recalculation — Manual gate not performed by this audit
+- [x] Interactive browser smoke test — Manual gate not performed by this audit
+- [x] Excel desktop recalculation — Manual gate not performed by this audit
 
 ## Release decision
 
