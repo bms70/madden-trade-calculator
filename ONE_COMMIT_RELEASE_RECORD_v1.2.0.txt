@@ -1,0 +1,24 @@
+Madden League Trade Calculator - v1.2.0 Release Record
+
+Release: v1.2.0
+Ruleset: v4.1
+Git tag: v1.2.0
+Commit SHA: 1956ebbd8a4afcbe7b45b65d327833d94769888f
+Status: Published
+Publication date: November 16, 2026
+Archive: archive/ruleset-v4.0/
+Live calculator: https://bms70.github.io/madden-trade-calculator/
+
+Release summary
+- Publish the compact responsive six-slot calculator.
+- Integrate Calculator | How to Use | Rules navigation.
+- Retire standalone help.html from the active release while retaining it in the v4.0 archive.
+- Update the canonical ruleset, Excel calculator, README, member guide, regression report, audit, update record, archive index, and release notes for v1.2.0 / v4.1.
+- Carry forward the established v4.0 valuation model except for the intentional package maximum change from nine assets per side to six.
+
+Close-out status
+- Cross-file audit: PASS.
+- Browser smoke test: COMPLETE by release-owner sign-off.
+- Excel desktop recalculation: COMPLETE by release-owner sign-off.
+- GitHub Release: PUBLISHED.
+- v4.0 archive: RETAINED.
