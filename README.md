@@ -2,6 +2,8 @@
 
 A responsive single-page web calculator for grading player and draft-pick trades in a Madden league. **Web Release v1.2.0** uses **Ruleset v4.1**.
 
+**Live calculator:** [Madden League Trade Calculator](https://bms70.github.io/madden-trade-calculator/)
+
 ## Release v1.2.0 / Ruleset v4.1
 - Maximum trade package: **6 assets per side**.
 - Compact collapsible asset cards reduce scrolling.
@@ -57,6 +59,10 @@ Draft-only acquisition: 1.01 **1.15x**; 1.02-1.03 **1.08x**; other meaningful tr
 
 ## Trade Analysis
 Seven reads remain available: **Primary Read, Best Asset, Raw Value, Adjusted Value, Draft Capital, Package Structure, Suggested Correction**.
+
+## Hosting
+
+The calculator is available at [Madden League Trade Calculator](https://bms70.github.io/madden-trade-calculator/). There is no build step or installation required for visitors.
 
 ## Files in the v1.2.0 / v4.1 release set
 - `index.html`
