@@ -1,166 +1,71 @@
 # Madden League Trade Calculator
 
-A free, single-page web calculator for grading player and draft-pick trades in a Madden league. Enter what each team receives and the calculator values the assets, applies Ruleset v4.0, compresses multi-asset packages, and returns a verdict with Trade Intelligence.
+A responsive single-page web calculator for grading player and draft-pick trades in a Madden league. **Web Release v1.2.0** uses **Ruleset v4.1**.
 
-**Release:** v1.0.0  
-**Ruleset:** v4.0  
-**Live site:** [Madden League Trade Calculator](https://bms70.github.io/madden-trade-calculator/)
+## Release v1.2.0 / Ruleset v4.1
+- Maximum trade package: **6 assets per side**.
+- Compact collapsible asset cards reduce scrolling.
+- Desktop uses side-by-side receiving packages; mobile stacks the trade vertically.
+- Navigation is integrated into one page: **Calculator | How to Use | Rules**.
+- The former standalone help experience is folded into the **How to Use** tab; keep older `help.html` only with archived prior-release materials.
+- The **Rules** tab explains algorithms, thresholds, multipliers, and basic point values without reproducing combined formulas.
+- The v4.0-derived player, draft, package-quality, precision, verdict, and seven-read Trade Intelligence behavior is carried forward; the intentional rules change is the package maximum from 9 to 6.
 
 ## How to use it
-
-1. Under **Team A receives** and **Team B receives**, add the assets each team receives. Each side supports up to 9 assets.
-2. Choose **Player** or **Draft Pick** for each populated row.
-   - **Player:** enter OVR, age, position, and dev trait. These four fields are required before the player contributes value. Cap hit, years remaining, years in league, current role, and projected role refine the valuation.
-   - **Draft Pick:** select the exact pick or future-first projection and its timing.
-3. Review the individual values, raw totals, adjusted totals, verdict, and Trade Intelligence as the trade updates.
-4. **Clear trade** resets the calculator.
+1. Add assets under the team that **receives** them.
+2. Choose **Player** or **Draft Pick**.
+3. Player: OVR, age, position, and dev trait are required before the player contributes value. Cap hit, years remaining, years in league, current role, and projected role refine valuation.
+4. Draft Pick: select the exact current pick or future-first projection and timing.
+5. Review Adjusted Value and the verdict at the top; expand **Trade Analysis** for the seven reads.
+6. Reopen a completed asset card to edit it, remove an asset to free a slot, or use **Clear trade** to reset.
 
 ### Blank-field defaults
-
-- Blank Years in League = 1.00x. It is **not** treated as Year 0.
-- Blank Years Remaining = 1.00x contract control.
+- Blank Years in League = neutral 1.00x; blank is **not** Year 0. Enter `0` explicitly for Year 0 rookie treatment.
+- Blank Years Remaining = neutral 1.00x contract control.
 - Blank Current or Projected Role = no role adjustment.
 - Blank Draft Timing = Current draft / 1.00x.
 - Blank cap hit = $0M for valuation.
+- Calculations use full internal precision; display rounding does not determine the verdict.
 
-Calculations use full internal precision. Display rounding does not determine the verdict.
+## Rules at a glance
+### Premium player protection
+- Elite QB: QB, age 26 or younger, 90+ OVR, Superstar/X-Factor; **1.30x required adjusted return**.
+- Franchise Cornerstone: age 26 or younger, 87+ OVR, Superstar/X-Factor; **1.25x individual scarcity** and **1.20x required return**.
+- Standard player acquisition: **1.10x required adjusted return**.
 
-## How trades are valued
+### Package quality
+The six available package positions receive **100% / 90% / 75% / 60% / 50% / 50%** credit. Equal-valued assets occupy sequential positions; input order breaks exact ties.
 
-### Players
+### Draft references
+Current first round:
+- 1.01-1.08: **90, 83, 77, 71, 67, 63, 60, 57**
+- 1.09-1.16: **55, 53, 50, 48, 46, 44, 42, 40**
+- 1.17-1.24: **38, 37, 36, 35, 34, 33, 32, 31**
+- 1.25-1.32: **30, 29, 28, 27, 26, 25, 24, 23**
 
-Players begin with `max(0, OVR - 60)` and are adjusted for:
+Other draft values: Early/Mid/Late 2nd **19/16/13**; Early/Mid/Late 3rd **9/7/5**; 4th/5th/6th/7th **4/3/2/1**; Future Early/Mid/Late/Unknown 1st **67/46/31/44**.
 
-- development trait and age;
-- position scarcity;
-- QB and non-QB cap-hit tiers;
-- Franchise Cornerstone status;
-- early-career value;
-- current and projected role;
-- aging adjustments for 70-79 OVR players age 31+;
-- contract control; and
-- QB-versus-QB age comparison.
+Timing: Current **1.00x**, Next year **0.85x**, Two years away **0.70x**.
 
-Premium acquisition protection uses this precedence:
+Draft-only acquisition: 1.01 **1.15x**; 1.02-1.03 **1.08x**; other meaningful trade-up **1.04x**; lateral/near-lateral **1.00x**. Draft-only FAIR treatment uses the **8% target window**.
 
-- **Elite QB:** 1.30x required adjusted return
-- **Franchise Cornerstone:** 1.20x
-- **Standard player acquisition:** 1.10x
+### Verdicts
+- **FAIR**: applicable player/mixed or draft-only FAIR test passes.
+- **QUESTIONABLE**: not FAIR; adjusted gap under 12%.
+- **UNFAIR**: adjusted gap 12% to under 22%.
+- **LEAGUE-BREAKING**: adjusted gap 22% or more.
 
-An Elite QB is age 26 or younger, 90+ OVR, Superstar or X-Factor. A Franchise Cornerstone is age 26 or younger, 87+ OVR, Superstar or X-Factor. Qualifying Cornerstones receive a 1.25x individual scarcity multiplier.
+## Trade Analysis
+Seven reads remain available: **Primary Read, Best Asset, Raw Value, Adjusted Value, Draft Capital, Package Structure, Suggested Correction**.
 
-When both packages include quarterbacks, each QB is compared with the youngest opposing QB for the QB-age adjustment.
+## Files in the v1.2.0 / v4.1 release set
+- `index.html`
+- `README.md`
+- `CANONICAL_RULESET_v4.1.md`
+- `Madden League Trade Calculator v4.1.xlsx`
+- `Madden League Trade Rules and Valuation Guide - Ruleset v4.1.docx`
+- `Madden League Ruleset Change Log and Archive Index - v1.2.0.docx`
+- `Madden League Ruleset Update Record - v1.2.0 Ruleset v4.1.docx`
 
-### Draft picks
-
-Ruleset v4.0 uses exact values for every current first-round selection:
-
-`1.01-1.08: 90, 83, 77, 71, 67, 63, 60, 57`  
-`1.09-1.16: 55, 53, 50, 48, 46, 44, 42, 40`  
-`1.17-1.24: 38, 37, 36, 35, 34, 33, 32, 31`  
-`1.25-1.32: 30, 29, 28, 27, 26, 25, 24, 23`
-
-Other draft values:
-
-- Early / Mid / Late 2nd: **19 / 16 / 13**
-- Early / Mid / Late 3rd: **9 / 7 / 5**
-- 4th / 5th / 6th / 7th: **4 / 3 / 2 / 1**
-- Future Early / Mid / Late / Unknown 1st: **67 / 46 / 31 / 44**
-
-Timing multipliers:
-
-- Current draft: **1.00x**
-- Next year: **0.85x**
-- Two years away: **0.70x**
-
-For draft-trade classification, **Best Pick Value** is calculated after the timing multiplier is applied.
-
-## Package quality
-
-Assets on each side are ranked by individual value and receive:
-
-`100% / 90% / 75% / 60% / 50% thereafter`
-
-This prevents a pile of smaller assets from matching a premium asset at full face value. Equal-valued assets still occupy sequential package positions; input-row order breaks exact ties.
-
-## Draft-only trade protection
-
-Draft-only trades use a one-sided acquisition test for the team moving up:
-
-- **1.01:** 1.15x required adjusted return
-- **1.02-1.03:** 1.08x
-- **Other meaningful trade-ups:** 1.04x
-- **Lateral / near-lateral moves:** 1.00x
-
-A meaningful ordinary trade-up occurs when the stronger Best Pick Value is more than 8% greater than the other package's Best Pick Value.
-
-### FAIR window
-
-The trade-down package must reach the required target and remain within **8% above the target**.
-
-For 1.01 at 90:
-
-- Required minimum: `90 x 1.15 = 103.5`
-- FAIR ceiling: `103.5 x 1.08 = 111.78`
-
-So the displayed FAIR range is approximately **103.5-111.8 adjusted value**.
-
-### Adjacent-pick guidance
-
-These are commissioner guidelines, not separate hard-coded validation gates:
-
-- Top-10 one-slot move: at least a **5th**
-- Later 1st / 2nd: at least a **6th**
-- 3rd round or later: at least a **7th**
-
-The actual pick-value gap can require more.
-
-## How the verdict works
-
-- **FAIR:** the applicable player/mixed acquisition requirements are satisfied, or the draft-only trade meets its acquisition requirement and FAIR window.
-- **QUESTIONABLE:** not FAIR; adjusted gap is under 12%.
-- **UNFAIR:** not FAIR; adjusted gap is 12% to under 22%.
-- **LEAGUE-BREAKING:** not FAIR; adjusted gap is 22% or more.
-
-`REASONABLE` is not an active Ruleset v4.0 verdict.
-
-## Trade Intelligence
-
-The calculator provides seven reads:
-
-1. **Primary Read**
-2. **Best Asset**
-3. **Raw Value**
-4. **Adjusted Value**
-5. **Draft Capital**
-6. **Package Structure**
-7. **Suggested Correction**
-
-These explain the major ruleset driver, value balance, draft-capital balance, package structure, and which side needs additional adjusted value when the trade is not FAIR.
-
-## Ruleset and parity
-
-**Ruleset v4.0 is the source of truth.** The Excel workbook and web calculator are synchronized implementations of the same ruleset.
-
-The current Excel-versus-web regression baseline records **55 tests passed and 0 failed**, covering the v4.0 draft curve, timing, package compression, player protections, blank/default behavior, Trade Intelligence, representative trade scenarios, and verdict boundaries.
-
-Interactive browser smoke testing and Excel desktop recalculation remain separate release-gate activities.
-
-## Version history
-
-| Version | Summary |
-|---|---|
-| v4.0 | Exact first-round values, premium top-10 curve, 1.01 haul protection, graduated draft trade-up rules, 8% draft FAIR window, synchronized Excel/web logic, and expanded Trade Intelligence |
-| v3.3 | Trade explanations and Elite QB protection |
-| v3.1-v3.2 | Premium-asset protection, package quality, multi-scenario Excel calculators, and documentation development |
-| v3.0 | Contract control, Year 0 rookie treatment, role, aging, and QB-age model |
-| v2.x | Tighter verdict bands, draft-pick tuning, layout, and version-history improvements |
-| v1.x | Original player and draft calculator foundation |
-
-## Hosting
-
-The calculator is available at [https://bms70.github.io/madden-trade-calculator/](https://bms70.github.io/madden-trade-calculator/). There is no build step or installation required.
-
-## Credits
-
-Originally built as an Excel workbook and evolved through multiple ruleset releases. **Release v1.0.0** is the first public site release and uses **Ruleset v4.0**.
+## Versioning and archive
+Public web releases and calculator rulesets are versioned independently. This package maps **Web Release v1.2.0** to **Ruleset v4.1**. Preserve the frozen v4.0 materials and prior standalone `help.html` in the historical archive rather than reusing them as current files.
