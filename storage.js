@@ -23,6 +23,14 @@
           trade: null,
           error: message
         };
+      },
+
+      adminLogin: async function () {
+        return {
+          ok: false,
+          session: null,
+          error: message
+        };
       }
     });
   }
@@ -174,9 +182,119 @@
     }
   }
 
+async function adminLogin(password){
+  if(typeof password!=='string'||password.length===0){
+    return {
+      ok:false,
+      session:null,
+      error:'Access denied.'
+    };
+  }
+
+  try{
+    const {data,error}=await client.functions.invoke(
+      'admin-login',
+      {
+        body:{
+          password
+        }
+      }
+    );
+
+    if(error){
+      let message='Access denied.';
+
+      if(
+        error.context&&
+        typeof error.context.json==='function'
+      ){
+        try{
+          const details=await error.context.json();
+
+          if(
+            details&&
+            typeof details.error==='string'
+          ){
+            message=details.error;
+          }
+        }catch{
+          // Keep the generic access failure.
+        }
+      }
+
+      return {
+        ok:false,
+        session:null,
+        error:message
+      };
+    }
+
+    if(
+      !data||
+      data.ok!==true||
+      !data.session||
+      typeof data.session.token!=='string'||
+      data.session.token.length===0||
+      typeof data.session.expiresAt!=='string'
+    ){
+      console.error(
+        'Admin login returned an invalid response.',
+        data
+      );
+
+      return {
+        ok:false,
+        session:null,
+        error:'Administrative access is unavailable.'
+      };
+    }
+
+    const expirationTime=Date.parse(
+      data.session.expiresAt
+    );
+
+    if(
+      !Number.isFinite(expirationTime)||
+      expirationTime<=Date.now()
+    ){
+      console.error(
+        'Admin login returned an invalid expiration.'
+      );
+
+      return {
+        ok:false,
+        session:null,
+        error:'Administrative access is unavailable.'
+      };
+    }
+
+    return {
+      ok:true,
+      session:{
+        token:data.session.token,
+        expiresAt:data.session.expiresAt
+      },
+      error:null
+    };
+
+  }catch(error){
+    console.error(
+      'Admin login connection failed:',
+      error
+    );
+
+    return {
+      ok:false,
+      session:null,
+      error:'Administrative access is unavailable.'
+    };
+  }
+}
+
   window.MaddenStorage = Object.freeze({
     isConfigured: true,
     getActiveTrades,
-    acceptTrade
+    acceptTrade,
+    adminLogin
   });
 })();
