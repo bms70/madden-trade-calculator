@@ -1,79 +1,170 @@
 # Madden League Trade Calculator
 
-A responsive single-page calculator for grading Player and Draft Pick trades in a Madden league.
+A responsive web calculator for evaluating Player and Draft Pick trades in a Madden league.
 
-**Web Release v1.3.0** uses **Ruleset v4.2**.
+**Current Web Release:** v1.3.0  
+**Current Ruleset:** v4.2
 
-## Release v1.3.0 / Ruleset v4.2
+---
 
-This maintenance release corrects the mixed Player/Draft Pick FAIR evaluation while preserving the established six-asset structure and underlying valuation framework.
+## Calculator
 
-### What's changed
+The current web application is provided through:
 
-- Player/mixed acquisition protection is directional rather than requiring both packages to satisfy competing acquisition-return tests.
-- Each package identifies its highest eligible positive-value Player using full internal precision.
-- The package receiving the higher selected Player value becomes the protected acquisition side.
-- Standard, Franchise Cornerstone, and Elite QB acquisition requirements remain **1.10x / 1.20x / 1.30x**.
-- Exact same-package Player-value ties use protection rank: **Elite QB > Franchise Cornerstone > Standard**, then input order.
-- Exact cross-package selected Player-value ties use the **8% Adjusted Gap** path. Protection tier does not break a cross-package tie.
-- If neither positive package contains an eligible positive-value Player, the **8% Adjusted Gap** path applies.
-- Primary Read and Suggested Correction now use the governing directional/tie state.
-- Completed web asset cards are collapsible and preserve their expanded/collapsed state while editing.
-- How to Use includes value terminology, common trade types, common mistakes, editing guidance, defaults, and precision guidance.
+`index.html`
 
-## Preserved behavior
+The calculator supports:
 
-- Maximum trade package: **6 assets per side**.
-- Asset types: **Player** or **Draft Pick**.
-- Player valuation factors and neutral/default behavior remain in place.
-- Package credits remain **100% / 90% / 75% / 60% / 50% / 50%**.
-- Draft timing remains **1.00 / 0.85 / 0.70** for Current / Next year / Two years away.
-- Draft-only acquisition protection remains **1.15x / 1.08x / 1.04x / 1.00x** as applicable, with the **8% target window**.
-- Fallback verdict bands remain:
-  - **QUESTIONABLE**: not FAIR; adjusted gap under 12%.
-  - **UNFAIR**: adjusted gap 12% to under 22%.
-  - **LEAGUE-BREAKING**: adjusted gap 22% or more.
-- Calculations use full internal precision; display rounding does not determine the verdict.
-- Seven Trade Intelligence reads remain available: **Primary Read, Best Asset, Raw Value, Adjusted Value, Draft Capital, Package Structure, Suggested Correction**.
+- Player and Draft Pick trade assets
+- Up to six assets per side
+- Raw and Adjusted Package Values
+- Player/mixed acquisition protection
+- Draft-only protection
+- Trade verdicts
+- Suggested Correction
+- Seven Trade Intelligence reads
 
-## How to use it
+Calculations use full internal precision. Display rounding does not determine the verdict.
 
-1. Add assets under the team that **receives** them.
-2. Choose **Player** or **Draft Pick**.
-3. For a Player, provide OVR, age, position, and development trait before the Player contributes value.
-4. For a Draft Pick, select the pick/projection and timing.
-5. Review each asset's Individual Asset Value, then the Raw and Adjusted Package Values and trade verdict.
-6. Review Primary Read for the governing rule and Suggested Correction for the side/value adjustment required when the trade is not FAIR.
-7. Reopen a completed asset card to edit it, remove an asset to free a slot, or use **Clear trade** to reset.
+---
 
-### Blank-field defaults
+## Documentation
 
-- Blank Years in League = neutral 1.00x; blank is **not** Year 0. Enter 0 explicitly for Year 0 rookie treatment.
-- Blank Years Remaining = neutral 1.00x contract control.
-- Blank Current or Projected Role = no role adjustment.
-- Blank Draft Timing = Current draft / 1.00x.
-- Blank cap hit = $0M for valuation.
-- Required Player fields are OVR, age, position, and development trait.
+The GitHub Wiki is the human-readable project handbook.
 
-## Current release files
+Wiki documentation includes:
 
-- `index.html`
-- `README.md`
+- Using the Calculator
+- Ruleset Overview
+- Releases
+- Development
+- Web Release v1.4.0
+- Architecture
+- Ruleset v5.0 Roadmap
+- Glossary
+- Documentation Authority
+
+The Wiki explains the project but does not replace governed repository artifacts.
+
+---
+
+## Repository Structure
+
+### `docs/rules/`
+
+Canonical and member-facing Ruleset documentation.
+
+Current files include:
+
 - `CANONICAL_RULESET_v4.2.md`
-- `Madden League Trade Calculator v4.2.xlsx`
 - `Madden League Trade Rules and Valuation Guide - Ruleset v4.2.docx`
-- `REGRESSION_REPORT_v4.2.md`
-- `FINAL_CROSS_FILE_AUDIT_v1.3.0.md`
+
+### `docs/releases/`
+
+Current release notes and release records.
+
+Current files include:
+
 - `RELEASE_NOTES_v1.3.0.md`
 - `Madden League Ruleset Change Log and Archive Index - v1.3.0.docx`
 - `Madden League Ruleset Update Record - v1.3.0 Ruleset v4.2.docx`
 
-## Versioning and archive
+### `docs/validation/`
 
-Public web releases and calculator rulesets are versioned independently. This release maps **Web Release v1.3.0** to **Ruleset v4.2**.
+Regression and release-validation records.
 
-The prior **Web Release v1.2.0 / Ruleset v4.1** materials should remain preserved under `archive/ruleset-v4.1/` rather than being reused as current files.
+Current files include:
 
-## Pre-v5 status
+- `REGRESSION_REPORT_v4.2.md`
+- `FINAL_CROSS_FILE_AUDIT_v1.3.0.md`
 
-Ruleset v4.2 is the blocking maintenance release that corrects the mixed Player/Draft Pick FAIR issue identified before Phase 1 of the v5 development roadmap. The maintenance release must be published with its parity and release gates complete before Phase 1 League Data Foundation begins.
+### `docs/roadmap/`
+
+Future development planning.
+
+Current files include:
+
+- `Madden League Trade Calculator - Ruleset v5.0 Development Roadmap.docx`
+- `Madden_League_v5_Roadmap_Graphic.png`
+
+### `reference/`
+
+Reference implementations used for parity and validation.
+
+Current file:
+
+- `Madden League Trade Calculator v4.2.xlsx`
+
+### `archive/`
+
+Preserved historical release and Ruleset artifacts.
+
+Historical material should remain separate from active development.
+
+### Repository Root
+
+- `index.html` — current web application
+- `README.md` — repository overview and navigation
+
+---
+
+## Documentation Authority
+
+Different repository artifacts serve different purposes.
+
+- **Valuation and Ruleset policy:** `docs/rules/CANONICAL_RULESET_v4.2.md`
+- **Web implementation:** `index.html`
+- **Validation evidence:** `docs/validation/`
+- **Release records:** `docs/releases/`
+- **Reference implementation:** `reference/`
+- **Future planning:** `docs/roadmap/`
+- **Historical artifacts:** `archive/`
+- **Human-readable project documentation:** GitHub Wiki
+
+When the application implementation conflicts with the canonical Ruleset, the discrepancy should be treated as an implementation-parity issue rather than an undocumented Ruleset change.
+
+---
+
+## Versioning
+
+Web Releases and Rulesets are versioned independently.
+
+The current production mapping is:
+
+**Web Release v1.3.0 | Ruleset v4.2**
+
+A Web Release may introduce application, user-experience, documentation, or infrastructure changes without requiring a new valuation Ruleset.
+
+A Ruleset version identifies the governed trade-valuation framework.
+
+---
+
+## Current Development
+
+The next planned application release is:
+
+**Web Release v1.4.0 | Ruleset v4.2**
+
+The planned release focuses on Trade History, accepted-trade logging, administrative controls, persistence, and user-experience improvements while preserving Ruleset v4.2.
+
+Detailed requirements and development information are maintained in the GitHub Wiki and corresponding GitHub Issues.
+
+---
+
+## Future Development
+
+Long-term development toward a future Ruleset v5.0 includes league integration, richer transaction history, league context, historical analysis, candidate-model research, and validation before any future Ruleset is promoted.
+
+The detailed roadmap is maintained under:
+
+`docs/roadmap/`
+
+---
+
+## Governance Principle
+
+The repository is the version-controlled source for governed project artifacts.
+
+The Wiki is the human-readable project handbook.
+
+Canonical Ruleset specifications, application source, validation records, release records, reference implementations, roadmaps, and historical archives remain maintained in the repository.
