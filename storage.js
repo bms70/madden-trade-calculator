@@ -31,8 +31,26 @@
           session: null,
           error: message
         };
+      },
+
+      deleteTrade: async function () {
+        return {
+          ok: false,
+          deletion: null,
+          error: message
+        };
+      },
+
+      getAdminAuditLog: async function () {
+        return {
+          ok: false,
+          auditEvents: [],
+          deletedTrades: [],
+          error: message
+        };
       }
     });
+
   }
 
   if (
@@ -291,10 +309,192 @@ async function adminLogin(password){
   }
 }
 
+async function deleteTrade({
+  token,
+  tradeId,
+  administratorName,
+  reason
+}){
+  try{
+    const {data,error}=await client.functions.invoke(
+      'delete-trade',
+      {
+        body:{
+          token,
+          tradeId,
+          administratorName,
+          reason
+        }
+      }
+    );
+
+    if(error){
+      let message='The Trade could not be deleted.';
+
+      if(
+        error.context&&
+        typeof error.context.json==='function'
+      ){
+        try{
+          const details=await error.context.json();
+
+          if(
+            details&&
+            typeof details.error==='string'
+          ){
+            message=details.error;
+          }
+        }catch{
+          // Preserve the generic deletion failure.
+        }
+      }
+
+      console.error(
+        'Protected Trade deletion failed:',
+        error
+      );
+
+      return {
+        ok:false,
+        deletion:null,
+        error:message
+      };
+    }
+
+    if(
+      !data||
+      data.ok!==true||
+      !data.deletion||
+      typeof data.deletion.tradeId!=='string'||
+      !Number.isInteger(data.deletion.tradeNumber)||
+      typeof data.deletion.deletedAt!=='string'||
+      typeof data.deletion.auditEventId!=='string'||
+      typeof data.deletion.auditOccurredAt!=='string'
+    ){
+      console.error(
+        'Trade deletion returned an invalid response:',
+        data
+      );
+
+      return {
+        ok:false,
+        deletion:null,
+        error:'The Trade deletion result was invalid.'
+      };
+    }
+
+    return {
+      ok:true,
+      deletion:data.deletion,
+      error:null
+    };
+
+  }catch(error){
+    console.error(
+      'Trade deletion connection failed:',
+      error
+    );
+
+    return {
+      ok:false,
+      deletion:null,
+      error:'The Trade could not be deleted.'
+    };
+  }
+}
+
+async function getAdminAuditLog(token){
+  try{
+    const {data,error}=await client.functions.invoke(
+      'admin-audit-log',
+      {
+        body:{
+          token
+        }
+      }
+    );
+
+    if(error){
+      let message='Audit Log could not be loaded.';
+
+      if(
+        error.context&&
+        typeof error.context.json==='function'
+      ){
+        try{
+          const details=await error.context.json();
+
+          if(
+            details&&
+            typeof details.error==='string'
+          ){
+            message=details.error;
+          }
+        }catch{
+          // Preserve the generic Audit Log failure.
+        }
+      }
+
+      console.error(
+        'Protected Audit Log retrieval failed:',
+        error
+      );
+
+      return {
+        ok:false,
+        auditEvents:[],
+        deletedTrades:[],
+        error:message
+      };
+    }
+
+    if(
+      !data||
+      data.ok!==true||
+      !Array.isArray(data.auditEvents)||
+      !Array.isArray(data.deletedTrades)
+    ){
+      console.error(
+        'Audit Log returned an invalid response:',
+        data
+      );
+
+      return {
+        ok:false,
+        auditEvents:[],
+        deletedTrades:[],
+        error:'Audit Log returned an invalid response.'
+      };
+    }
+
+    return {
+      ok:true,
+      auditEvents:data.auditEvents,
+      deletedTrades:data.deletedTrades,
+      error:null
+    };
+
+  }catch(error){
+    console.error(
+      'Audit Log connection failed:',
+      error
+    );
+
+    return {
+      ok:false,
+      auditEvents:[],
+      deletedTrades:[],
+      error:'Audit Log could not be loaded.'
+    };
+  }
+}
+
   window.MaddenStorage = Object.freeze({
     isConfigured: true,
     getActiveTrades,
     acceptTrade,
-    adminLogin
+    adminLogin,
+    deleteTrade,
+    getAdminAuditLog
   });
 })();

@@ -104,15 +104,203 @@
   font-weight:800;
 }
 
-.admin-placeholder{
-  margin-top:10px;
+.admin-tools{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:12px;
+}
+
+.admin-section{
   background:var(--card);
   border:1px solid var(--line);
   border-radius:14px;
-  padding:18px;
-  text-align:center;
-  font-size:11px;
+  padding:14px;
+}
+
+.admin-section-head{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.admin-section-head h2{
+  margin:0;
+  color:var(--navy);
+  font-size:14px;
+}
+
+.admin-section-head p{
+  margin:4px 0 0;
   color:var(--muted);
+  font-size:10px;
+  line-height:1.45;
+}
+
+#adminTradesList,
+#adminAuditList{
+  display:grid;
+  gap:8px;
+  margin-top:10px;
+}
+
+.admin-trade-card{
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:10px;
+  background:#f8fafc;
+}
+
+.admin-trade-head{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+}
+
+.admin-trade-packages{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+  margin-top:9px;
+}
+
+.admin-trade-packages>div{
+  background:var(--card);
+  border-radius:7px;
+  padding:8px;
+}
+
+.admin-trade-packages b{
+  display:block;
+  margin-bottom:3px;
+  font-size:9px;
+  color:var(--muted);
+}
+
+.admin-trade-packages span{
+  font-size:10px;
+}
+
+.admin-trade-meta{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+  margin-top:8px;
+  padding-top:8px;
+  border-top:1px solid var(--line);
+  font-size:9px;
+  color:var(--muted);
+}
+
+.admin-audit-card{
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:10px;
+  background:#f8fafc;
+}
+
+.admin-audit-head{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+}
+
+.admin-audit-action{
+  font-size:9px;
+  font-weight:850;
+  color:var(--red);
+}
+
+.admin-audit-detail{
+  margin-top:8px;
+  padding-top:8px;
+  border-top:1px solid var(--line);
+}
+
+.admin-audit-detail b{
+  display:block;
+  font-size:9px;
+  color:var(--muted);
+}
+
+.admin-audit-detail span{
+  display:block;
+  margin-top:3px;
+  font-size:10px;
+}
+
+.admin-delete-trade{
+  background:#fdecec;
+  color:var(--red);
+  font-weight:800;
+}
+
+.admin-delete-confirm{
+  margin-top:12px;
+  background:var(--card);
+  border:1px solid #edb9b9;
+  border-radius:14px;
+  padding:14px;
+}
+
+.admin-delete-confirm h2{
+  margin:0;
+  color:var(--red);
+  font-size:14px;
+}
+
+.admin-delete-confirm p{
+  margin:5px 0 0;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.45;
+}
+
+#adminDeleteForm{
+  display:grid;
+  gap:8px;
+  margin-top:14px;
+}
+
+#adminDeleteForm label{
+  font-size:9px;
+  font-weight:800;
+  color:var(--muted);
+}
+
+#adminDeleteName,
+#adminDeleteReason{
+  width:100%;
+  border:1px solid #cbd6e3;
+  border-radius:8px;
+  padding:9px;
+  background:#fff;
+  font:inherit;
+}
+
+#adminDeleteReason{
+  resize:vertical;
+}
+
+.admin-optional{
+  font-weight:500;
+}
+
+.admin-delete-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:4px;
+}
+
+.admin-confirm-delete{
+  background:var(--red);
+  color:#fff;
+  font-weight:850;
 }
 
 .history-state{
@@ -325,8 +513,16 @@
   grid-template-columns:1fr;
 }
 
+.admin-tools{
+  grid-template-columns:1fr;
 }
-.brandrow{display:grid;grid-template-columns:1fr auto 1fr;text-align:center}.brandrow>div{grid-column:2}.brandrow .clear{grid-column:3;justify-self:end}.tabs{justify-content:center}@media(max-width:700px){.brandrow{grid-template-columns:1fr auto 1fr}.brandrow .clear{padding:7px 9px}}</style></head><body><header class="top"><div class="topin"><div class="brandrow"><div><div class="brand">MADDEN LEAGUE TRADE CALCULATOR</div><div class="ver">Web Release v1.3.0 · Ruleset v4.2</div></div><button type="button" class="clear" id="clear">Clear trade</button></div><nav class="tabs" aria-label="Primary"><button type="button" class="tab active" data-tab="calc">Calculator</button><button type="button" class="tab" data-tab="howto">How to Use</button><button type="button" class="tab" data-tab="rules">Rules</button><button type="button" class="tab" data-tab="admin">Admin</button></nav></div></header><main>
+
+.admin-trade-packages{
+  grid-template-columns:1fr;
+}
+
+}
+.brandrow{display:grid;grid-template-columns:1fr auto 1fr;text-align:center}.brandrow>div{grid-column:2}.brandrow .clear{grid-column:3;justify-self:end}.tabs{justify-content:center}@media(max-width:700px){.brandrow{grid-template-columns:1fr auto 1fr}.brandrow .clear{padding:7px 9px}}</style></head><body><header class="top"><div class="topin"><div class="brandrow"><div><div class="brand">MADDEN LEAGUE TRADE CALCULATOR</div><div class="ver">Web Release v1.4.0 · Ruleset v4.2</div></div><button type="button" class="clear" id="clear">Clear trade</button></div><nav class="tabs" aria-label="Primary"><button type="button" class="tab active" data-tab="calc">Calculator</button><button type="button" class="tab" data-tab="howto">How to Use</button><button type="button" class="tab" data-tab="rules">Rules</button><button type="button" class="tab" data-tab="history">Trade History</button><button type="button" class="tab" data-tab="admin">Admin</button></nav></div></header><main>
 <section id="calc" class="panel"><section class="result"><div class="score"><small>USER TEAM ADJUSTED</small><strong id="atotal">0.0</strong></div><div class="verdict" id="vbox"><strong id="verdict">ADD ASSETS</strong><small id="gap"></small></div><div class="score"><small>CPU TEAM ADJUSTED</small><strong id="btotal">0.0</strong></div></section><div class="trade"><section class="side" data-side="A"><div class="sidehead"><h2>USER TEAM RECEIVES</h2><span class="count">0 / 6</span></div><div class="assets"></div><button type="button" class="add">+ Add asset</button></section><section class="side" data-side="B"><div class="sidehead"><h2>CPU TEAM RECEIVES</h2><span class="count">0 / 6</span></div><div class="assets"></div><button type="button" class="add">+ Add asset</button></section></div><section class="analysis" id="analysis"><button type="button" id="analysisBtn" aria-expanded="false"><span>TRADE ANALYSIS</span><span id="chev">▾</span></button><div class="primary" id="primary"><b>Primary Read:</b> Add assets to both sides.</div><div class="details" id="reads"></div>
 </section>
 
@@ -433,8 +629,107 @@
       </button>
     </div>
 
-    <div class="admin-placeholder">
-      Administrative Trade History controls will appear here.
+    <div class="admin-tools">
+      <section class="admin-section">
+        <div class="admin-section-head">
+          <div>
+            <h2>Active Trades</h2>
+            <p>
+              Manage accepted trades currently visible in public Trade History.
+            </p>
+          </div>
+        </div>
+
+        <div
+          id="adminTradesStatus"
+          class="admin-status"
+          aria-live="polite">
+          Unlock Admin to load active trades.
+        </div>
+
+        <div id="adminTradesList"></div>
+      </section>
+
+      <section class="admin-section">
+        <div class="admin-section-head">
+          <div>
+            <h2>Audit Log</h2>
+            <p>
+              Administrative Trade History actions appear here.
+            </p>
+          </div>
+        </div>
+
+        <div
+          id="adminAuditStatus"
+          class="admin-status"
+          aria-live="polite">
+          Unlock Admin to load the Audit Log.
+        </div>
+
+        <div id="adminAuditList"></div>
+      </section>
+    </div>
+
+    <div
+      class="admin-delete-confirm"
+      id="adminDeleteConfirm"
+      hidden>
+
+      <h2 id="adminDeleteTitle">
+        Confirm Trade Deletion
+      </h2>
+
+      <p id="adminDeleteDescription">
+        Confirm which Trade should be removed from public Trade History.
+      </p>
+
+      <form id="adminDeleteForm">
+        <label for="adminDeleteName">
+          Administrator Name
+        </label>
+
+        <input
+          type="text"
+          id="adminDeleteName"
+          maxlength="200"
+          autocomplete="off"
+          required
+        >
+
+        <label for="adminDeleteReason">
+          Deletion Reason
+          <span class="admin-optional">Optional</span>
+        </label>
+
+        <textarea
+          id="adminDeleteReason"
+          maxlength="1000"
+          rows="3"
+          placeholder="For example: Duplicate trade or logged in error"
+        ></textarea>
+
+        <div class="admin-delete-actions">
+          <button
+            type="button"
+            class="btn"
+            id="cancelDeleteTrade">
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="btn admin-confirm-delete">
+            Confirm Delete
+          </button>
+        </div>
+      </form>
+
+      <div
+        id="adminDeleteStatus"
+        class="admin-status"
+        aria-live="polite">
+      </div>
     </div>
   </div>
 </section>
@@ -454,6 +749,11 @@ let uid=0,state={A:[],B:[]};
 
 let adminSession=null;
 let adminLoginPending=false;
+
+let adminTrades=[];
+let adminAuditEvents=[];
+let adminDeletedTrades=[];
+let pendingDeleteTrade=null;
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 function teamName(side){return side==='A'?'User Team':'CPU Team'}
@@ -815,6 +1115,11 @@ if(adminLoginForm){
       status.textContent='';
       renderAdminState();
 
+      await Promise.all([
+        loadAdminTrades(),
+        loadAdminAuditLog()
+      ]);
+
     }catch(error){
       console.error(
         'Unexpected Admin login failure:',
@@ -843,6 +1148,143 @@ let lockAdminButton=$('#lockAdmin');
 
 if(lockAdminButton){
   lockAdminButton.onclick=lockAdmin;
+}
+
+let cancelDeleteButton=
+  $('#cancelDeleteTrade');
+
+if(cancelDeleteButton){
+  cancelDeleteButton.onclick=
+    closeDeleteConfirmation;
+}
+
+let adminDeleteForm=
+  $('#adminDeleteForm');
+
+if(adminDeleteForm){
+  adminDeleteForm.onsubmit=async event=>{
+    event.preventDefault();
+
+    let status=
+      $('#adminDeleteStatus');
+
+    let nameInput=
+      $('#adminDeleteName');
+
+    let reasonInput=
+      $('#adminDeleteReason');
+
+    let submitButton=
+      adminDeleteForm.querySelector(
+        '.admin-confirm-delete'
+      );
+
+    if(
+      !adminSessionIsValid()||
+      !pendingDeleteTrade
+    ){
+      if(status){
+        status.textContent=
+          'Administrative authorization required.';
+      }
+
+      renderAdminState();
+      return;
+    }
+
+    let administratorName=
+      (nameInput?.value||'').trim();
+
+    let reason=
+      (reasonInput?.value||'').trim();
+
+    if(!administratorName){
+      if(status){
+        status.textContent=
+          'Administrator Name is required.';
+      }
+
+      if(nameInput){
+        nameInput.focus();
+      }
+
+      return;
+    }
+
+    if(submitButton){
+      submitButton.disabled=true;
+      submitButton.textContent=
+        'Deleting Trade...';
+    }
+
+    if(status){
+      status.textContent=
+        'Processing protected Trade deletion...';
+    }
+
+    try{
+      let result=
+        await window.MaddenStorage.deleteTrade({
+          token:adminSession.token,
+          tradeId:pendingDeleteTrade.id,
+          administratorName,
+          reason
+        });
+
+      if(!result.ok){
+        if(status){
+          status.textContent=
+            result.error||
+            'The Trade could not be deleted.';
+        }
+
+        return;
+      }
+
+      let deletedTradeNumber=
+        result.deletion.tradeNumber;
+
+      closeDeleteConfirmation();
+
+      historyLoaded=false;
+      historyRecords=[];
+
+      await Promise.all([
+        loadAdminTrades(),
+        loadAdminAuditLog()
+      ]);
+
+      if(status){
+        status.textContent='';
+      }
+
+      let adminStatus=
+        $('#adminTradesStatus');
+
+      if(adminStatus){
+        adminStatus.textContent=
+          `Trade #${deletedTradeNumber} deleted and audited successfully.`;
+      }
+
+    }catch(error){
+      console.error(
+        'Unexpected protected deletion failure:',
+        error
+      );
+
+      if(status){
+        status.textContent=
+          'The Trade could not be deleted.';
+      }
+
+    }finally{
+      if(submitButton){
+        submitButton.disabled=false;
+        submitButton.textContent=
+          'Confirm Delete';
+      }
+    }
+  };
 }
 
 renderAdminState();
@@ -1111,6 +1553,303 @@ function adminSessionIsValid(){
   );
 }
 
+function adminTradeCard(trade){
+  let tradeNumber=
+    Number.isInteger(trade.trade_number)
+      ? `Trade #${trade.trade_number}`
+      : 'Trade';
+
+  let userSummary=
+    historyPackageSummary(trade.user_team_assets);
+
+  let cpuSummary=
+    historyPackageSummary(trade.cpu_team_assets);
+
+  return `
+    <article class="admin-trade-card">
+      <div class="admin-trade-head">
+        <div>
+          <strong>${esc(tradeNumber)}</strong>
+          <div class="history-time">
+            ${esc(formatHistoryDate(trade.accepted_at))}
+          </div>
+        </div>
+
+        <span class="history-verdict">
+          ${esc(trade.verdict||'UNKNOWN')}
+        </span>
+      </div>
+
+      <div class="admin-trade-packages">
+        <div>
+          <b>USER TEAM RECEIVES</b>
+          <span>${esc(userSummary)}</span>
+        </div>
+
+        <div>
+          <b>CPU TEAM RECEIVES</b>
+          <span>${esc(cpuSummary)}</span>
+        </div>
+      </div>
+
+      <div class="admin-trade-meta">
+        <span>
+          ${esc(trade.web_release||'Unknown release')}
+          · Ruleset ${esc(trade.ruleset_version||'Unknown')}
+        </span>
+
+        <button
+          type="button"
+          class="btn admin-delete-trade"
+          data-trade-id="${esc(trade.id)}">
+          Delete Trade
+        </button>
+      </div>
+    </article>
+  `;
+}
+
+async function loadAdminTrades(){
+  let status=$('#adminTradesStatus');
+  let list=$('#adminTradesList');
+
+  if(!status||!list)return;
+
+  if(!adminSessionIsValid()){
+    adminTrades=[];
+    list.innerHTML='';
+    status.textContent='Administrative authorization required.';
+    return;
+  }
+
+  status.textContent='Loading active trades...';
+  list.innerHTML='';
+
+  let result=await window.MaddenStorage.getActiveTrades();
+
+  if(!adminSessionIsValid()){
+    adminTrades=[];
+    list.innerHTML='';
+    status.textContent='Administrative authorization required.';
+    renderAdminState();
+    return;
+  }
+
+  if(!result.ok){
+    adminTrades=[];
+    status.textContent='Active trades could not be loaded.';
+    return;
+  }
+
+  adminTrades=Array.isArray(result.data)?result.data:[];
+
+  if(!adminTrades.length){
+    status.textContent='No active trades are available.';
+    return;
+  }
+
+  status.textContent='';
+  list.innerHTML=adminTrades.map(adminTradeCard).join('');
+  bindAdminTradeCards();
+}
+
+function adminAuditCard(event){
+  let tradeNumber=
+    Number.isInteger(event.trade_number)
+      ? `Trade #${event.trade_number}`
+      : 'Trade';
+
+  let reason=
+    typeof event.reason==='string' &&
+    event.reason.trim()
+      ? event.reason
+      : 'No deletion reason provided.';
+
+  return `
+    <article class="admin-audit-card">
+      <div class="admin-audit-head">
+        <div>
+          <strong>${esc(tradeNumber)}</strong>
+          <div class="history-time">
+            ${esc(formatHistoryDate(event.occurred_at))}
+          </div>
+        </div>
+
+        <span class="admin-audit-action">
+          ${esc(event.action||'AUDIT EVENT')}
+        </span>
+      </div>
+
+      <div class="admin-audit-detail">
+        <b>Administrator Name</b>
+        <span>${esc(event.administrator_name||'Unknown')}</span>
+      </div>
+
+      <div class="admin-audit-detail">
+        <b>Reason</b>
+        <span>${esc(reason)}</span>
+      </div>
+    </article>
+  `;
+}
+
+async function loadAdminAuditLog(){
+  let status=$('#adminAuditStatus');
+  let list=$('#adminAuditList');
+
+  if(!status||!list)return;
+
+  if(!adminSessionIsValid()){
+    adminAuditEvents=[];
+    adminDeletedTrades=[];
+    list.innerHTML='';
+    status.textContent=
+      'Administrative authorization required.';
+    return;
+  }
+
+  status.textContent='Loading Audit Log...';
+  list.innerHTML='';
+
+  let result=
+    await window.MaddenStorage.getAdminAuditLog(
+      adminSession.token
+    );
+
+  if(!adminSessionIsValid()){
+    adminAuditEvents=[];
+    adminDeletedTrades=[];
+    list.innerHTML='';
+    status.textContent=
+      'Administrative authorization required.';
+    renderAdminState();
+    return;
+  }
+
+  if(!result.ok){
+    adminAuditEvents=[];
+    adminDeletedTrades=[];
+    status.textContent=
+      result.error||
+      'Audit Log could not be loaded.';
+    return;
+  }
+
+  adminAuditEvents=
+    Array.isArray(result.auditEvents)
+      ? result.auditEvents
+      : [];
+
+  adminDeletedTrades=
+    Array.isArray(result.deletedTrades)
+      ? result.deletedTrades
+      : [];
+
+  if(!adminAuditEvents.length){
+    status.textContent=
+      'No administrative Audit Events are available.';
+    return;
+  }
+
+  status.textContent='';
+
+  list.innerHTML=
+    adminAuditEvents
+      .map(adminAuditCard)
+      .join('');
+}
+
+function closeDeleteConfirmation(){
+  pendingDeleteTrade=null;
+
+  let confirm=$('#adminDeleteConfirm');
+  let name=$('#adminDeleteName');
+  let reason=$('#adminDeleteReason');
+  let status=$('#adminDeleteStatus');
+
+  if(confirm){
+    confirm.hidden=true;
+  }
+
+  if(name){
+    name.value='';
+  }
+
+  if(reason){
+    reason.value='';
+  }
+
+  if(status){
+    status.textContent='';
+  }
+}
+
+function openDeleteConfirmation(tradeId){
+  if(!adminSessionIsValid()){
+    renderAdminState();
+    return;
+  }
+
+  let trade=adminTrades.find(
+    item=>String(item.id)===String(tradeId)
+  );
+
+  if(!trade)return;
+
+  pendingDeleteTrade=trade;
+
+  let confirm=$('#adminDeleteConfirm');
+  let title=$('#adminDeleteTitle');
+  let description=$('#adminDeleteDescription');
+  let name=$('#adminDeleteName');
+  let reason=$('#adminDeleteReason');
+  let status=$('#adminDeleteStatus');
+
+  if(!confirm||!title||!description)return;
+
+  let tradeNumber=
+    Number.isInteger(trade.trade_number)
+      ? `Trade #${trade.trade_number}`
+      : 'this Trade';
+
+  title.textContent=`Delete ${tradeNumber}?`;
+  description.textContent=
+    `${tradeNumber} will be removed from public Trade History. `+
+    `The original accepted Trade record will be retained and an `+
+    `administrative Audit Event will be created.`;
+
+  if(name){
+    name.value='';
+  }
+
+  if(reason){
+    reason.value='';
+  }
+
+  if(status){
+    status.textContent='';
+  }
+
+  confirm.hidden=false;
+
+  if(name){
+    name.focus();
+  }
+
+  confirm.scrollIntoView({
+    behavior:'smooth',
+    block:'start'
+  });
+}
+
+function bindAdminTradeCards(){
+  $$('.admin-delete-trade').forEach(button=>{
+    button.onclick=()=>{
+      openDeleteConfirmation(button.dataset.tradeId);
+    };
+  });
+}
+
 function renderAdminState(){
   let locked=$('#adminLocked');
   let unlocked=$('#adminUnlocked');
@@ -1124,10 +1863,7 @@ function renderAdminState(){
   unlocked.hidden=!valid;
 
   if(valid&&sessionStatus){
-    let expiration=new Date(
-      adminSession.expiresAt
-    );
-
+    let expiration=new Date(adminSession.expiresAt);
     sessionStatus.textContent=
       `Administrative access is active until ${expiration.toLocaleTimeString()}.`;
   }
@@ -1135,9 +1871,14 @@ function renderAdminState(){
 
 function lockAdmin(){
   adminSession=null;
+  adminTrades=[];
+  adminAuditEvents=[];
+  adminDeletedTrades=[];
 
   let password=$('#adminPassword');
   let status=$('#adminStatus');
+  let tradesList=$('#adminTradesList');
+  let auditList=$('#adminAuditList');
 
   if(password){
     password.value='';
@@ -1147,6 +1888,15 @@ function lockAdmin(){
     status.textContent='Admin is locked.';
   }
 
+  if(tradesList){
+    tradesList.innerHTML='';
+  }
+
+  if(auditList){
+    auditList.innerHTML='';
+  }
+
+  closeDeleteConfirmation();
   renderAdminState();
 }
 
