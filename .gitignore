@@ -1,0 +1,10 @@
+# Node dependencies
+node_modules/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Supabase local development
+supabase/.temp/

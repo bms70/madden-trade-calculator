@@ -1,13 +1,559 @@
+
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Madden League Trade Calculator</title><style>
-:root{--navy:#14213d;--blue:#2f75b5;--bg:#f3f6fa;--card:#fff;--line:#dce4ee;--muted:#64748b;--green:#18794e;--amber:#a15c00;--orange:#b94700;--red:#ad1f1f}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:#172033}.top{background:var(--navy);color:#fff}.topin{max-width:1100px;margin:auto;padding:16px 18px 12px}.brandrow{display:flex;justify-content:space-between;gap:12px;align-items:center}.brand{font-weight:850;font-size:19px}.ver{font-size:11px;color:#bfd0e7;margin-top:3px}.clear{border:1px solid #667c99;background:transparent;color:#fff;border-radius:9px;padding:8px 11px}.tabs{display:flex;gap:5px;margin-top:13px}.tab{border:0;background:transparent;color:#bdcce0;padding:8px 12px;border-radius:8px 8px 0 0;font-weight:800}.tab.active{background:var(--bg);color:var(--navy)}main{max-width:1100px;margin:auto;padding:14px}.result{display:grid;grid-template-columns:1fr auto 1fr;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:12px}.score{padding:12px 16px}.score:last-child{text-align:right}.score small,.eyebrow{font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--muted)}.score strong{display:block;font-size:24px;color:var(--navy)}.verdict{padding:10px 22px;min-width:185px;text-align:center;background:#edf2f7;border-inline:1px solid var(--line)}.verdict strong{display:block;font-size:18px}.verdict.fair{background:#eaf7ef;color:var(--green)}.verdict.questionable{background:#fff4df;color:var(--amber)}.verdict.unfair{background:#fff0e8;color:var(--orange)}.verdict.league-breaking{background:#fdecec;color:var(--red)}.trade{display:grid;grid-template-columns:1fr 1fr;gap:12px}.side,.analysis,.rulecard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}.sidehead{display:flex;justify-content:space-between;align-items:center}.sidehead h2{font-size:13px;margin:0;color:var(--navy)}.count{font-size:10px;color:var(--muted)}.asset{border:1px solid #dfe6ef;border-radius:10px;overflow:hidden;margin-top:7px}.summary{width:100%;border:0;background:#fff;padding:9px 10px;display:grid;grid-template-columns:1fr auto;gap:8px;text-align:left;color:inherit}.aname{font-size:12px;font-weight:800}.meta{font-size:10px;color:var(--muted);margin-top:2px}.aval{text-align:right;color:var(--blue);font-weight:850}.editor{display:none;border-top:1px solid var(--line);background:#f8fafc;padding:9px}.asset.open .editor{display:block}.fields{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.fields label{font-size:9px;color:var(--muted);font-weight:750}.fields input,.fields select{width:100%;margin-top:3px;padding:7px;border:1px solid #cbd6e3;border-radius:7px;background:white}.acts{display:flex;justify-content:flex-end;gap:6px;margin-top:8px}.btn{border:0;border-radius:7px;padding:7px 10px}.done{background:var(--blue);color:white}.remove{background:#e9eef4;color:#516075}.add{width:100%;margin-top:8px;border:1px dashed #96a9bf;background:#f8fbff;color:var(--blue);border-radius:9px;padding:9px;font-weight:800}.add:disabled{opacity:.4}.analysis{margin-top:12px;padding:0;overflow:hidden}.analysis>button{width:100%;padding:12px 14px;border:0;background:#fff;display:flex;justify-content:space-between;font-weight:850;color:var(--navy)}.primary{font-size:11px;color:#4e5c70;padding:0 14px 12px}.details{display:none;border-top:1px solid var(--line);padding:10px;grid-template-columns:repeat(3,1fr);gap:7px}.analysis.open .details{display:grid}.read{background:#f7f9fc;border-radius:8px;padding:8px}.read b{display:block;color:var(--muted);font-size:9px}.read span{font-size:10px}.panel[hidden]{display:none!important}.rulesintro{background:#eaf2fb;border:1px solid #cddff2;border-radius:12px;padding:12px 14px;margin-bottom:10px;color:#33475f}.rulesgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.rulecard h2{margin:0 0 5px;color:var(--navy);font-size:14px}.rulecard p,.rulecard li{font-size:11px;line-height:1.45}.rulecard ul{padding-left:18px;margin:7px 0}.picks{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:10px}.pill{background:#f4f7fb;padding:5px 6px;border-radius:6px}.disclosure{font-size:10px;color:var(--muted);margin:12px 2px}.status{font-size:10px;color:var(--muted);text-align:center;padding:9px}.top button:focus-visible,main button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #8ebdea;outline-offset:2px}
-@media(max-width:700px){.topin{padding:14px 12px 8px}.brand{font-size:16px}.result{grid-template-columns:1fr 1fr}.verdict{grid-column:1/-1;grid-row:1;min-width:0;border-inline:0;border-bottom:1px solid var(--line)}.trade,.rulesgrid{grid-template-columns:1fr}.fields{grid-template-columns:1fr 1fr}.details{grid-template-columns:1fr 1fr}.picks{grid-template-columns:repeat(2,1fr)}main{padding:10px}.score strong{font-size:21px}}
-.brandrow{display:grid;grid-template-columns:1fr auto 1fr;text-align:center}.brandrow>div{grid-column:2}.brandrow .clear{grid-column:3;justify-self:end}.tabs{justify-content:center}@media(max-width:700px){.brandrow{grid-template-columns:1fr auto 1fr}.brandrow .clear{padding:7px 9px}}</style></head><body><header class="top"><div class="topin"><div class="brandrow"><div><div class="brand">MADDEN LEAGUE TRADE CALCULATOR</div><div class="ver">Web Release v1.3.0 · Ruleset v4.2</div></div><button type="button" class="clear" id="clear">Clear trade</button></div><nav class="tabs" aria-label="Primary"><button type="button" class="tab active" data-tab="calc">Calculator</button><button type="button" class="tab" data-tab="howto">How to Use</button><button type="button" class="tab" data-tab="rules">Rules</button></nav></div></header><main>
-<section id="calc" class="panel"><section class="result"><div class="score"><small>TEAM A ADJUSTED</small><strong id="atotal">0.0</strong></div><div class="verdict" id="vbox"><strong id="verdict">ADD ASSETS</strong><small id="gap"></small></div><div class="score"><small>TEAM B ADJUSTED</small><strong id="btotal">0.0</strong></div></section><div class="trade"><section class="side" data-side="A"><div class="sidehead"><h2>TEAM A RECEIVES</h2><span class="count">0 / 6</span></div><div class="assets"></div><button type="button" class="add">+ Add asset</button></section><section class="side" data-side="B"><div class="sidehead"><h2>TEAM B RECEIVES</h2><span class="count">0 / 6</span></div><div class="assets"></div><button type="button" class="add">+ Add asset</button></section></div><section class="analysis" id="analysis"><button type="button" id="analysisBtn" aria-expanded="false"><span>TRADE ANALYSIS</span><span id="chev">▾</span></button><div class="primary" id="primary"><b>Primary Read:</b> Add assets to both sides.</div><div class="details" id="reads"></div></section><div class="status" id="status" aria-live="polite">Up to six assets per side. Select an asset to edit it.</div></section>
+:root{--navy:#14213d;--blue:#2f75b5;--bg:#f3f6fa;--card:#fff;--line:#dce4ee;--muted:#64748b;--text:#172033;--surface:#fff;--surface-soft:#f8fafc;--surface-alt:#f7f9fc;--surface-blue:#f8fbff;--input-bg:#fff;--input-border:#cbd6e3;--asset-border:#dfe6ef;--secondary-bg:#e9eef4;--secondary-text:#516075;--primary-text:#4e5c70;--rules-bg:#eaf2fb;--rules-line:#cddff2;--rules-text:#33475f;--pill-bg:#f4f7fb;--verdict-neutral:#edf2f7;--fair-bg:#eaf7ef;--questionable-bg:#fff4df;--unfair-bg:#fff0e8;--danger-bg:#fdecec;--danger-line:#edb9b9;--focus:#8ebdea;--header-border:#667c99;--nav-muted:#bdcce0;--header-muted:#bfd0e7;--green:#18794e;--amber:#a15c00;--orange:#b94700;--red:#ad1f1f}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}.top{background:var(--navy);color:#fff}.topin{max-width:1100px;margin:auto;padding:16px 18px 12px}.brandrow{display:flex;justify-content:space-between;gap:12px;align-items:center}.brand{font-weight:850;font-size:19px}.ver{font-size:11px;color:var(--header-muted);margin-top:3px}.clear{border:1px solid var(--header-border);background:transparent;color:#fff;border-radius:9px;padding:8px 11px}.tabs{display:flex;gap:5px;margin-top:13px}.tab{border:0;background:transparent;color:var(--nav-muted);padding:8px 12px;border-radius:8px 8px 0 0;font-weight:800}.tab.active{background:var(--bg);color:var(--navy)}main{max-width:1100px;margin:auto;padding:14px}.result{display:grid;grid-template-columns:1fr auto 1fr;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:12px}.score{padding:12px 16px}.score:last-child{text-align:right}.score small,.eyebrow{font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--muted)}.score strong{display:block;font-size:24px;color:var(--navy)}.verdict{padding:10px 22px;min-width:185px;text-align:center;background:var(--verdict-neutral);border-inline:1px solid var(--line)}.verdict strong{display:block;font-size:18px}.verdict.fair{background:var(--fair-bg);color:var(--green)}.verdict.questionable{background:var(--questionable-bg);color:var(--amber)}.verdict.unfair{background:var(--unfair-bg);color:var(--orange)}.verdict.league-breaking{background:var(--danger-bg);color:var(--red)}.trade{display:grid;grid-template-columns:1fr 1fr;gap:12px}.side,.analysis,.rulecard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}.sidehead{display:flex;justify-content:space-between;align-items:center}.sidehead h2{font-size:13px;margin:0;color:var(--navy)}.count{font-size:10px;color:var(--muted)}.asset{border:1px solid var(--asset-border);border-radius:10px;overflow:hidden;margin-top:7px}.summary{width:100%;border:0;background:var(--surface);padding:9px 10px;display:grid;grid-template-columns:1fr auto;gap:8px;text-align:left;color:inherit}.aname{font-size:12px;font-weight:800}.meta{font-size:10px;color:var(--muted);margin-top:2px}.aval{text-align:right;color:var(--blue);font-weight:850}.editor{display:none;border-top:1px solid var(--line);background:var(--surface-soft);padding:9px}.asset.open .editor{display:block}.fields{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.fields label{font-size:9px;color:var(--muted);font-weight:750}.fields input,.fields select{width:100%;margin-top:3px;padding:7px;border:1px solid var(--input-border);border-radius:7px;background:var(--input-bg)}.acts{display:flex;justify-content:flex-end;gap:6px;margin-top:8px}.btn{border:0;border-radius:7px;padding:7px 10px}.done{background:var(--blue);color:white}.remove{background:var(--secondary-bg);color:var(--secondary-text)}.add{width:100%;margin-top:8px;border:1px dashed #96a9bf;background:var(--surface-blue);color:var(--blue);border-radius:9px;padding:9px;font-weight:800}.add:disabled{opacity:.4}.analysis{margin-top:12px;padding:0;overflow:hidden}.analysis>button{width:100%;padding:12px 14px;border:0;background:var(--surface);display:flex;justify-content:space-between;font-weight:850;color:var(--navy)}.primary{font-size:11px;color:var(--primary-text);padding:0 14px 12px}.details{display:none;border-top:1px solid var(--line);padding:10px;grid-template-columns:repeat(3,1fr);gap:7px}.analysis.open .details{display:grid}.read{background:var(--surface-alt);border-radius:8px;padding:8px}.read b{display:block;color:var(--muted);font-size:9px}.read span{font-size:10px}.panel[hidden]{display:none!important}.rulesintro{background:var(--rules-bg);border:1px solid var(--rules-line);border-radius:12px;padding:12px 14px;margin-bottom:10px;color:var(--rules-text)}.rulesgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.rulecard h2{margin:0 0 5px;color:var(--navy);font-size:14px}.rulecard p,.rulecard li{font-size:11px;line-height:1.45}.rulecard ul{padding-left:18px;margin:7px 0}.picks{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:10px}.pill{background:var(--pill-bg);padding:5px 6px;border-radius:6px}.disclosure{font-size:10px;color:var(--muted);margin:12px 2px}
+
+.trade-actions{
+  display:flex;
+  justify-content:center;
+  margin-top:12px;
+}
+
+.accept-trade{
+  border:0;
+  border-radius:9px;
+  padding:10px 16px;
+  background:var(--green);
+  color:#fff;
+  font-weight:850;
+  cursor:pointer;
+}
+
+.accept-trade:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.admin-login-card{
+  max-width:520px;
+  margin:0 auto;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:18px;
+}
+
+.admin-login-card h2,
+.admin-unlocked-head h2{
+  margin:0;
+  color:var(--navy);
+  font-size:15px;
+}
+
+.admin-login-card p,
+.admin-unlocked-head p{
+  margin:6px 0 0;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.45;
+}
+
+#adminLoginForm{
+  display:grid;
+  gap:8px;
+  margin-top:16px;
+}
+
+#adminLoginForm label{
+  font-size:10px;
+  font-weight:800;
+  color:var(--muted);
+}
+
+#adminPassword{
+  width:100%;
+  padding:10px;
+  border:1px solid var(--input-border);
+  border-radius:8px;
+  background:var(--surface);
+}
+
+.admin-login-button{
+  margin-top:3px;
+  background:var(--navy);
+  color:#fff;
+  font-weight:850;
+  padding:10px 14px;
+}
+
+.admin-login-button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+.admin-status{
+  min-height:18px;
+  margin-top:10px;
+  font-size:10px;
+  color:var(--muted);
+}
+
+.admin-unlocked-head{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+}
+
+#lockAdmin{
+  background:var(--secondary-bg);
+  color:var(--secondary-text);
+  font-weight:800;
+}
+
+.admin-tools{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:12px;
+}
+
+.admin-section{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+}
+
+.admin-section-head{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.admin-section-head h2{
+  margin:0;
+  color:var(--navy);
+  font-size:14px;
+}
+
+.admin-section-head p{
+  margin:4px 0 0;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.45;
+}
+
+#adminTradesList,
+#adminAuditList{
+  display:grid;
+  gap:8px;
+  margin-top:10px;
+}
+
+.admin-trade-card{
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:10px;
+  background:var(--surface-soft);
+}
+
+.admin-trade-head{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+}
+
+.admin-trade-packages{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+  margin-top:9px;
+}
+
+.admin-trade-packages>div{
+  background:var(--card);
+  border-radius:7px;
+  padding:8px;
+}
+
+.admin-trade-packages b{
+  display:block;
+  margin-bottom:3px;
+  font-size:9px;
+  color:var(--muted);
+}
+
+.admin-trade-packages span{
+  font-size:10px;
+}
+
+.admin-trade-meta{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+  margin-top:8px;
+  padding-top:8px;
+  border-top:1px solid var(--line);
+  font-size:9px;
+  color:var(--muted);
+}
+
+.admin-audit-card{
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:10px;
+  background:var(--surface-soft);
+}
+
+.admin-audit-head{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+}
+
+.admin-audit-action{
+  font-size:9px;
+  font-weight:850;
+  color:var(--red);
+}
+
+.admin-audit-detail{
+  margin-top:8px;
+  padding-top:8px;
+  border-top:1px solid var(--line);
+}
+
+.admin-audit-detail b{
+  display:block;
+  font-size:9px;
+  color:var(--muted);
+}
+
+.admin-audit-detail span{
+  display:block;
+  margin-top:3px;
+  font-size:10px;
+}
+
+.admin-delete-trade{
+  background:var(--danger-bg);
+  color:var(--red);
+  font-weight:800;
+}
+
+.admin-delete-confirm{
+  margin-top:12px;
+  background:var(--card);
+  border:1px solid var(--danger-line);
+  border-radius:14px;
+  padding:14px;
+}
+
+.admin-delete-confirm h2{
+  margin:0;
+  color:var(--red);
+  font-size:14px;
+}
+
+.admin-delete-confirm p{
+  margin:5px 0 0;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.45;
+}
+
+#adminDeleteForm{
+  display:grid;
+  gap:8px;
+  margin-top:14px;
+}
+
+#adminDeleteForm label{
+  font-size:9px;
+  font-weight:800;
+  color:var(--muted);
+}
+
+#adminDeleteName,
+#adminDeleteReason{
+  width:100%;
+  border:1px solid var(--input-border);
+  border-radius:8px;
+  padding:9px;
+  background:var(--surface);
+  font:inherit;
+}
+
+#adminDeleteReason{
+  resize:vertical;
+}
+
+.admin-optional{
+  font-weight:500;
+}
+
+.admin-delete-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:4px;
+}
+
+.admin-confirm-delete{
+  background:var(--red);
+  color:#fff;
+  font-weight:850;
+}
+
+.history-state{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:18px;
+  text-align:center;
+  font-size:11px;
+  color:var(--muted);
+}
+
+.history-list{
+  display:grid;
+  gap:10px;
+  margin-top:10px;
+}
+
+
+
+.history-card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:13px;
+}
+
+.history-card-head{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.history-time{
+  margin-top:3px;
+  font-size:10px;
+  color:var(--muted);
+}
+
+.history-verdict{
+  font-size:10px;
+  font-weight:850;
+  color:var(--navy);
+}
+
+.history-packages{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+
+.history-packages>div{
+  background:var(--surface-alt);
+  border-radius:8px;
+  padding:9px;
+}
+
+.history-packages b{
+  display:block;
+  margin-bottom:3px;
+  font-size:9px;
+  color:var(--muted);
+}
+
+.history-packages span{
+  font-size:11px;
+}
+
+.history-card-foot{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid var(--line);
+  font-size:10px;
+  color:var(--muted);
+}
+
+.history-view{
+  background:var(--blue);
+  color:#fff;
+  font-weight:800;
+}
+
+.history-detail{
+  margin-top:10px;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+}
+
+.history-detail-head{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.history-detail-verdict{
+  margin-top:12px;
+  padding:10px 12px;
+  border-radius:9px;
+  background:var(--verdict-neutral);
+  color:var(--navy);
+  font-size:15px;
+  font-weight:850;
+  text-align:center;
+}
+
+.history-detail-packages{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:12px;
+}
+
+.history-detail-packages>section,
+.history-evaluation,
+.history-intelligence,
+.history-correction{
+  background:var(--surface-alt);
+  border-radius:10px;
+  padding:11px;
+}
+
+.history-detail h3{
+  margin:0 0 8px;
+  font-size:12px;
+  color:var(--navy);
+}
+
+.history-asset{
+  display:grid;
+  gap:3px;
+  padding:8px 0;
+  border-top:1px solid var(--line);
+  font-size:10px;
+}
+
+.history-asset:first-of-type{
+  border-top:0;
+}
+
+.history-asset strong{
+  font-size:11px;
+}
+
+.history-asset span{
+  color:var(--muted);
+}
+
+.history-asset b{
+  color:var(--blue);
+  font-size:10px;
+}
+
+.history-evaluation,
+.history-intelligence,
+.history-correction{
+  margin-top:12px;
+}
+
+.history-metrics{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:7px;
+}
+
+.history-metrics>div{
+  background:var(--card);
+  border-radius:8px;
+  padding:8px;
+}
+
+.history-metrics b,
+.history-correction b{
+  display:block;
+  font-size:9px;
+  color:var(--muted);
+}
+
+.history-metrics span,
+.history-correction span{
+  display:block;
+  margin-top:3px;
+  font-size:10px;
+}
+
+.history-intelligence-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:7px;
+}
+
+.status{font-size:10px;color:var(--muted);text-align:center;padding:9px}.top button:focus-visible,main button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+[data-theme="dark"]{--navy:#dbeafe;--blue:#7db7ef;--bg:#0f172a;--card:#182235;--line:#334155;--muted:#a7b4c6;--text:#e5edf7;--surface:#182235;--surface-soft:#111c2e;--surface-alt:#142033;--surface-blue:#14243a;--input-bg:#0f1a2b;--input-border:#4b5e75;--asset-border:#3a4b61;--secondary-bg:#263449;--secondary-text:#d2ddec;--primary-text:#c7d3e3;--rules-bg:#152a44;--rules-line:#315275;--rules-text:#d5e5f6;--pill-bg:#1d2a3d;--verdict-neutral:#243247;--fair-bg:#17392b;--questionable-bg:#3c2f16;--unfair-bg:#42271d;--danger-bg:#431f27;--danger-line:#7a3d49;--focus:#93c5fd;--header-border:#71839b;--nav-muted:#cbd5e1;--header-muted:#c6d4e7;--green:#72d6a5;--amber:#f7c66b;--orange:#ff9a66;--red:#ff8c98}
+[data-theme="dark"] .top{background:#0b1220}
+[data-theme="dark"] .clear{color:#fff}
+[data-theme="dark"] input,[data-theme="dark"] select,[data-theme="dark"] textarea{color:var(--text);background:var(--input-bg);color-scheme:dark}
+[data-theme="dark"] .done,[data-theme="dark"] .history-view,[data-theme="dark"] .accept-trade{color:#fff}
+[data-theme="dark"] .tab.active{color:#dbeafe}
+[data-theme="dark"] .admin-login-button{background:#29405f;color:#fff}
+[data-theme="dark"] .admin-confirm-delete{color:#fff}
+.theme-toggle{border:1px solid var(--header-border);background:transparent;color:#fff;border-radius:9px;padding:8px 11px;font-weight:800;cursor:pointer}
+.brand-actions{grid-column:3;justify-self:end;display:flex;gap:7px;align-items:center}
+@media(max-width:700px){.topin{padding:14px 12px 8px}.brand{font-size:16px}.result{grid-template-columns:1fr 1fr}.verdict{grid-column:1/-1;grid-row:1;min-width:0;border-inline:0;border-bottom:1px solid var(--line)}.trade,.rulesgrid{grid-template-columns:1fr}.fields{grid-template-columns:1fr 1fr}.details{grid-template-columns:1fr 1fr}.picks{grid-template-columns:repeat(2,1fr)}main{padding:10px}.score strong{font-size:21px}
+
+.history-packages{
+  grid-template-columns:1fr;
+}
+
+.history-detail-packages,
+.history-metrics,
+.history-intelligence-grid{
+  grid-template-columns:1fr;
+}
+
+.admin-tools{
+  grid-template-columns:1fr;
+}
+
+.admin-trade-packages{
+  grid-template-columns:1fr;
+}
+
+}
+.brandrow{display:grid;grid-template-columns:1fr auto 1fr;text-align:center}.brandrow>div{grid-column:2}.brandrow .brand-actions{grid-column:3;justify-self:end}.tabs{justify-content:center}@media(max-width:700px){.brandrow{grid-template-columns:1fr auto 1fr}.brandrow .clear,.brandrow .theme-toggle{padding:7px 9px}}</style></head><body><header class="top"><div class="topin"><div class="brandrow"><div><div class="brand">MADDEN LEAGUE TRADE CALCULATOR</div><div class="ver">Web Release v1.4.0 · Ruleset v4.2</div></div><div class="brand-actions"><button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false">Dark mode</button><button type="button" class="clear" id="clear">Clear trade</button></div></div><nav class="tabs" aria-label="Primary"><button type="button" class="tab active" data-tab="calc">Calculator</button><button type="button" class="tab" data-tab="howto">How to Use</button><button type="button" class="tab" data-tab="rules">Rules</button><button type="button" class="tab" data-tab="history">Trade History</button><button type="button" class="tab" data-tab="admin">Admin</button></nav></div></header><main>
+<section id="calc" class="panel"><section class="result"><div class="score"><small>USER TEAM ADJUSTED</small><strong id="atotal">0.0</strong></div><div class="verdict" id="vbox"><strong id="verdict">ADD ASSETS</strong><small id="gap"></small></div><div class="score"><small>CPU TEAM ADJUSTED</small><strong id="btotal">0.0</strong></div></section><div class="trade"><section class="side" data-side="A"><div class="sidehead"><h2>USER TEAM RECEIVES</h2><span class="count">0 / 6</span></div><div class="assets"></div><button type="button" class="add">+ Add asset</button></section><section class="side" data-side="B"><div class="sidehead"><h2>CPU TEAM RECEIVES</h2><span class="count">0 / 6</span></div><div class="assets"></div><button type="button" class="add">+ Add asset</button></section></div><section class="analysis" id="analysis"><button type="button" id="analysisBtn" aria-expanded="false"><span>TRADE ANALYSIS</span><span id="chev">▾</span></button><div class="primary" id="primary"><b>Primary Read:</b> Add assets to both sides.</div><div class="details" id="reads"></div>
+</section>
+
+<div class="trade-actions">
+  <button type="button" class="accept-trade" id="acceptTrade" disabled>
+    Accept &amp; Log Trade
+  </button>
+</div>
+
+<div class="status" id="status" aria-live="polite">
+  Up to six assets per side. Select an asset to edit it.
+</div>
+
+</section>
+
 <section id="howto" class="panel" hidden>
 <div class="rulesintro"><strong>How to use the calculator.</strong> Enter what each team <em>receives</em>, complete the required fields, and use Adjusted Value, the verdict, and Trade Analysis to understand the deal.</div>
 <div class="rulesgrid">
 <div class="rulecard"><h2>Quick Start</h2><ol><li>Add assets under the team that receives them.</li><li>Choose Player or Draft Pick for each asset.</li><li>Complete the fields for that asset.</li><li>Review the adjusted values and verdict.</li><li>Expand Trade Analysis when you want the explanation.</li></ol></div>
-<div class="rulecard"><h2>Build the Trade</h2><p>Read each side as “What does this team get?” Example: if Team A sends a quarterback to Team B for two picks, put both picks under Team A Receives and the quarterback under Team B Receives.</p><p>Each side supports up to six assets in Ruleset v4.2.</p></div>
+<div class="rulecard"><h2>Build the Trade</h2><p>Read each side as “What does this team get?” Example: if the User Team sends a quarterback to the CPU Team for two picks, put both picks under User Team Receives and the quarterback under CPU Team Receives.</p><p>Each side supports up to six assets in Ruleset v4.2.</p></div>
 <div class="rulecard"><h2>Adding a Player</h2><p>Choose <b>Player</b>. The card will show the player fields. OVR, age, position, and development trait are required before the player contributes value.</p><p>Cap hit, years remaining, years in league, current role, and projected role refine the valuation.</p><p><b>Rookie note:</b> enter <b>0</b> for Years in League to apply Year 0 rookie treatment. Blank is not Year 0.</p></div>
 <div class="rulecard"><h2>Adding a Draft Pick</h2><p>Choose <b>Draft Pick</b>, select the exact current pick or future-first projection, then choose Current draft, Next year, or Two years away.</p><p>If timing is blank, the calculator treats it as Current draft.</p></div>
 <div class="rulecard"><h2>Optional Fields & Defaults</h2><ul><li>Blank Years in League is neutral and is not Year 0.</li><li>Blank Years Remaining uses neutral contract control.</li><li>Either blank role means no role adjustment.</li><li>Blank Draft Timing means Current draft.</li><li>Blank cap hit is $0M for valuation.</li></ul></div>
@@ -27,12 +573,205 @@
 <div class="rulecard"><h2>Verdicts</h2><ul><li><b>FAIR:</b> applicable acquisition test passes.</li><li><b>QUESTIONABLE:</b> not FAIR; adjusted gap under 12%.</li><li><b>UNFAIR:</b> 12% to under 22%.</li><li><b>LEAGUE-BREAKING:</b> 22% or more.</li></ul></div>
 <div class="rulecard"><h2>About the Calculator</h2><p>The calculator uses full internal precision. Display rounding is presentation only. Trade Intelligence includes Primary Read, Best Asset, Raw Value, Adjusted Value, Draft Capital, Package Structure, and Suggested Correction.</p></div>
 </div><p class="disclosure">Reference values explain league policy; they are not a reproduction of the complete calculation engine.</p></section>
-</main><script>
+
+<section id="history" class="panel" hidden>
+  <div class="rulesintro">
+    <strong>Trade History</strong>
+    Accepted trades are shown using the evaluation frozen when each trade was logged.
+  </div>
+
+  <div id="historyState" class="history-state" aria-live="polite">
+    Trade History has not been loaded yet.
+  </div>
+
+  <div id="historyList" class="history-list"></div>
+
+  <div id="historyDetail" class="history-detail" hidden></div>
+</section>
+
+<section id="admin" class="panel" hidden>
+  <div class="rulesintro">
+    <strong>Admin</strong>
+    Administrative maintenance requires password verification.
+  </div>
+
+  <div class="admin-login-card" id="adminLocked">
+    <h2>Administrator Access</h2>
+
+    <p>
+      Enter the shared administrator password to begin a temporary
+      administrative session.
+    </p>
+
+    <form id="adminLoginForm">
+      <label for="adminPassword">Administrator password</label>
+
+      <input
+        type="password"
+        id="adminPassword"
+        autocomplete="current-password"
+        maxlength="512"
+        required
+      >
+
+      <button type="submit" class="btn admin-login-button">
+        Unlock Admin
+      </button>
+    </form>
+
+    <div
+      class="admin-status"
+      id="adminStatus"
+      aria-live="polite">
+    </div>
+  </div>
+
+  <div id="adminUnlocked" hidden>
+    <div class="admin-unlocked-head">
+      <div>
+        <h2>Administrative Session</h2>
+        <p id="adminSessionStatus">
+          Administrative access is active.
+        </p>
+      </div>
+
+      <button type="button" class="btn" id="lockAdmin">
+        Lock Admin
+      </button>
+    </div>
+
+    <div class="admin-tools">
+      <section class="admin-section">
+        <div class="admin-section-head">
+          <div>
+            <h2>Active Trades</h2>
+            <p>
+              Manage accepted trades currently visible in public Trade History.
+            </p>
+          </div>
+        </div>
+
+        <div
+          id="adminTradesStatus"
+          class="admin-status"
+          aria-live="polite">
+          Unlock Admin to load active trades.
+        </div>
+
+        <div id="adminTradesList"></div>
+      </section>
+
+      <section class="admin-section">
+        <div class="admin-section-head">
+          <div>
+            <h2>Audit Log</h2>
+            <p>
+              Administrative Trade History actions appear here.
+            </p>
+          </div>
+        </div>
+
+        <div
+          id="adminAuditStatus"
+          class="admin-status"
+          aria-live="polite">
+          Unlock Admin to load the Audit Log.
+        </div>
+
+        <div id="adminAuditList"></div>
+      </section>
+    </div>
+
+    <div
+      class="admin-delete-confirm"
+      id="adminDeleteConfirm"
+      hidden>
+
+      <h2 id="adminDeleteTitle">
+        Confirm Trade Deletion
+      </h2>
+
+      <p id="adminDeleteDescription">
+        Confirm which Trade should be removed from public Trade History.
+      </p>
+
+      <form id="adminDeleteForm">
+        <label for="adminDeleteName">
+          Administrator Name
+        </label>
+
+        <input
+          type="text"
+          id="adminDeleteName"
+          maxlength="200"
+          autocomplete="off"
+          required
+        >
+
+        <label for="adminDeleteReason">
+          Deletion Reason
+          <span class="admin-optional">Optional</span>
+        </label>
+
+        <textarea
+          id="adminDeleteReason"
+          maxlength="1000"
+          rows="3"
+          placeholder="For example: Duplicate trade or logged in error"
+        ></textarea>
+
+        <div class="admin-delete-actions">
+          <button
+            type="button"
+            class="btn"
+            id="cancelDeleteTrade">
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="btn admin-confirm-delete">
+            Confirm Delete
+          </button>
+        </div>
+      </form>
+
+      <div
+        id="adminDeleteStatus"
+        class="admin-status"
+        aria-live="polite">
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./supabase-config.js"></script>
+<script src="./storage.js"></script>
+
+<script>
 const PICK_VALUES={"1.01": 90, "1.02": 83, "1.03": 77, "1.04": 71, "1.05": 67, "1.06": 63, "1.07": 60, "1.08": 57, "1.09": 55, "1.10": 53, "1.11": 50, "1.12": 48, "1.13": 46, "1.14": 44, "1.15": 42, "1.16": 40, "1.17": 38, "1.18": 37, "1.19": 36, "1.20": 35, "1.21": 34, "1.22": 33, "1.23": 32, "1.24": 31, "1.25": 30, "1.26": 29, "1.27": 28, "1.28": 27, "1.29": 26, "1.30": 25, "1.31": 24, "1.32": 23, "Early 2nd": 19, "Mid 2nd": 16, "Late 2nd": 13, "Early 3rd": 9, "Mid 3rd": 7, "Late 3rd": 5, "4th": 4, "5th": 3, "6th": 2, "7th": 1, "Future Early 1st": 67, "Future Mid 1st": 46, "Future Late 1st": 31, "Future 1st - Unknown": 44};
 const POS={QB:1.4,EDGE:1.2,CB:1.15,WR:1.15,LT:1.1,DT:1.05,TE:1,S:1,LB:.95,HB:.9,IOL:.9,FB:.5,K:.5,P:.5};
 const TIMING={'Current draft':1,'Next year':.85,'Two years away':.7}; const CREDIT=[1,.9,.75,.6,.5,.5];
 const DEV={Normal:[1.15,1.1,1,.8,.65],Star:[1.35,1.25,1.15,1.05,.9],Superstar:[1.65,1.5,1.3,1.15,1], 'X-Factor':[2,1.75,1.5,1.3,1.15]};
-let uid=0,state={A:[],B:[]}; const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+let uid=0,state={A:[],B:[]};
+
+let adminSession=null;
+let adminLoginPending=false;
+
+let adminTrades=[];
+let adminAuditEvents=[];
+let adminDeletedTrades=[];
+let pendingDeleteTrade=null;
+const THEME_KEY='madden-trade-theme';
+function readStoredTheme(){try{let value=localStorage.getItem(THEME_KEY);return value==='dark'||value==='light'?value:null}catch{return null}}
+function applyTheme(theme,{persist=true}={}){let next=theme==='dark'?'dark':'light';document.documentElement.dataset.theme=next;document.documentElement.style.colorScheme=next;let control=document.querySelector('#themeToggle');if(control){control.textContent=next==='dark'?'Light mode':'Dark mode';control.setAttribute('aria-pressed',String(next==='dark'));control.setAttribute('aria-label',next==='dark'?'Switch to light mode':'Switch to dark mode')}if(persist){try{localStorage.setItem(THEME_KEY,next)}catch{}}}
+applyTheme(readStoredTheme()||'light',{persist:false});
+
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+function teamName(side){return side==='A'?'User Team':'CPU Team'}
 function emptyAsset(){return {id:++uid,type:'Player',name:'',pick:'1.01',timing:'Current draft',ovr:'',age:'',pos:'QB',dev:'Normal',cap:'',years:'',league:'',current:'',projected:''}}
 function ageBand(a){return a<=23?0:a<=26?1:a<=29?2:a<=31?3:4} function capMult(a){let c=Number(a.cap||0),q=a.pos==='QB'; return c<=(q?10:5)?1.15:c<=(q?20:10)?1.08:c<=(q?35:20)?1:c<=(q?50:30)?.9:.8}
 function control(a){let y=Number(a.years||1),base=y<=1?1:y===2?1.07:y===3?1.16:y===4?1.25:1.34,cm=capMult(a);return cm>=1?base:cm===.9?1+(base-1)/2:1} function role(a){if(!a.current||!a.projected)return 1;if(a.current==='Starter'&&a.projected==='Starter')return 1;if(a.current==='Starter')return .85;if(a.projected==='Starter')return .95;return .75}
@@ -44,12 +783,1199 @@ function protectionRank(a){if(a.type!=='Player'||a.value<=0)return 0;if(a.pos===
 function candidate(arr){let ps=arr.filter(a=>a.type==='Player'&&a.value>0).map(a=>({...a,rank:protectionRank(a)}));ps.sort((a,b)=>b.value-a.value||b.rank-a.rank||a.id-b.id);return ps[0]||null}
 const EPS=1e-9;function fallback(g){return g<.12?'QUESTIONABLE':g<.22?'UNFAIR':'LEAGUE-BREAKING'}
 function verdict(A,B){if(!A.adj||!B.adj)return {v:'ADD ASSETS',gap:0,mode:'INCOMPLETE',correction:''};let gap=Math.abs(A.adj-B.adj)/Math.max(A.adj,B.adj),all=[...A.arr,...B.arr],allDraft=all.length&&all.every(a=>a.type==='Draft Pick');if(allDraft){let ba=Math.max(...A.arr.map(x=>x.value)),bb=Math.max(...B.arr.map(x=>x.value)),fair=false;if(ba===bb)fair=gap<=.08+EPS;else{let strong=ba>bb?A:B,weak=ba>bb?B:A,best=Math.max(ba,bb),other=Math.min(ba,bb),prem=best===90?1.15:best>=77?1.08:best>other*1.08?1.04:1,target=strong.adj*prem;fair=weak.adj>=target-EPS&&weak.adj<=target*1.08+EPS}return {v:fair?'FAIR':fallback(gap),gap,mode:'DRAFT_ONLY',correction:fair?'No correction needed.':'Adjust the trade-down package to the protected target window.'}}
-let ca=candidate(A.arr),cb=candidate(B.arr);if((ca&&cb&&ca.value===cb.value)||(!ca&&!cb)){let fair=gap<=.08+EPS,hi=Math.max(A.adj,B.adj),lo=Math.min(A.adj,B.adj),side=A.adj<B.adj?'A':'B',amount=Math.max(0,hi*.92-lo);return {v:fair?'FAIR':fallback(gap),gap,mode:ca?'POSITIVE_PLAYER_TIE':'NO_ELIGIBLE_PLAYER',correction:fair?'No correction needed.':`Increase Team ${side} received package by ${amount.toFixed(4)} adjusted-value points to enter the 8% window.`}}
-let protectedSide=!cb||(ca&&ca.value>cb.value)?'A':'B',pc=protectedSide==='A'?ca:cb,protectedPkg=protectedSide==='A'?A.adj:B.adj,counterPkg=protectedSide==='A'?B.adj:A.adj,m=pc.rank===3?1.3:pc.rank===2?1.2:1.1,target=protectedPkg*m,ceiling=target*1.08,fair=counterPkg>=target-EPS&&counterPkg<=ceiling+EPS,counterSide=protectedSide==='A'?'B':'A',amount=counterPkg<target?target-counterPkg:counterPkg-ceiling;return {v:fair?'FAIR':fallback(gap),gap,mode:'DIRECTIONAL',tier:pc.rank===3?'ELITE_QB':pc.rank===2?'CORNERSTONE':'STANDARD',protectedSide,correction:fair?'No correction needed.':counterPkg<target?`Increase Team ${counterSide} received package by ${amount.toFixed(4)} adjusted-value points.`:`Reduce Team ${counterSide} received package by ${amount.toFixed(4)} adjusted-value points.`}}
+let ca=candidate(A.arr),cb=candidate(B.arr);if((ca&&cb&&ca.value===cb.value)||(!ca&&!cb)){let fair=gap<=.08+EPS,hi=Math.max(A.adj,B.adj),lo=Math.min(A.adj,B.adj),side=A.adj<B.adj?'A':'B',amount=Math.max(0,hi*.92-lo);return {v:fair?'FAIR':fallback(gap),gap,mode:ca?'POSITIVE_PLAYER_TIE':'NO_ELIGIBLE_PLAYER',correction:fair?'No correction needed.':`Increase ${teamName(side)} received package by ${amount.toFixed(4)} adjusted-value points to enter the 8% window.`}}
+let protectedSide=!cb||(ca&&ca.value>cb.value)?'A':'B',pc=protectedSide==='A'?ca:cb,protectedPkg=protectedSide==='A'?A.adj:B.adj,counterPkg=protectedSide==='A'?B.adj:A.adj,m=pc.rank===3?1.3:pc.rank===2?1.2:1.1,target=protectedPkg*m,ceiling=target*1.08,fair=counterPkg>=target-EPS&&counterPkg<=ceiling+EPS,counterSide=protectedSide==='A'?'B':'A',amount=counterPkg<target?target-counterPkg:counterPkg-ceiling;return {v:fair?'FAIR':fallback(gap),gap,mode:'DIRECTIONAL',tier:pc.rank===3?'ELITE_QB':pc.rank===2?'CORNERSTONE':'STANDARD',protectedSide,correction:fair?'No correction needed.':counterPkg<target?`Increase ${teamName(counterSide)} received package by ${amount.toFixed(4)} adjusted-value points.`:`Reduce ${teamName(counterSide)} received package by ${amount.toFixed(4)} adjusted-value points.`}}
 
 function opts(list,val){return list.map(x=>`<option ${x===val?'selected':''}>${x}</option>`).join('')} function esc(s){return String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
 function card(a,side,val){let label=a.type==='Draft Pick'?a.pick:(a.name||'Player'),meta=a.type==='Draft Pick'?`Draft Pick · ${a.timing}`:`${a.pos} · ${a.ovr||'—'} OVR · ${a.dev}`;return `<div class="asset" data-id="${a.id}" data-side="${side}"><button type="button" class="summary toggle"><div><div class="aname">${esc(label)}</div><div class="meta">${esc(meta)}</div></div><div class="aval">${val?val.toFixed(1):'—'}</div></button><div class="editor"><div class="fields"><label>Asset type<select data-k="type">${opts(['Player','Draft Pick'],a.type)}</select></label>${a.type==='Draft Pick'?`<label>Pick<select data-k="pick">${opts(Object.keys(PICK_VALUES),a.pick)}</select></label><label>Timing<select data-k="timing">${opts(Object.keys(TIMING),a.timing)}</select></label>`:`<label>Player name<input data-k="name" value="${esc(a.name)}"></label><label>OVR<input type="number" min="0" max="99" data-k="ovr" value="${a.ovr}"></label><label>Age<input type="number" min="18" max="60" data-k="age" value="${a.age}"></label><label>Position<select data-k="pos">${opts(Object.keys(POS),a.pos)}</select></label><label>Dev trait<select data-k="dev">${opts(Object.keys(DEV),a.dev)}</select></label><label>Cap hit $M<input type="number" min="0" data-k="cap" value="${a.cap}"></label><label>Years left<input type="number" min="1" max="10" data-k="years" value="${a.years}"></label><label>Years in league<input type="number" min="0" max="40" data-k="league" value="${a.league}"></label><label>Current role<select data-k="current"><option value=""></option>${opts(['Starter','Backup'],a.current)}</select></label><label>Projected role<select data-k="projected"><option value=""></option>${opts(['Starter','Backup'],a.projected)}</select></label>`}</div><div class="acts"><button type="button" class="btn remove">Remove</button><button type="button" class="btn done">Done</button></div></div></div>`}
-function render(){for(let side of ['A','B']){let t=totals(side),el=document.querySelector(`.side[data-side="${side}"]`);el.querySelector('.assets').innerHTML=t.arr.map(a=>card(a,side,a.value)).join('');el.querySelector('.count').textContent=`${state[side].length} / 6`;el.querySelector('.add').disabled=state[side].length>=6}let A=totals('A'),B=totals('B'),v=verdict(A,B);$('#atotal').textContent=A.adj.toFixed(1);$('#btotal').textContent=B.adj.toFixed(1);$('#verdict').textContent=v.v;$('#gap').textContent=v.v==='ADD ASSETS'?'':`Adjusted gap ${(v.gap*100).toFixed(1)}%`;$('#vbox').className='verdict '+v.v.toLowerCase().replace(' ','-');let all=[...A.arr,...B.arr],bestA=A.sorted[0],bestB=B.sorted[0],draftA=A.arr.filter(x=>x.type==='Draft Pick').reduce((s,x)=>s+x.value,0),draftB=B.arr.filter(x=>x.type==='Draft Pick').reduce((s,x)=>s+x.value,0);let primary=v.mode==='INCOMPLETE'?'Add assets to both sides.':v.mode==='DRAFT_ONLY'?'Draft trade-up protection and the 8% acceptance window apply.':v.mode==='POSITIVE_PLAYER_TIE'?'Exact protected-player value tie; the 8% adjusted-value window applies.':v.mode==='NO_ELIGIBLE_PLAYER'?'No eligible positive-value Player; the 8% adjusted-value window applies.':v.tier==='ELITE_QB'?`Elite QB acquisition protection governs Team ${v.protectedSide}.`:v.tier==='CORNERSTONE'?`Franchise Cornerstone acquisition protection governs Team ${v.protectedSide}.`:`Standard player acquisition protection governs Team ${v.protectedSide}.`;$('#primary').innerHTML='<b>Primary Read:</b> '+primary;let reads=[['BEST ASSET',!bestA||!bestB?'Add assets to both sides.':bestA.value>bestB.value?'Team A receives the best single asset.':bestB.value>bestA.value?'Team B receives the best single asset.':'Best single asset is even.'],['RAW VALUE',A.raw>B.raw?'Team A leads raw value.':B.raw>A.raw?'Team B leads raw value.':'Raw value is even.'],['ADJUSTED VALUE',A.adj>B.adj?'Team A leads adjusted value.':B.adj>A.adj?'Team B leads adjusted value.':'Adjusted value is even.'],['DRAFT CAPITAL',draftA>draftB?'Team A receives more raw draft capital.':draftB>draftA?'Team B receives more raw draft capital.':draftA?'Draft capital is even.':'No draft capital in this trade.'],['PACKAGE STRUCTURE',state.A.length>=3||state.B.length>=3?'Quantity-for-quality protection is active.':'Package compression is limited in this deal.'],['SUGGESTED CORRECTION',v.correction]];$('#reads').innerHTML=reads.map(r=>`<div class="read"><b>${r[0]}</b><span>${r[1]}</span></div>`).join('');bindCards()}
+
+function snapshotAsset(asset){
+  return {
+    id: asset.id,
+    type: asset.type,
+    name: asset.name,
+    pick: asset.pick,
+    timing: asset.timing,
+    ovr: asset.ovr,
+    age: asset.age,
+    pos: asset.pos,
+    dev: asset.dev,
+    cap: asset.cap,
+    years: asset.years,
+    league: asset.league,
+    current: asset.current,
+    projected: asset.projected,
+    value: asset.value
+  };
+}
+
+function tradeSnapshotKey(snapshot){
+  if(!snapshot)return null;
+
+  return JSON.stringify({
+    web_release:snapshot.web_release,
+    ruleset_version:snapshot.ruleset_version,
+    user_team_assets:snapshot.user_team_assets,
+    cpu_team_assets:snapshot.cpu_team_assets,
+    user_raw_value:snapshot.user_raw_value,
+    cpu_raw_value:snapshot.cpu_raw_value,
+    user_adjusted_value:snapshot.user_adjusted_value,
+    cpu_adjusted_value:snapshot.cpu_adjusted_value,
+    adjusted_gap:snapshot.adjusted_gap,
+    verdict:snapshot.verdict,
+    evaluation_mode:snapshot.evaluation_mode,
+    protection_tier:snapshot.protection_tier,
+    required_target:snapshot.required_target,
+    fair_maximum:snapshot.fair_maximum,
+    trade_intelligence:snapshot.trade_intelligence,
+    suggested_correction:snapshot.suggested_correction
+  });
+}
+
+function buildTradeSnapshot(){
+  let A=totals('A');
+  let B=totals('B');
+  let v=verdict(A,B);
+
+  if(v.mode==='INCOMPLETE'){
+    return null;
+  }
+
+  let bestA=A.sorted[0];
+  let bestB=B.sorted[0];
+
+  let draftA=A.arr
+    .filter(x=>x.type==='Draft Pick')
+    .reduce((sum,x)=>sum+x.value,0);
+
+  let draftB=B.arr
+    .filter(x=>x.type==='Draft Pick')
+    .reduce((sum,x)=>sum+x.value,0);
+
+  let primary=
+    v.mode==='DRAFT_ONLY'
+      ? 'Draft trade-up protection and the 8% acceptance window apply.'
+    : v.mode==='POSITIVE_PLAYER_TIE'
+      ? 'Exact protected-player value tie; the 8% adjusted-value window applies.'
+    : v.mode==='NO_ELIGIBLE_PLAYER'
+      ? 'No eligible positive-value Player; the 8% adjusted-value window applies.'
+    : v.tier==='ELITE_QB'
+      ? `Elite QB acquisition protection governs ${teamName(v.protectedSide)}.`
+    : v.tier==='CORNERSTONE'
+      ? `Franchise Cornerstone acquisition protection governs ${teamName(v.protectedSide)}.`
+      : `Standard player acquisition protection governs ${teamName(v.protectedSide)}.`;
+
+  let tradeIntelligence=[
+    {
+      label:'PRIMARY READ',
+      value:primary
+    },
+    {
+      label:'BEST ASSET',
+      value:
+        !bestA||!bestB
+          ? 'Add assets to both sides.'
+          : bestA.value>bestB.value
+            ? 'User Team receives the best single asset.'
+          : bestB.value>bestA.value
+            ? 'CPU Team receives the best single asset.'
+            : 'Best single asset is even.'
+    },
+    {
+      label:'RAW VALUE',
+      value:
+        A.raw>B.raw
+          ? 'User Team leads raw value.'
+          : B.raw>A.raw
+            ? 'CPU Team leads raw value.'
+            : 'Raw value is even.'
+    },
+    {
+      label:'ADJUSTED VALUE',
+      value:
+        A.adj>B.adj
+          ? 'User Team leads adjusted value.'
+          : B.adj>A.adj
+            ? 'CPU Team leads adjusted value.'
+            : 'Adjusted value is even.'
+    },
+    {
+      label:'DRAFT CAPITAL',
+      value:
+        draftA>draftB
+          ? 'User Team receives more raw draft capital.'
+          : draftB>draftA
+            ? 'CPU Team receives more raw draft capital.'
+          : draftA
+            ? 'Draft capital is even.'
+            : 'No draft capital in this trade.'
+    },
+    {
+      label:'PACKAGE STRUCTURE',
+      value:
+        state.A.length>=3||state.B.length>=3
+          ? 'Quantity-for-quality protection is active.'
+          : 'Package compression is limited in this deal.'
+    },
+    {
+      label:'SUGGESTED CORRECTION',
+      value:v.correction
+    }
+  ];
+
+  let requiredTarget=null;
+  let fairMaximum=null;
+
+  if(v.mode==='DIRECTIONAL'){
+    let protectedPackage=
+      v.protectedSide==='A'
+        ? A.adj
+        : B.adj;
+
+    let multiplier=
+      v.tier==='ELITE_QB'
+        ? 1.30
+        : v.tier==='CORNERSTONE'
+          ? 1.20
+          : 1.10;
+
+    requiredTarget=protectedPackage*multiplier;
+    fairMaximum=requiredTarget*1.08;
+  }
+
+  return {
+    web_release:'v1.4.0',
+    ruleset_version:'v4.2',
+
+    user_team_assets:A.arr.map(snapshotAsset),
+    cpu_team_assets:B.arr.map(snapshotAsset),
+
+    user_raw_value:A.raw,
+    cpu_raw_value:B.raw,
+
+    user_adjusted_value:A.adj,
+    cpu_adjusted_value:B.adj,
+
+    adjusted_gap:v.gap,
+
+    verdict:v.v,
+    evaluation_mode:v.mode,
+
+    protection_tier:v.tier||null,
+
+    required_target:requiredTarget,
+    fair_maximum:fairMaximum,
+
+    trade_intelligence:tradeIntelligence,
+
+    suggested_correction:v.correction
+  };
+}
+
+let loggingTrade=false;
+let lastLoggedSnapshotKey=null;
+
+function render(){for(let side of ['A','B']){let t=totals(side),el=document.querySelector(`.side[data-side="${side}"]`);el.querySelector('.assets').innerHTML=t.arr.map(a=>card(a,side,a.value)).join('');el.querySelector('.count').textContent=`${state[side].length} / 6`;el.querySelector('.add').disabled=state[side].length>=6}let A=totals('A'),B=totals('B'),v=verdict(A,B);
+let acceptBtn=$('#acceptTrade');
+
+if(acceptBtn){
+  let currentSnapshot=
+    v.mode==='INCOMPLETE'
+      ? null
+      : buildTradeSnapshot();
+
+  let currentSnapshotKey=
+    tradeSnapshotKey(currentSnapshot);
+
+  acceptBtn.disabled=
+    v.mode==='INCOMPLETE'||
+    !window.MaddenStorage?.isConfigured||
+    loggingTrade||
+    (
+      lastLoggedSnapshotKey!==null &&
+      currentSnapshotKey===lastLoggedSnapshotKey
+    );
+}
+
+$('#atotal').textContent=A.adj.toFixed(1);$('#btotal').textContent=B.adj.toFixed(1);$('#verdict').textContent=v.v;$('#gap').textContent=v.v==='ADD ASSETS'?'':`Adjusted gap ${(v.gap*100).toFixed(1)}%`;$('#vbox').className='verdict '+v.v.toLowerCase().replace(' ','-');let all=[...A.arr,...B.arr],bestA=A.sorted[0],bestB=B.sorted[0],draftA=A.arr.filter(x=>x.type==='Draft Pick').reduce((s,x)=>s+x.value,0),draftB=B.arr.filter(x=>x.type==='Draft Pick').reduce((s,x)=>s+x.value,0);let primary=v.mode==='INCOMPLETE'?'Add assets to both sides.':v.mode==='DRAFT_ONLY'?'Draft trade-up protection and the 8% acceptance window apply.':v.mode==='POSITIVE_PLAYER_TIE'?'Exact protected-player value tie; the 8% adjusted-value window applies.':v.mode==='NO_ELIGIBLE_PLAYER'?'No eligible positive-value Player; the 8% adjusted-value window applies.':v.tier==='ELITE_QB'?`Elite QB acquisition protection governs ${teamName(v.protectedSide)}.`:v.tier==='CORNERSTONE'?`Franchise Cornerstone acquisition protection governs ${teamName(v.protectedSide)}.`:`Standard player acquisition protection governs ${teamName(v.protectedSide)}.`;$('#primary').innerHTML='<b>Primary Read:</b> '+primary;let reads=[['BEST ASSET',!bestA||!bestB?'Add assets to both sides.':bestA.value>bestB.value?'User Team receives the best single asset.':bestB.value>bestA.value?'CPU Team receives the best single asset.':'Best single asset is even.'],['RAW VALUE',A.raw>B.raw?'User Team leads raw value.':B.raw>A.raw?'CPU Team leads raw value.':'Raw value is even.'],['ADJUSTED VALUE',A.adj>B.adj?'User Team leads adjusted value.':B.adj>A.adj?'CPU Team leads adjusted value.':'Adjusted value is even.'],['DRAFT CAPITAL',draftA>draftB?'User Team receives more raw draft capital.':draftB>draftA?'CPU Team receives more raw draft capital.':draftA?'Draft capital is even.':'No draft capital in this trade.'],['PACKAGE STRUCTURE',state.A.length>=3||state.B.length>=3?'Quantity-for-quality protection is active.':'Package compression is limited in this deal.'],['SUGGESTED CORRECTION',v.correction]];$('#reads').innerHTML=reads.map(r=>`<div class="read"><b>${r[0]}</b><span>${r[1]}</span></div>`).join('');bindCards()}
 function bindCards(){$$('.toggle').forEach(b=>b.onclick=()=>{let a=b.closest('.asset');$$('.asset').forEach(x=>{if(x!==a)x.classList.remove('open')});a.classList.toggle('open')});$$('.editor input,.editor select').forEach(el=>el.onchange=()=>{let card=el.closest('.asset'),side=card.dataset.side,a=state[side].find(x=>x.id==card.dataset.id);a[el.dataset.k]=el.value;render();requestAnimationFrame(()=>{let c=document.querySelector(`.asset[data-id="${a.id}"]`);if(c)c.classList.add('open')})});$$('.done').forEach(b=>b.onclick=()=>b.closest('.asset').classList.remove('open'));$$('.remove').forEach(b=>b.onclick=()=>{let c=b.closest('.asset'),side=c.dataset.side;state[side]=state[side].filter(x=>x.id!=c.dataset.id);render()})}
-$$('.add').forEach(b=>b.onclick=()=>{let side=b.closest('.side').dataset.side;if(state[side].length<6){let a=emptyAsset();state[side].push(a);render();requestAnimationFrame(()=>document.querySelector(`.asset[data-id="${a.id}"]`).classList.add('open'))}});$('#clear').onclick=()=>{state={A:[],B:[]};render()};$('#analysisBtn').onclick=()=>{let a=$('#analysis'),o=a.classList.toggle('open');$('#analysisBtn').setAttribute('aria-expanded',o);$('#chev').textContent=o?'▴':'▾'};$$('.tab').forEach(b=>b.onclick=()=>{$$('.tab').forEach(x=>x.classList.toggle('active',x===b));$$('.panel').forEach(p=>p.hidden=p.id!==b.dataset.tab)});$('#pickGrid').innerHTML=Object.entries(PICK_VALUES).filter(([k])=>k.startsWith('1.')).map(([k,v])=>`<div class="pill"><b>${k}</b> = ${v}</div>`).join('');render();
+$$('.add').forEach(b=>b.onclick=()=>{let side=b.closest('.side').dataset.side;if(state[side].length<6){let a=emptyAsset();state[side].push(a);render();requestAnimationFrame(()=>document.querySelector(`.asset[data-id="${a.id}"]`).classList.add('open'))}});
+
+$('#acceptTrade').onclick=async()=>{
+  if(loggingTrade)return;
+
+  let snapshot=buildTradeSnapshot();
+
+  if(!snapshot){
+    $('#status').textContent=
+      'Complete both sides of the trade before logging it.';
+    render();
+    return;
+  }
+
+  if(!window.MaddenStorage?.isConfigured){
+    $('#status').textContent=
+      'Trade storage is unavailable. No historical record was created.';
+    return;
+  }
+
+  loggingTrade=true;
+
+  let button=$('#acceptTrade');
+
+  button.disabled=true;
+  button.textContent='Logging Trade...';
+
+  $('#status').textContent=
+    'Saving the current trade evaluation...';
+
+  try{
+    let result=await window.MaddenStorage.acceptTrade(snapshot);
+
+    if(!result.ok){
+      $('#status').textContent=
+        result.error||
+        'Trade could not be logged. No historical record was created.';
+
+      return;
+    }
+
+    lastLoggedSnapshotKey=tradeSnapshotKey(snapshot);
+
+    $('#status').textContent=
+      `Trade #${result.trade.tradeNumber} accepted and logged.`;
+
+  }catch(error){
+    console.error('Unexpected Trade logging failure:',error);
+
+    $('#status').textContent=
+      'Trade could not be logged. No historical record was created.';
+
+  }finally{
+    loggingTrade=false;
+    button.textContent='Accept & Log Trade';
+
+    let A=totals('A');
+    let B=totals('B');
+    let v=verdict(A,B);
+
+let currentSnapshot=
+  v.mode==='INCOMPLETE'
+    ? null
+    : buildTradeSnapshot();
+
+button.disabled=
+  v.mode==='INCOMPLETE'||
+  !window.MaddenStorage?.isConfigured||
+  (
+    lastLoggedSnapshotKey!==null &&
+    tradeSnapshotKey(currentSnapshot)===lastLoggedSnapshotKey
+  );
+  }
+};
+
+let adminLoginForm=$('#adminLoginForm');
+
+if(adminLoginForm){
+  adminLoginForm.onsubmit=async event=>{
+    event.preventDefault();
+
+    if(adminLoginPending)return;
+
+    let passwordInput=$('#adminPassword');
+    let status=$('#adminStatus');
+    let submitButton=
+      adminLoginForm.querySelector(
+        '.admin-login-button'
+      );
+
+    let password=
+      passwordInput?.value||'';
+
+    if(!password){
+      status.textContent='Access denied.';
+      return;
+    }
+
+    adminLoginPending=true;
+
+    if(submitButton){
+      submitButton.disabled=true;
+      submitButton.textContent='Verifying...';
+    }
+
+    status.textContent='Verifying administrative access...';
+
+    try{
+      let result=
+        await window.MaddenStorage.adminLogin(
+          password
+        );
+
+      passwordInput.value='';
+
+      if(!result.ok){
+        adminSession=null;
+        status.textContent=
+          result.error||'Access denied.';
+        renderAdminState();
+        return;
+      }
+
+      adminSession={
+        token:result.session.token,
+        expiresAt:result.session.expiresAt
+      };
+
+      status.textContent='';
+      renderAdminState();
+
+      await Promise.all([
+        loadAdminTrades(),
+        loadAdminAuditLog()
+      ]);
+
+    }catch(error){
+      console.error(
+        'Unexpected Admin login failure:',
+        error
+      );
+
+      adminSession=null;
+      passwordInput.value='';
+      status.textContent=
+        'Administrative access is unavailable.';
+
+      renderAdminState();
+
+    }finally{
+      adminLoginPending=false;
+
+      if(submitButton){
+        submitButton.disabled=false;
+        submitButton.textContent='Unlock Admin';
+      }
+    }
+  };
+}
+
+let lockAdminButton=$('#lockAdmin');
+
+if(lockAdminButton){
+  lockAdminButton.onclick=lockAdmin;
+}
+
+let cancelDeleteButton=
+  $('#cancelDeleteTrade');
+
+if(cancelDeleteButton){
+  cancelDeleteButton.onclick=
+    closeDeleteConfirmation;
+}
+
+let adminDeleteForm=
+  $('#adminDeleteForm');
+
+if(adminDeleteForm){
+  adminDeleteForm.onsubmit=async event=>{
+    event.preventDefault();
+
+    let status=
+      $('#adminDeleteStatus');
+
+    let nameInput=
+      $('#adminDeleteName');
+
+    let reasonInput=
+      $('#adminDeleteReason');
+
+    let submitButton=
+      adminDeleteForm.querySelector(
+        '.admin-confirm-delete'
+      );
+
+    if(
+      !adminSessionIsValid()||
+      !pendingDeleteTrade
+    ){
+      if(status){
+        status.textContent=
+          'Administrative authorization required.';
+      }
+
+      renderAdminState();
+      return;
+    }
+
+    let administratorName=
+      (nameInput?.value||'').trim();
+
+    let reason=
+      (reasonInput?.value||'').trim();
+
+    if(!administratorName){
+      if(status){
+        status.textContent=
+          'Administrator Name is required.';
+      }
+
+      if(nameInput){
+        nameInput.focus();
+      }
+
+      return;
+    }
+
+    if(submitButton){
+      submitButton.disabled=true;
+      submitButton.textContent=
+        'Deleting Trade...';
+    }
+
+    if(status){
+      status.textContent=
+        'Processing protected Trade deletion...';
+    }
+
+    try{
+      let result=
+        await window.MaddenStorage.deleteTrade({
+          token:adminSession.token,
+          tradeId:pendingDeleteTrade.id,
+          administratorName,
+          reason
+        });
+
+      if(!result.ok){
+        if(status){
+          status.textContent=
+            result.error||
+            'The Trade could not be deleted.';
+        }
+
+        return;
+      }
+
+      let deletedTradeNumber=
+        result.deletion.tradeNumber;
+
+      closeDeleteConfirmation();
+
+      historyLoaded=false;
+      historyRecords=[];
+
+      await Promise.all([
+        loadAdminTrades(),
+        loadAdminAuditLog()
+      ]);
+
+      if(status){
+        status.textContent='';
+      }
+
+      let adminStatus=
+        $('#adminTradesStatus');
+
+      if(adminStatus){
+        adminStatus.textContent=
+          `Trade #${deletedTradeNumber} deleted and audited successfully.`;
+      }
+
+    }catch(error){
+      console.error(
+        'Unexpected protected deletion failure:',
+        error
+      );
+
+      if(status){
+        status.textContent=
+          'The Trade could not be deleted.';
+      }
+
+    }finally{
+      if(submitButton){
+        submitButton.disabled=false;
+        submitButton.textContent=
+          'Confirm Delete';
+      }
+    }
+  };
+}
+
+renderAdminState();
+
+$('#clear').onclick=()=>{state={A:[],B:[]};render()};$('#analysisBtn').onclick=()=>{let a=$('#analysis'),o=a.classList.toggle('open');$('#analysisBtn').setAttribute('aria-expanded',o);$('#chev').textContent=o?'▴':'▾'};
+
+let historyLoaded=false;
+let historyRecords=[];
+
+function formatHistoryDate(value){
+  if(!value)return 'Unknown date';
+
+  let date=new Date(value);
+
+  if(Number.isNaN(date.getTime())){
+    return 'Unknown date';
+  }
+
+  return date.toLocaleString();
+}
+
+function historyAssetLabel(asset){
+  if(!asset||typeof asset!=='object'){
+    return 'Unknown asset';
+  }
+
+  if(asset.type==='Draft Pick'){
+    return asset.pick||'Draft Pick';
+  }
+
+  return asset.name||'Player';
+}
+
+function historyPackageSummary(assets){
+  if(!Array.isArray(assets)||!assets.length){
+    return 'No stored assets';
+  }
+
+  if(assets.length===1){
+    return historyAssetLabel(assets[0]);
+  }
+
+  let first=historyAssetLabel(assets[0]);
+
+  return `${first} + ${assets.length-1} more`;
+}
+
+function historySummaryCard(trade){
+  const tradeNumber=Number.isInteger(trade.trade_number)
+    ? `Trade #${trade.trade_number}`
+    : 'Trade';
+  const verdict=typeof trade.verdict==='string' ? trade.verdict : 'UNKNOWN';
+  const userSummary=historyPackageSummary(trade.user_team_assets);
+  const cpuSummary=historyPackageSummary(trade.cpu_team_assets);
+  const webRelease=typeof trade.web_release==='string'
+    ? trade.web_release
+    : 'Unknown release';
+  const ruleset=typeof trade.ruleset_version==='string'
+    ? trade.ruleset_version
+    : 'Unknown ruleset';
+
+  return `
+    <article class="history-card">
+      <div class="history-card-head">
+        <div>
+          <strong>${esc(tradeNumber)}</strong>
+          <div class="history-time">${esc(formatHistoryDate(trade.accepted_at))}</div>
+        </div>
+        <span class="history-verdict">${esc(verdict)}</span>
+      </div>
+      <div class="history-packages">
+        <div>
+          <b>USER TEAM RECEIVES</b>
+          <span>${esc(userSummary)}</span>
+        </div>
+        <div>
+          <b>CPU TEAM RECEIVES</b>
+          <span>${esc(cpuSummary)}</span>
+        </div>
+      </div>
+      <div class="history-card-foot">
+        <span>${esc(webRelease)} · Ruleset ${esc(ruleset)}</span>
+        <button type="button" class="btn history-view" data-trade-id="${esc(trade.id)}">
+          View Trade
+        </button>
+      </div>
+    </article>
+  `;
+}
+
+function historyValue(value,digits=4){
+  if(typeof value!=='number'||!Number.isFinite(value)){
+    return '—';
+  }
+  return value.toFixed(digits);
+}
+
+function historyAssetDetail(asset){
+  if(!asset||typeof asset!=='object'){
+    return '';
+  }
+  const value=historyValue(asset.value);
+  if(asset.type==='Draft Pick'){
+    return `
+      <div class="history-asset">
+        <strong>${esc(asset.pick||'Draft Pick')}</strong>
+        <span>${esc(asset.timing||'Current draft')}</span>
+        <b>Individual Value: ${esc(value)}</b>
+      </div>
+    `;
+  }
+
+  const details=[
+    asset.pos||'',
+    asset.ovr!==''&&asset.ovr!=null ? `${asset.ovr} OVR` : '',
+    asset.age!==''&&asset.age!=null ? `Age ${asset.age}` : '',
+    asset.dev||''
+  ].filter(Boolean).join(' · ');
+
+  return `
+    <div class="history-asset">
+      <strong>${esc(asset.name||'Player')}</strong>
+      <span>${esc(details)}</span>
+      <span>
+        Cap $${esc(asset.cap||'0')}M ·
+        ${esc(asset.years||'—')} years left ·
+        Year ${esc(asset.league===''?'—':asset.league)}
+      </span>
+      <span>
+        ${esc(asset.current||'No current role')} →
+        ${esc(asset.projected||'No projected role')}
+      </span>
+      <b>Individual Value: ${esc(value)}</b>
+    </div>
+  `;
+}
+
+function historyTradeDetail(trade){
+  const tradeNumber=Number.isInteger(trade.trade_number)
+    ? `Trade #${trade.trade_number}`
+    : 'Trade';
+  const userAssets=Array.isArray(trade.user_team_assets)
+    ? trade.user_team_assets.map(historyAssetDetail).join('')
+    : '';
+  const cpuAssets=Array.isArray(trade.cpu_team_assets)
+    ? trade.cpu_team_assets.map(historyAssetDetail).join('')
+    : '';
+  const intelligence=Array.isArray(trade.trade_intelligence)
+    ? trade.trade_intelligence
+    : [];
+  const protectionTier=trade.protection_tier||'Not applicable';
+  const requiredTarget=typeof trade.required_target==='number'
+    ? historyValue(trade.required_target)
+    : 'Not applicable';
+  const fairMaximum=typeof trade.fair_maximum==='number'
+    ? historyValue(trade.fair_maximum)
+    : 'Not applicable';
+
+  return `
+    <div class="history-detail-head">
+      <div>
+        <strong>${esc(tradeNumber)}</strong>
+        <div class="history-time">Accepted ${esc(formatHistoryDate(trade.accepted_at))}</div>
+        <div class="history-time">
+          ${esc(trade.web_release||'Unknown release')} ·
+          Ruleset ${esc(trade.ruleset_version||'Unknown')}
+        </div>
+      </div>
+      <button type="button" class="btn history-close">Close</button>
+    </div>
+    <div class="history-detail-verdict">${esc(trade.verdict||'UNKNOWN')}</div>
+    <div class="history-detail-packages">
+      <section>
+        <h3>USER TEAM RECEIVES</h3>
+        ${userAssets||'<p>No stored assets.</p>'}
+      </section>
+      <section>
+        <h3>CPU TEAM RECEIVES</h3>
+        ${cpuAssets||'<p>No stored assets.</p>'}
+      </section>
+    </div>
+    <div class="history-evaluation">
+      <h3>Original Evaluation</h3>
+      <div class="history-metrics">
+        <div><b>User Raw</b><span>${esc(historyValue(trade.user_raw_value))}</span></div>
+        <div><b>CPU Raw</b><span>${esc(historyValue(trade.cpu_raw_value))}</span></div>
+        <div><b>User Adjusted</b><span>${esc(historyValue(trade.user_adjusted_value))}</span></div>
+        <div><b>CPU Adjusted</b><span>${esc(historyValue(trade.cpu_adjusted_value))}</span></div>
+        <div>
+          <b>Adjusted Gap</b>
+          <span>${typeof trade.adjusted_gap==='number'
+            ? esc((trade.adjusted_gap*100).toFixed(4)+'%')
+            : '—'}</span>
+        </div>
+        <div><b>Evaluation Path</b><span>${esc(trade.evaluation_mode||'Unknown')}</span></div>
+        <div><b>Protection Tier</b><span>${esc(protectionTier)}</span></div>
+        <div><b>Required Target</b><span>${esc(requiredTarget)}</span></div>
+        <div><b>FAIR Maximum</b><span>${esc(fairMaximum)}</span></div>
+      </div>
+    </div>
+    <div class="history-intelligence">
+      <h3>Trade Intelligence</h3>
+      <div class="history-intelligence-grid">
+        ${intelligence.map(read=>`
+          <div class="read">
+            <b>${esc(read?.label||'READ')}</b>
+            <span>${esc(read?.value||'')}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="history-correction">
+      <b>Suggested Correction</b>
+      <span>${esc(trade.suggested_correction||'No stored correction.')}</span>
+    </div>
+  `;
+}
+
+function showHistoryTrade(tradeId){
+  const trade=historyRecords.find(
+    record=>String(record.id)===String(tradeId)
+  );
+  if(!trade)return;
+
+  const historyList=$('#historyList');
+  const historyDetail=$('#historyDetail');
+  const historyState=$('#historyState');
+
+  historyState.hidden=true;
+  historyList.hidden=true;
+  historyDetail.innerHTML=historyTradeDetail(trade);
+  historyDetail.hidden=false;
+
+  const closeButton=historyDetail.querySelector('.history-close');
+  if(closeButton){
+    closeButton.onclick=()=>{
+      historyDetail.hidden=true;
+      historyDetail.innerHTML='';
+      historyList.hidden=false;
+    };
+  }
+
+  historyDetail.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function bindHistoryCards(){
+  $$('.history-view').forEach(button=>{
+    button.onclick=()=>showHistoryTrade(button.dataset.tradeId);
+  });
+}
+
+function adminSessionIsValid(){
+  if(
+    !adminSession||
+    typeof adminSession.token!=='string'||
+    typeof adminSession.expiresAt!=='string'
+  ){
+    return false;
+  }
+
+  let expiresAt=Date.parse(adminSession.expiresAt);
+
+  return (
+    Number.isFinite(expiresAt)&&
+    expiresAt>Date.now()
+  );
+}
+
+function adminTradeCard(trade){
+  let tradeNumber=
+    Number.isInteger(trade.trade_number)
+      ? `Trade #${trade.trade_number}`
+      : 'Trade';
+
+  let userSummary=
+    historyPackageSummary(trade.user_team_assets);
+
+  let cpuSummary=
+    historyPackageSummary(trade.cpu_team_assets);
+
+  return `
+    <article class="admin-trade-card">
+      <div class="admin-trade-head">
+        <div>
+          <strong>${esc(tradeNumber)}</strong>
+          <div class="history-time">
+            ${esc(formatHistoryDate(trade.accepted_at))}
+          </div>
+        </div>
+
+        <span class="history-verdict">
+          ${esc(trade.verdict||'UNKNOWN')}
+        </span>
+      </div>
+
+      <div class="admin-trade-packages">
+        <div>
+          <b>USER TEAM RECEIVES</b>
+          <span>${esc(userSummary)}</span>
+        </div>
+
+        <div>
+          <b>CPU TEAM RECEIVES</b>
+          <span>${esc(cpuSummary)}</span>
+        </div>
+      </div>
+
+      <div class="admin-trade-meta">
+        <span>
+          ${esc(trade.web_release||'Unknown release')}
+          · Ruleset ${esc(trade.ruleset_version||'Unknown')}
+        </span>
+
+        <button
+          type="button"
+          class="btn admin-delete-trade"
+          data-trade-id="${esc(trade.id)}">
+          Delete Trade
+        </button>
+      </div>
+    </article>
+  `;
+}
+
+async function loadAdminTrades(){
+  let status=$('#adminTradesStatus');
+  let list=$('#adminTradesList');
+
+  if(!status||!list)return;
+
+  if(!adminSessionIsValid()){
+    adminTrades=[];
+    list.innerHTML='';
+    status.textContent='Administrative authorization required.';
+    return;
+  }
+
+  status.textContent='Loading active trades...';
+  list.innerHTML='';
+
+  let result=await window.MaddenStorage.getActiveTrades();
+
+  if(!adminSessionIsValid()){
+    adminTrades=[];
+    list.innerHTML='';
+    status.textContent='Administrative authorization required.';
+    renderAdminState();
+    return;
+  }
+
+  if(!result.ok){
+    adminTrades=[];
+    status.textContent='Active trades could not be loaded.';
+    return;
+  }
+
+  adminTrades=Array.isArray(result.data)?result.data:[];
+
+  if(!adminTrades.length){
+    status.textContent='No active trades are available.';
+    return;
+  }
+
+  status.textContent='';
+  list.innerHTML=adminTrades.map(adminTradeCard).join('');
+  bindAdminTradeCards();
+}
+
+function adminAuditCard(event){
+  let tradeNumber=
+    Number.isInteger(event.trade_number)
+      ? `Trade #${event.trade_number}`
+      : 'Trade';
+
+  let reason=
+    typeof event.reason==='string' &&
+    event.reason.trim()
+      ? event.reason
+      : 'No deletion reason provided.';
+
+  return `
+    <article class="admin-audit-card">
+      <div class="admin-audit-head">
+        <div>
+          <strong>${esc(tradeNumber)}</strong>
+          <div class="history-time">
+            ${esc(formatHistoryDate(event.occurred_at))}
+          </div>
+        </div>
+
+        <span class="admin-audit-action">
+          ${esc(event.action||'AUDIT EVENT')}
+        </span>
+      </div>
+
+      <div class="admin-audit-detail">
+        <b>Administrator Name</b>
+        <span>${esc(event.administrator_name||'Unknown')}</span>
+      </div>
+
+      <div class="admin-audit-detail">
+        <b>Reason</b>
+        <span>${esc(reason)}</span>
+      </div>
+    </article>
+  `;
+}
+
+async function loadAdminAuditLog(){
+  let status=$('#adminAuditStatus');
+  let list=$('#adminAuditList');
+
+  if(!status||!list)return;
+
+  if(!adminSessionIsValid()){
+    adminAuditEvents=[];
+    adminDeletedTrades=[];
+    list.innerHTML='';
+    status.textContent=
+      'Administrative authorization required.';
+    return;
+  }
+
+  status.textContent='Loading Audit Log...';
+  list.innerHTML='';
+
+  let result=
+    await window.MaddenStorage.getAdminAuditLog(
+      adminSession.token
+    );
+
+  if(!adminSessionIsValid()){
+    adminAuditEvents=[];
+    adminDeletedTrades=[];
+    list.innerHTML='';
+    status.textContent=
+      'Administrative authorization required.';
+    renderAdminState();
+    return;
+  }
+
+  if(!result.ok){
+    adminAuditEvents=[];
+    adminDeletedTrades=[];
+    status.textContent=
+      result.error||
+      'Audit Log could not be loaded.';
+    return;
+  }
+
+  adminAuditEvents=
+    Array.isArray(result.auditEvents)
+      ? result.auditEvents
+      : [];
+
+  adminDeletedTrades=
+    Array.isArray(result.deletedTrades)
+      ? result.deletedTrades
+      : [];
+
+  if(!adminAuditEvents.length){
+    status.textContent=
+      'No administrative Audit Events are available.';
+    return;
+  }
+
+  status.textContent='';
+
+  list.innerHTML=
+    adminAuditEvents
+      .map(adminAuditCard)
+      .join('');
+}
+
+function closeDeleteConfirmation(){
+  pendingDeleteTrade=null;
+
+  let confirm=$('#adminDeleteConfirm');
+  let name=$('#adminDeleteName');
+  let reason=$('#adminDeleteReason');
+  let status=$('#adminDeleteStatus');
+
+  if(confirm){
+    confirm.hidden=true;
+  }
+
+  if(name){
+    name.value='';
+  }
+
+  if(reason){
+    reason.value='';
+  }
+
+  if(status){
+    status.textContent='';
+  }
+}
+
+function openDeleteConfirmation(tradeId){
+  if(!adminSessionIsValid()){
+    renderAdminState();
+    return;
+  }
+
+  let trade=adminTrades.find(
+    item=>String(item.id)===String(tradeId)
+  );
+
+  if(!trade)return;
+
+  pendingDeleteTrade=trade;
+
+  let confirm=$('#adminDeleteConfirm');
+  let title=$('#adminDeleteTitle');
+  let description=$('#adminDeleteDescription');
+  let name=$('#adminDeleteName');
+  let reason=$('#adminDeleteReason');
+  let status=$('#adminDeleteStatus');
+
+  if(!confirm||!title||!description)return;
+
+  let tradeNumber=
+    Number.isInteger(trade.trade_number)
+      ? `Trade #${trade.trade_number}`
+      : 'this Trade';
+
+  title.textContent=`Delete ${tradeNumber}?`;
+  description.textContent=
+    `${tradeNumber} will be removed from public Trade History. `+
+    `The original accepted Trade record will be retained and an `+
+    `administrative Audit Event will be created.`;
+
+  if(name){
+    name.value='';
+  }
+
+  if(reason){
+    reason.value='';
+  }
+
+  if(status){
+    status.textContent='';
+  }
+
+  confirm.hidden=false;
+
+  if(name){
+    name.focus();
+  }
+
+  confirm.scrollIntoView({
+    behavior:'smooth',
+    block:'start'
+  });
+}
+
+function bindAdminTradeCards(){
+  $$('.admin-delete-trade').forEach(button=>{
+    button.onclick=()=>{
+      openDeleteConfirmation(button.dataset.tradeId);
+    };
+  });
+}
+
+function renderAdminState(){
+  let locked=$('#adminLocked');
+  let unlocked=$('#adminUnlocked');
+  let sessionStatus=$('#adminSessionStatus');
+
+  if(!locked||!unlocked)return;
+
+  let valid=adminSessionIsValid();
+
+  locked.hidden=valid;
+  unlocked.hidden=!valid;
+
+  if(valid&&sessionStatus){
+    let expiration=new Date(adminSession.expiresAt);
+    sessionStatus.textContent=
+      `Administrative access is active until ${expiration.toLocaleTimeString()}.`;
+  }
+}
+
+function lockAdmin(){
+  adminSession=null;
+  adminTrades=[];
+  adminAuditEvents=[];
+  adminDeletedTrades=[];
+
+  let password=$('#adminPassword');
+  let status=$('#adminStatus');
+  let tradesList=$('#adminTradesList');
+  let auditList=$('#adminAuditList');
+
+  if(password){
+    password.value='';
+  }
+
+  if(status){
+    status.textContent='Admin is locked.';
+  }
+
+  if(tradesList){
+    tradesList.innerHTML='';
+  }
+
+  if(auditList){
+    auditList.innerHTML='';
+  }
+
+  closeDeleteConfirmation();
+renderAdminState();
+}
+
+async function loadTradeHistory(){
+  const historyState=$('#historyState');
+  const historyList=$('#historyList');
+  const historyDetail=$('#historyDetail');
+  if(!historyState||!historyList||!historyDetail)return;
+
+  historyState.hidden=false;
+  historyState.textContent='Loading Trade History...';
+  historyList.hidden=false;
+  historyList.innerHTML='';
+  historyDetail.hidden=true;
+  historyDetail.innerHTML='';
+
+  if(!window.MaddenStorage?.isConfigured){
+    historyState.textContent='Trade History is currently unavailable.';
+    return;
+  }
+
+  const result=await window.MaddenStorage.getActiveTrades();
+  if(!result.ok){
+    historyState.textContent='Trade History could not be loaded. Please try again later.';
+    return;
+  }
+
+  historyLoaded=true;
+  historyRecords=Array.isArray(result.data)?result.data:[];
+
+  if(!historyRecords.length){
+    historyState.textContent='No accepted trades have been logged yet.';
+    return;
+  }
+
+  historyState.hidden=true;
+  historyList.innerHTML=historyRecords.map(historySummaryCard).join('');
+  bindHistoryCards();
+}
+
+$$('.tab').forEach(b=>b.onclick=async()=>{
+  $$('.tab').forEach(x=>
+    x.classList.toggle('active',x===b)
+  );
+
+  $$('.panel').forEach(p=>
+    p.hidden=p.id!==b.dataset.tab
+  );
+
+  if(b.dataset.tab==='history'&&!historyLoaded){
+    await loadTradeHistory();
+  }
+});
+
+let themeToggle=$('#themeToggle');
+if(themeToggle){
+  themeToggle.onclick=()=>{
+    let current=document.documentElement.dataset.theme==='dark'?'dark':'light';
+    applyTheme(current==='dark'?'light':'dark');
+  };
+}
+
+$('#pickGrid').innerHTML=Object.entries(PICK_VALUES).filter(([k])=>k.startsWith('1.')).map(([k,v])=>`<div class="pill"><b>${k}</b> = ${v}</div>`).join('');
+
+render();
+
 </script></body></html>
