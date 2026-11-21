@@ -1,0 +1,18 @@
+[
+ {"n":"Elite QB for 1.01+1.12","A":[{"t":"Player","ovr":92,"age":24,"pos":"QB","dev":"X-Factor","cap":8,"years":3}],"B":[{"t":"Draft Pick","pick":"1.01"},{"t":"Draft Pick","pick":"1.12"}]},
+ {"n":"Elite QB for 1.01+1.02+E2","A":[{"t":"Player","ovr":92,"age":24,"pos":"QB","dev":"X-Factor","cap":8,"years":3}],"B":[{"t":"Draft Pick","pick":"1.01"},{"t":"Draft Pick","pick":"1.02"},{"t":"Draft Pick","pick":"Early 2nd"}]},
+ {"n":"88 SS WR for 1.05+M2","A":[{"t":"Player","ovr":88,"age":25,"pos":"WR","dev":"Superstar","cap":12,"years":3}],"B":[{"t":"Draft Pick","pick":"1.05"},{"t":"Draft Pick","pick":"Mid 2nd"}]},
+ {"n":"Aging EDGE 33 for 1.24","A":[{"t":"Player","ovr":86,"age":33,"pos":"EDGE","dev":"Star","cap":15,"years":2}],"B":[{"t":"Draft Pick","pick":"1.24"}]},
+ {"n":"3 starters for HB","A":[{"t":"Player","ovr":88,"age":24,"pos":"HB","dev":"Superstar","cap":6,"years":4}],"B":[{"t":"Player","ovr":78,"age":26,"pos":"WR","dev":"Normal","cap":5,"years":2},{"t":"Player","ovr":78,"age":27,"pos":"LB","dev":"Normal","cap":4,"years":2},{"t":"Player","ovr":78,"age":25,"pos":"S","dev":"Star","cap":3,"years":3}]},
+ {"n":"Rookie WR Y0 + roles for 1.16","A":[{"t":"Player","ovr":76,"age":22,"pos":"WR","dev":"Star","cap":2,"years":4,"league":0,"current":"Backup","projected":"Starter"}],"B":[{"t":"Draft Pick","pick":"1.16"}]},
+ {"n":"OT for DT","A":[{"t":"Player","ovr":84,"age":26,"pos":"OT","dev":"Star","cap":9,"years":3}],"B":[{"t":"Player","ovr":82,"age":26,"pos":"DT","dev":"Star","cap":8,"years":3}]},
+ {"n":"QB vs QB age context + expensive 7yr","A":[{"t":"Player","ovr":85,"age":24,"pos":"QB","dev":"Star","cap":40,"years":7}],"B":[{"t":"Player","ovr":86,"age":30,"pos":"QB","dev":"Superstar","cap":25,"years":2}]},
+ {"n":"1.04 for 1.09+FutMid next","A":[{"t":"Draft Pick","pick":"1.04"}],"B":[{"t":"Draft Pick","pick":"1.09"},{"t":"Draft Pick","pick":"Future Mid 1st","timing":"Next year"}]},
+ {"n":"1.08 for FutEarly set current","A":[{"t":"Draft Pick","pick":"1.08"}],"B":[{"t":"Draft Pick","pick":"Future Early 1st","timing":"Current draft"}]},
+ {"n":"1.01 for 1.02+L2 FAIR","A":[{"t":"Draft Pick","pick":"1.01"}],"B":[{"t":"Draft Pick","pick":"1.02"},{"t":"Draft Pick","pick":"Late 2nd"}]},
+ {"n":"1.03 for 1.06+M3","A":[{"t":"Draft Pick","pick":"1.03"}],"B":[{"t":"Draft Pick","pick":"1.06"},{"t":"Draft Pick","pick":"Mid 3rd"}]},
+ {"n":"equal picks even","A":[{"t":"Draft Pick","pick":"1.10"},{"t":"Draft Pick","pick":"7th"}],"B":[{"t":"Draft Pick","pick":"1.10"},{"t":"Draft Pick","pick":"Early 2nd","timing":"Two years away"}]},
+ {"n":"no eligible players","A":[{"t":"Player","ovr":58,"age":25,"pos":"WR","dev":"Normal"},{"t":"Draft Pick","pick":"1.20"}],"B":[{"t":"Draft Pick","pick":"1.22"},{"t":"Draft Pick","pick":"Mid 3rd","timing":"Next year"}]},
+ {"n":"slot pick set two years","A":[{"t":"Draft Pick","pick":"1.05","timing":"Two years away"}],"B":[{"t":"Draft Pick","pick":"1.05"}]},
+ {"n":"aging under80 vet + cornerstone","A":[{"t":"Player","ovr":75,"age":35,"pos":"LB","dev":"Normal","cap":3,"years":1},{"t":"Player","ovr":89,"age":25,"pos":"CB","dev":"X-Factor","cap":20,"years":5}],"B":[{"t":"Draft Pick","pick":"1.02"},{"t":"Draft Pick","pick":"1.30"},{"t":"Player","ovr":81,"age":32,"pos":"TE","dev":"Star","cap":11,"years":2,"current":"Starter","projected":"Backup"}]}
+]

@@ -62,4 +62,7 @@ The full first-round table is in `docs/rules/CANONICAL_RULESET_v4.4.md`.
 
 - `node tests/ruleset-v4.4.test.js`: 64 / 64 PASS
 - Sample-trade impact: `docs/validation/IMPACT_COMPARISON_v4.2_to_v4.4.md`
-- Excel/Web parity, member guide (.docx), Wiki, and browser smoke: pending
+- Excel/Web parity: 16 / 16 PASS (`docs/validation/PARITY_REPORT_v1.5.0_RULESET_v4.4.md`); desktop Excel recalculation pending release-owner sign-off
+- Browser smoke: COMPLETE (release-owner sign-off)
+- Member guide: `docs/rules/Madden League Trade Rules and Valuation Guide - Ruleset v4.4.docx`
+- Reference workbook: `reference/Madden League Trade Calculator v4.4.xlsx`
