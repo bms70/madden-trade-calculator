@@ -446,6 +446,12 @@ This changes `index.html`, `calculator-ui.js`, and `styles.css` only. It does no
 
 **Ruleset impact:** None
 
+### Years left minimum
+
+The **Years left** input accepts only whole numbers of 1 or more. Typing or pasting 0, a negative number, or a decimal is rejected with a status message; blank remains allowed and keeps its neutral default. **Years in league** still accepts 0 for rookies. Valuation already treated a 0 or blank Years left as 1 year, so no result changes.
+
+**Ruleset impact:** None
+
 ### Documentation encoding cleanup
 
 `docs/releases/RELEASE_NOTES_v1.4.0.md` and `docs/validation/FINAL_CROSS_FILE_AUDIT_v1.4.0.md` were re-saved as UTF-8 without a byte-order mark, and mis-encoded characters (`â€”`, `Â·`) were restored to `—` and `·`. No content was changed.
