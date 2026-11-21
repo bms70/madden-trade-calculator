@@ -42,6 +42,7 @@ The application includes:
 - Trade History
 - Admin
 - Light and Dark appearance modes
+- Links to the wiki's **Using the Calculator** guide (page footer and How to Use tab)
 
 The Calculator supports:
 
