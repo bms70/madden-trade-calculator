@@ -508,4 +508,33 @@ Web Release v1.4.0 preserves Ruleset v4.2 valuation behavior and passes the requ
 
 No unresolved technical release blocker remains from the validation gate.
 
-Formal governed-document alignment, final cross-file audit, repository-cleanliness review, PR/merge, tag, and publication remain release-closeout activities until completed.
+Formal governed-document alignment, the final cross-file audit, repository-cleanliness review, PR review and merge to `main`, and v1.4.0 tag/release publication, originally recorded here as release-closeout activities, were subsequently completed.
+
+## Post-release structural-refactor note
+
+The validation results above document the Web Release v1.4.0 build that passed
+the original release gate.
+
+A later structural maintenance refactor modularized the browser application
+source.
+
+Refactor-specific evidence is maintained separately in:
+
+`docs/validation/REFACTOR_AUDIT_v1.4.0.md`
+
+The original:
+
+- 24 / 24 Ruleset regression result
+- 17 / 17 Excel/Web parity result
+- desktop Excel recalculation sign-off
+- original browser/responsive sign-off
+
+must not be represented as newly rerun against the structural refactor unless
+those tests are actually rerun.
+
+The refactor's static, behavioral, visual, snapshot-schema, and mocked-storage
+equivalence testing is separate evidence from the governed release regression
+record.
+
+Real-backend smoke validation and the maintenance merge gate remain pending for
+the refactor.

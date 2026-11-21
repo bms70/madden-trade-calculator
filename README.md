@@ -23,7 +23,16 @@ Web Release v1.4.0 adds application, persistence, administrative, historical, an
 
 The current web application is provided through:
 
-`index.html`
+- `index.html` - Page structure and ordered stylesheet/script loading.
+- `styles.css` - Application styling, responsive layouts, Light/Dark appearance palettes, Trade History styling, and Admin styling.
+- `theme.js` - Browser-local Light/Dark preference restoration and theme application.
+- `valuation.js` - Governed Ruleset v4.2 Web valuation engine.
+- `calculator-ui.js` - Calculator state, calculator rendering, Trade Intelligence presentation, accepted-Trade snapshot construction, duplicate-state protection, and calculator event wiring.
+- `trade-history.js` - Public read-only Trade History retrieval/presentation and frozen historical detail rendering.
+- `admin.js` - Browser administrative-session UI, Active Trades presentation, deletion confirmation, and protected Audit Log presentation.
+- `storage.js` - Browser-to-backend integration.
+- `supabase-config.js` - Public Supabase browser configuration.
+- `supabase/` - Protected backend functions and database migrations.
 
 The application includes:
 
@@ -272,13 +281,15 @@ Web Release v1.4.0 adds:
 
 - `RELEASE_NOTES_v1.4.0.md`
 
-Existing v1.3.0 release records remain historical records and are not rewritten merely because a newer Web Release exists.
+Historical v1.3.0 release records are preserved under `archive/v1.3.0/`, not in their former active documentation locations. They remain historical records and are not rewritten merely because a newer Web Release exists.
 
 ### `docs/validation/`
 
 Regression and release-validation evidence.
 
-v1.4.0 closeout includes release-specific validation and final cross-file audit records while preserving earlier v1.3.0 validation artifacts.
+v1.4.0 closeout includes release-specific validation and final cross-file audit records. Earlier v1.3.0 validation artifacts are preserved under `archive/v1.3.0/`, not in this directory.
+
+This directory also holds the post-release structural refactor audit, `REFACTOR_AUDIT_v1.4.0.md`.
 
 ### `docs/roadmap/`
 
@@ -319,10 +330,18 @@ Preserved historical release and Ruleset artifacts.
 
 Historical material remains separate from active development.
 
+Historical v1.3.0 release records are preserved under `archive/v1.3.0/`.
+
 ### Repository Root
 
-- `index.html` — current web application
-- `storage.js` — browser storage/backend integration
+- `index.html` — page structure and ordered stylesheet/script loading
+- `styles.css` — application styling, responsive layouts, Light/Dark appearance palettes, Trade History styling, and Admin styling
+- `theme.js` — browser-local Light/Dark preference restoration and theme application
+- `valuation.js` — governed Ruleset v4.2 Web valuation engine
+- `calculator-ui.js` — calculator state, rendering, Trade Intelligence presentation, accepted-Trade snapshot construction, duplicate-state protection, and calculator event wiring
+- `trade-history.js` — public read-only Trade History retrieval/presentation and frozen historical detail rendering
+- `admin.js` — browser administrative-session UI, Active Trades presentation, deletion confirmation, and protected Audit Log presentation
+- `storage.js` — browser-to-backend integration
 - `supabase-config.js` — public Supabase browser configuration
 - `README.md` — repository overview and navigation
 
@@ -333,8 +352,15 @@ Historical material remains separate from active development.
 Different repository artifacts serve different purposes.
 
 - **Valuation and Ruleset policy:** `docs/rules/CANONICAL_RULESET_v4.2.md`
-- **Web implementation:** `index.html`
-- **Persistence/backend implementation:** `storage.js` and `supabase/`
+- **Web structure/application composition:** `index.html`
+- **Web presentation:** `styles.css`
+- **Governed Web valuation implementation:** `valuation.js`
+- **Calculator and accepted-Trade snapshot implementation:** `calculator-ui.js`
+- **Trade History implementation:** `trade-history.js`
+- **Administrative browser interface:** `admin.js`
+- **Theme implementation:** `theme.js`
+- **Persistence/browser integration:** `storage.js` and `supabase-config.js`
+- **Protected backend implementation:** `supabase/`
 - **Validation evidence:** `docs/validation/`
 - **Release records:** `docs/releases/`
 - **Reference implementation:** `reference/`
@@ -384,6 +410,33 @@ Recorded validation includes:
 - Final technical gate: **PASS**
 
 Formal release documentation and final cross-file alignment are completed through the v1.4.0 release-closeout process.
+
+---
+
+## Post-release Maintenance
+
+Web Release v1.4.0 remains frozen.
+
+A later post-release maintenance refactor modularized the browser application source to improve maintainability and auditability.
+
+The structural refactor does not intentionally change:
+
+- Ruleset v4.2 valuation behavior
+- accepted-Trade snapshot fields
+- persistence schemas
+- browser/backend contracts
+- administrative authorization
+- logical deletion or Audit behavior
+- Trade History behavior
+- Light/Dark Mode behavior
+
+**Ruleset impact:** None
+
+The structural-refactor validation record is maintained at:
+
+`docs/validation/REFACTOR_AUDIT_v1.4.0.md`
+
+Deployment of the refactored source remains subject to its separate validation and merge process.
 
 ---
 

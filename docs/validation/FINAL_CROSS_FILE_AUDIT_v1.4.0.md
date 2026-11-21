@@ -1,7 +1,7 @@
-# FINAL CROSS-FILE AUDIT CHECKLIST
+﻿# FINAL CROSS-FILE AUDIT CHECKLIST
 
-**Web Release:** v1.4.0  
-**Ruleset:** v4.2  
+**Web Release:** v1.4.0
+**Ruleset:** v4.2
 **Audit result:** PASS
 
 ## Purpose
@@ -12,116 +12,116 @@ The audit distinguishes current v1.4.0 release references from intentionally his
 
 ## Release identification
 
-- PASS — `README.md` identifies the current production mapping as **Web Release v1.4.0 | Ruleset v4.2**.
-- PASS — `index.html` identifies **Web Release v1.4.0 · Ruleset v4.2** in the application header.
-- PASS — accepted-Trade snapshots in `index.html` record `web_release: 'v1.4.0'` and `ruleset_version: 'v4.2'`.
-- PASS — the protected `accept-trade` backend accepts Web Release v1.4.0 with Ruleset v4.2.
-- PASS — Web Release and Ruleset versioning remain separated in current documentation.
+- PASS â€” `README.md` identifies the current production mapping as **Web Release v1.4.0 | Ruleset v4.2**.
+- PASS â€” `index.html` identifies **Web Release v1.4.0 Â· Ruleset v4.2** in the application header.
+- PASS â€” accepted-Trade snapshots in `index.html` record `web_release: 'v1.4.0'` and `ruleset_version: 'v4.2'`.
+- PASS â€” the protected `accept-trade` backend accepts Web Release v1.4.0 with Ruleset v4.2.
+- PASS â€” Web Release and Ruleset versioning remain separated in current documentation.
 
 ## Ruleset authority
 
-- PASS — `docs/rules/CANONICAL_RULESET_v4.2.md` remains the canonical Ruleset specification.
-- PASS — Ruleset v4.2 remains responsible for full internal precision, six-slot package-quality treatment, Player/mixed protection, Draft-only protection, verdict boundaries, Suggested Correction, and seven Trade Intelligence reads.
-- PASS — no Ruleset v4.3, v4.2.1, or v5.0 release specification was introduced for v1.4.0.
-- PASS — v1.4.0 release documentation explicitly records **Ruleset impact: None**.
-- PASS — historical references inside the v4.2 canonical specification to its v1.3.0 public release and v1.3.0 Web UI requirements are retained as part of the existing governed Ruleset artifact rather than rewritten as a new valuation release.
+- PASS â€” `docs/rules/CANONICAL_RULESET_v4.2.md` remains the canonical Ruleset specification.
+- PASS â€” Ruleset v4.2 remains responsible for full internal precision, six-slot package-quality treatment, Player/mixed protection, Draft-only protection, verdict boundaries, Suggested Correction, and seven Trade Intelligence reads.
+- PASS â€” no Ruleset v4.3, v4.2.1, or v5.0 release specification was introduced for v1.4.0.
+- PASS â€” v1.4.0 release documentation explicitly records **Ruleset impact: None**.
+- PASS â€” historical references inside the v4.2 canonical specification to its v1.3.0 public release and v1.3.0 Web UI requirements are retained as part of the existing governed Ruleset artifact rather than rewritten as a new valuation release.
 
 ## Calculator / Ruleset alignment
 
-- PASS — User Team / CPU Team terminology is present in the current Web application without changing valuation direction.
-- PASS — six assets per side remain supported.
-- PASS — package credits remain 100%, 90%, 75%, 60%, 50%, and 50%.
-- PASS — Standard / Cornerstone / Elite QB acquisition requirements remain 1.10x / 1.20x / 1.30x.
-- PASS — Draft-only protection remains 1.15x / 1.08x / 1.04x / 1.00x as applicable.
-- PASS — 8%, 12%, and 22% governed boundaries remain documented and implemented.
-- PASS — full internal precision remains required; display rounding remains presentation-only.
-- PASS — seven Trade Intelligence reads remain Primary Read, Best Asset, Raw Value, Adjusted Value, Draft Capital, Package Structure, and Suggested Correction.
+- PASS â€” User Team / CPU Team terminology is present in the current Web application without changing valuation direction.
+- PASS â€” six assets per side remain supported.
+- PASS â€” package credits remain 100%, 90%, 75%, 60%, 50%, and 50%.
+- PASS â€” Standard / Cornerstone / Elite QB acquisition requirements remain 1.10x / 1.20x / 1.30x.
+- PASS â€” Draft-only protection remains 1.15x / 1.08x / 1.04x / 1.00x as applicable.
+- PASS â€” 8%, 12%, and 22% governed boundaries remain documented and implemented.
+- PASS â€” full internal precision remains required; display rounding remains presentation-only.
+- PASS â€” seven Trade Intelligence reads remain Primary Read, Best Asset, Raw Value, Adjusted Value, Draft Capital, Package Structure, and Suggested Correction.
 
 ## v1.4.0 public functionality
 
-- PASS — `README.md` documents Accept & Log Trade, Trade History, frozen historical detail, and Light/Dark Mode.
-- PASS — `docs/releases/RELEASE_NOTES_v1.4.0.md` documents the shipped public v1.4.0 functionality.
-- PASS — `index.html` contains Calculator, How to Use, Rules, Trade History, and Admin views.
-- PASS — accepted-Trade snapshots preserve assets, Individual Asset Values, Raw/Adjusted Package Values, Adjusted Gap, Verdict, evaluation/protection metadata, Suggested Correction, and Trade Intelligence.
-- PASS — public Trade History loads active Trade Records through the browser storage layer.
-- PASS — frozen historical detail renders stored evaluation data rather than invoking a new valuation calculation for the historical record.
+- PASS â€” `README.md` documents Accept & Log Trade, Trade History, frozen historical detail, and Light/Dark Mode.
+- PASS â€” `docs/releases/RELEASE_NOTES_v1.4.0.md` documents the shipped public v1.4.0 functionality.
+- PASS â€” `index.html` contains Calculator, How to Use, Rules, Trade History, and Admin views.
+- PASS â€” accepted-Trade snapshots preserve assets, Individual Asset Values, Raw/Adjusted Package Values, Adjusted Gap, Verdict, evaluation/protection metadata, Suggested Correction, and Trade Intelligence.
+- PASS â€” public Trade History loads active Trade Records through the browser storage layer.
+- PASS â€” frozen historical detail renders stored evaluation data rather than invoking a new valuation calculation for the historical record.
 
 ## Persistence alignment
 
-- PASS — `storage.js` exposes accepted-Trade logging and active-history retrieval.
-- PASS — the storage migration creates stable Trade UUIDs, stable identity Trade Numbers, acceptance timestamps, frozen evaluation fields, and `deleted_at` for logical deletion.
-- PASS — public browser roles receive read-only access to active Trade Records through the `deleted_at is null` policy.
-- PASS — browser roles do not receive direct Audit Event access.
-- PASS — accepted-Trade creation is handled through the protected `accept-trade` function rather than unrestricted browser insertion.
+- PASS â€” `storage.js` exposes accepted-Trade logging and active-history retrieval.
+- PASS â€” the storage migration creates stable Trade UUIDs, stable identity Trade Numbers, acceptance timestamps, frozen evaluation fields, and `deleted_at` for logical deletion.
+- PASS â€” public browser roles receive read-only access to active Trade Records through the `deleted_at is null` policy.
+- PASS â€” browser roles do not receive direct Audit Event access.
+- PASS â€” accepted-Trade creation is handled through the protected `accept-trade` function rather than unrestricted browser insertion.
 
 ## Administrative alignment
 
-- PASS — `README.md` and v1.4.0 release notes document shared-password Admin access as administrative authorization rather than verified personal identity.
-- PASS — `admin-login` reads `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` from protected environment configuration rather than browser source.
-- PASS — successful Admin login creates a signed temporary session with expiration.
-- PASS — protected Admin-session verification validates structure, signature, and expiration.
-- PASS — Delete Trade is an unlocked-Admin control and is not a public Trade History control.
-- PASS — Administrator Name is required and treated as self-reported audit metadata.
-- PASS — Deletion Reason remains optional.
-- PASS — `Lock Admin` clears active local Admin state and protected UI data.
+- PASS â€” `README.md` and v1.4.0 release notes document shared-password Admin access as administrative authorization rather than verified personal identity.
+- PASS â€” `admin-login` reads `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` from protected environment configuration rather than browser source.
+- PASS â€” successful Admin login creates a signed temporary session with expiration.
+- PASS â€” protected Admin-session verification validates structure, signature, and expiration.
+- PASS â€” Delete Trade is an unlocked-Admin control and is not a public Trade History control.
+- PASS â€” Administrator Name is required and treated as self-reported audit metadata.
+- PASS â€” Deletion Reason remains optional.
+- PASS â€” `Lock Admin` clears active local Admin state and protected UI data.
 
 ## Logical deletion / Audit alignment
 
-- PASS — database migrations implement logical deletion through `trades.deleted_at` rather than physical Trade destruction.
-- PASS — `delete_trade_with_audit` performs logical Trade deletion and Audit Event creation in one database function call.
-- PASS — successful deletion records `TRADE_DELETED` with original Trade identity, Trade Number, timestamp, Administrator Name, and optional reason.
-- PASS — a unique partial index prevents more than one successful `TRADE_DELETED` Audit Event for the same Trade.
-- PASS — public/anonymous/authenticated roles cannot directly execute the protected deletion database function.
-- PASS — the corrective migration qualifies the Trade-table `deleted_at` reference identified during Issue #8 testing.
-- PASS — protected Audit Log retrieval independently validates signed Admin authorization.
-- PASS — Audit Events are ordered newest first by `occurred_at` in the protected backend.
+- PASS â€” database migrations implement logical deletion through `trades.deleted_at` rather than physical Trade destruction.
+- PASS â€” `delete_trade_with_audit` performs logical Trade deletion and Audit Event creation in one database function call.
+- PASS â€” successful deletion records `TRADE_DELETED` with original Trade identity, Trade Number, timestamp, Administrator Name, and optional reason.
+- PASS â€” a unique partial index prevents more than one successful `TRADE_DELETED` Audit Event for the same Trade.
+- PASS â€” public/anonymous/authenticated roles cannot directly execute the protected deletion database function.
+- PASS â€” the corrective migration qualifies the Trade-table `deleted_at` reference identified during Issue #8 testing.
+- PASS â€” protected Audit Log retrieval independently validates signed Admin authorization.
+- PASS â€” Audit Events are ordered newest first by `occurred_at` in the protected backend.
 
 ## Light / Dark Mode alignment
 
-- PASS — `index.html` contains Light and Dark appearance palettes.
-- PASS — theme selection uses browser-local `madden-trade-theme` preference storage.
-- PASS — theme state is presentation state and does not alter valuation data, historical records, or Admin authorization.
-- PASS — README and v1.4.0 release notes document Light/Dark Mode as a presentation feature.
+- PASS â€” `index.html` contains Light and Dark appearance palettes.
+- PASS â€” theme selection uses browser-local `madden-trade-theme` preference storage.
+- PASS â€” theme state is presentation state and does not alter valuation data, historical records, or Admin authorization.
+- PASS â€” README and v1.4.0 release notes document Light/Dark Mode as a presentation feature.
 
 ## Validation-record alignment
 
-- PASS — `docs/validation/REGRESSION_REPORT_v1.4.0_RULESET_v4.2.md` records **24 / 24 PASS** automated Ruleset scenarios.
-- PASS — the validation record records **17 / 17 PASS** Excel/Web parity scenarios.
-- PASS — desktop Excel recalculation is recorded separately as **COMPLETE by release-owner sign-off**.
-- PASS — browser/responsive smoke is recorded separately as **COMPLETE by release-owner sign-off**.
-- PASS — v1.4.0 integration and source/security review are recorded as PASS.
-- PASS — the reference-workbook metadata correction is documented as a governance correction with no valuation-formula change.
-- PASS — the Issue #8 `42702` correction and Issue #12 theme-handler correction are documented as resolved technical findings.
+- PASS â€” `docs/validation/REGRESSION_REPORT_v1.4.0_RULESET_v4.2.md` records **24 / 24 PASS** automated Ruleset scenarios.
+- PASS â€” the validation record records **17 / 17 PASS** Excel/Web parity scenarios.
+- PASS â€” desktop Excel recalculation is recorded separately as **COMPLETE by release-owner sign-off**.
+- PASS â€” browser/responsive smoke is recorded separately as **COMPLETE by release-owner sign-off**.
+- PASS â€” v1.4.0 integration and source/security review are recorded as PASS.
+- PASS â€” the reference-workbook metadata correction is documented as a governance correction with no valuation-formula change.
+- PASS â€” the Issue #8 `42702` correction and Issue #12 theme-handler correction are documented as resolved technical findings.
 
 ## Reference workbook alignment
 
-- PASS — `reference/Madden League Trade Calculator v4.2.xlsx` remains the Ruleset v4.2 reference implementation.
-- PASS — Issue #9 corrected its visible canonical reference to `CANONICAL_RULESET_v4.2.md`.
-- PASS — Issue #9 corrected its visible release mapping to `Release v1.3.0 | Ruleset v4.2`.
-- PASS — the workbook was recalculated in desktop Excel by release-owner sign-off before the final technical gate was recorded PASS.
-- PASS — the reference workbook is not relabeled as a separate Web v1.4.0 Excel release.
+- PASS â€” `reference/Madden League Trade Calculator v4.2.xlsx` remains the Ruleset v4.2 reference implementation.
+- PASS â€” Issue #9 corrected its visible canonical reference to `CANONICAL_RULESET_v4.2.md`.
+- PASS â€” Issue #9 corrected its visible release mapping to `Release v1.3.0 | Ruleset v4.2`.
+- PASS â€” the workbook was recalculated in desktop Excel by release-owner sign-off before the final technical gate was recorded PASS.
+- PASS â€” the reference workbook is not relabeled as a separate Web v1.4.0 Excel release.
 
 ## Historical release preservation
 
-- PASS — `docs/releases/RELEASE_NOTES_v1.3.0.md` remains preserved as a historical v1.3.0 / v4.2 release record.
-- PASS — `docs/validation/REGRESSION_REPORT_v4.2.md` remains preserved as historical v1.3.0 / v4.2 validation evidence.
-- PASS — `docs/validation/FINAL_CROSS_FILE_AUDIT_v1.3.0.md` remains preserved as the prior final audit.
-- PASS — v1.4.0 adds new release/validation documents rather than overwriting historical records.
+- PASS â€” `docs/releases/RELEASE_NOTES_v1.3.0.md` remains preserved as a historical v1.3.0 / v4.2 release record.
+- PASS â€” `docs/validation/REGRESSION_REPORT_v4.2.md` remains preserved as historical v1.3.0 / v4.2 validation evidence.
+- PASS â€” `docs/validation/FINAL_CROSS_FILE_AUDIT_v1.3.0.md` remains preserved as the prior final audit.
+- PASS â€” v1.4.0 adds new release/validation documents rather than overwriting historical records.
 
 ## Future-roadmap boundary
 
-- PASS — current README and v1.4.0 release notes describe v1.4.0 Trade History as an early foundation for richer future transaction-history functionality.
-- PASS — current documentation explicitly states that v1.4.0 is not the completed future League Transaction Ledger.
-- PASS — Ruleset v5.0 roadmap artifacts remain future-planning artifacts and are not presented as shipped v1.4.0 Ruleset functionality.
+- PASS â€” current README and v1.4.0 release notes describe v1.4.0 Trade History as an early foundation for richer future transaction-history functionality.
+- PASS â€” current documentation explicitly states that v1.4.0 is not the completed future League Transaction Ledger.
+- PASS â€” Ruleset v5.0 roadmap artifacts remain future-planning artifacts and are not presented as shipped v1.4.0 Ruleset functionality.
 
 ## Repository cleanliness / source-security review
 
-- PASS — refreshed snapshot is from branch `release/v1.4.0` and identifies baseline **Web Release v1.4.0 | Ruleset v4.2**.
-- PASS — `.git`, `node_modules`, `archive`, and `supabase/.temp` are excluded from embedded snapshot content as intended.
-- PASS — the manifest contains the expected v1.4.0 release notes and v1.4.0 validation report.
-- PASS — no temporary theme HTML files or snapshot-helper script appear in the refreshed repository manifest.
-- PASS — protected Admin secret values are not embedded in the inspected source; backend code references environment-variable names instead.
-- PASS — `supabase-config.js` contains the browser publishable configuration rather than the protected Admin secrets.
+- PASS â€” refreshed snapshot is from branch `release/v1.4.0` and identifies baseline **Web Release v1.4.0 | Ruleset v4.2**.
+- PASS â€” `.git`, `node_modules`, `archive`, and `supabase/.temp` are excluded from embedded snapshot content as intended.
+- PASS â€” the manifest contains the expected v1.4.0 release notes and v1.4.0 validation report.
+- PASS â€” no temporary theme HTML files or snapshot-helper script appear in the refreshed repository manifest.
+- PASS â€” protected Admin secret values are not embedded in the inspected source; backend code references environment-variable names instead.
+- PASS â€” `supabase-config.js` contains the browser publishable configuration rather than the protected Admin secrets.
 
 ## Current closeout package
 
@@ -145,3 +145,52 @@ The inspected Web Release v1.4.0 closeout package consistently separates the Web
 No cross-file documentation or governance blocker was identified in the refreshed release-candidate snapshot.
 
 Repository commit/push, final PR review and merge, release/tag publication, and final issue-status reconciliation remain operational release-closeout steps after this audit artifact is added to the repository.
+
+## Post-release structural-refactor addendum
+
+This addendum records a structural maintenance refactor performed after the
+original Web Release v1.4.0 release-candidate audit.
+
+The original audit above remains the historical record of the released
+v1.4.0 candidate and must not be rewritten as though the modular source
+structure existed at publication time.
+
+The later maintenance refactor modularized the browser application into:
+
+- `index.html`
+- `styles.css`
+- `theme.js`
+- `valuation.js`
+- `calculator-ui.js`
+- `trade-history.js`
+- `admin.js`
+
+Responsibilities after the structural refactor are:
+
+- `valuation.js` - governed Ruleset v4.2 Web valuation implementation
+- `calculator-ui.js` - Calculator state/rendering and accepted-Trade snapshot
+  construction
+- `trade-history.js` - public frozen-history rendering
+- `admin.js` - administrative browser interface
+- `styles.css` - application styling and Light/Dark appearance palettes
+- `theme.js` - theme restoration/application logic
+- `storage.js` - browser/backend integration
+- `supabase/` - protected backend and migration implementation
+
+**Web Release:** v1.4.0
+**Ruleset:** v4.2
+**Ruleset impact:** None
+
+The structural-refactor audit found the governed constants, Ruleset functions,
+accepted-Trade snapshot builders, persisted field names, backend call shapes,
+and tested presentation behavior equivalent to the released source.
+
+The original release regression figures remain historical release evidence.
+They must not be represented as newly rerun against the structural refactor.
+
+Real Supabase smoke validation and the final maintenance merge gate remain
+pending for the refactor.
+
+Historical v1.3.0 release records are preserved under:
+
+`archive/v1.3.0/`
