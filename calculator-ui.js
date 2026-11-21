@@ -54,6 +54,22 @@ function emptyAsset() {
   }
 }
 
+// Ruleset v4.4 Fairness Score read: score plus which side the trade favours.
+// Display only: a trade outside the window never shows 100, even when its
+// exact score rounds there.
+function scoreText(v,digits=0) {
+  if(!v.favored)return '100';
+  let cap=digits?99.9:99;
+  return Math.min(cap,v.score).toFixed(digits)
+}
+
+function fairnessRead(v) {
+  let score=scoreText(v,1);
+  return v.favored
+    ? `${score} / 100. Favors ${teamName(v.favored)}; ${(v.distance*100).toFixed(1)}% outside the FAIR window.`
+    : `${score} / 100. Inside the FAIR window.`
+}
+
 function opts(list,val) {
   return list.map(x=>`<option ${x===val?'selected':''}>${x}</option>`).join('')
 }
@@ -65,7 +81,7 @@ function esc(s) {
 function card(a,side,val) {
   let label=a.type==='Draft Pick'?a.pick:(a.name||'Player'),
     meta=a.type==='Draft Pick'?`Draft Pick · ${a.timing}`:`${a.pos} · ${a.ovr||'—'} OVR · ${a.dev}`;
-  return `<div class="asset" data-id="${a.id}" data-side="${side}"><button type="button" class="summary toggle"><div><div class="aname">${esc(label)}</div><div class="meta">${esc(meta)}</div></div><div class="aval">${val?val.toFixed(1):'—'}</div></button><div class="editor"><div class="fields"><label>Asset type<select data-k="type">${opts(['Player','Draft Pick'],a.type)}</select></label>${a.type==='Draft Pick'?`<label>Pick<select data-k="pick">${opts(Object.keys(PICK_VALUES),a.pick)}</select></label><label>Timing<select data-k="timing">${opts(Object.keys(TIMING),a.timing)}</select></label>`:`<label>Player name<input data-k="name" value="${esc(a.name)}"></label><label>OVR<input type="number" min="0" max="99" data-k="ovr" value="${a.ovr}"></label><label>Age<input type="number" min="18" max="60" data-k="age" value="${a.age}"></label><label>Position<select data-k="pos">${opts(Object.keys(POS),a.pos)}</select></label><label>Dev trait<select data-k="dev">${opts(Object.keys(DEV),a.dev)}</select></label><label>Cap hit $M<input type="number" min="0" data-k="cap" value="${a.cap}"></label><label>Years left<input type="number" min="1" max="10" step="1" inputmode="numeric" data-k="years" value="${a.years}"></label><label>Years in league<input type="number" min="0" max="40" data-k="league" value="${a.league}"></label><label>Current role<select data-k="current"><option value=""></option>${opts(['Starter','Backup'],a.current)}</select></label><label>Projected role<select data-k="projected"><option value=""></option>${opts(['Starter','Backup'],a.projected)}</select></label>`}</div><div class="acts"><button type="button" class="btn remove">Remove</button><button type="button" class="btn done">Done</button></div></div></div>`
+  return `<div class="asset" data-id="${a.id}" data-side="${side}"><button type="button" class="summary toggle"><div><div class="aname">${esc(label)}</div><div class="meta">${esc(meta)}</div></div><div class="aval">${val?val.toFixed(1):'—'}</div></button><div class="editor"><div class="fields"><label>Asset type<select data-k="type">${opts(['Player','Draft Pick'],a.type)}</select></label>${a.type==='Draft Pick'?`<label>Pick<select data-k="pick">${opts(Object.keys(PICK_VALUES),a.pick)}</select></label><label>Timing<select data-k="timing">${opts(allowedTimings(a.pick),pickTiming(a))}</select></label>`:`<label>Player name<input data-k="name" value="${esc(a.name)}"></label><label>OVR<input type="number" min="0" max="99" data-k="ovr" value="${a.ovr}"></label><label>Age<input type="number" min="18" max="60" data-k="age" value="${a.age}"></label><label>Position<select data-k="pos">${opts(Object.keys(POS),a.pos)}</select></label><label>Dev trait<select data-k="dev">${opts(Object.keys(DEV),a.dev)}</select></label><label>Cap hit $M<input type="number" min="0" data-k="cap" value="${a.cap}"></label><label>Years left<input type="number" min="1" max="10" step="1" inputmode="numeric" data-k="years" value="${a.years}"></label><label>Years in league<input type="number" min="0" max="40" data-k="league" value="${a.league}"></label><label>Current role<select data-k="current"><option value=""></option>${opts(['Starter','Backup'],a.current)}</select></label><label>Projected role<select data-k="projected"><option value=""></option>${opts(['Starter','Backup'],a.projected)}</select></label>`}</div><div class="acts"><button type="button" class="btn remove">Remove</button><button type="button" class="btn done">Done</button></div></div></div>`
 }
 
 // ----------------------------------------------------------------------------
@@ -125,7 +141,7 @@ function buildTradeSnapshot() {
   let bestB=B.sorted[0];
   let draftA=A.arr .filter(x=>x.type==='Draft Pick') .reduce((sum,x)=>sum+x.value,0);
   let draftB=B.arr .filter(x=>x.type==='Draft Pick') .reduce((sum,x)=>sum+x.value,0);
-  let primary= v.mode==='DRAFT_ONLY' ? 'Draft trade-up protection and the 8% acceptance window apply.' : v.mode==='POSITIVE_PLAYER_TIE' ? 'Exact protected-player value tie; the 8% adjusted-value window applies.' : v.mode==='NO_ELIGIBLE_PLAYER' ? 'No eligible positive-value Player; the 8% adjusted-value window applies.' : v.tier==='ELITE_QB' ? `Elite QB acquisition protection governs ${teamName(v.protectedSide)}.` : v.tier==='CORNERSTONE' ? `Franchise Cornerstone acquisition protection governs ${teamName(v.protectedSide)}.` : `Standard player acquisition protection governs ${teamName(v.protectedSide)}.`;
+  let primary= v.mode==='DRAFT_ONLY' ? 'Draft trade-up protection and the 5% acceptance window apply.' : v.mode==='POSITIVE_PLAYER_TIE' ? 'Exact protected-player value tie; the 5% adjusted-value window applies.' : v.mode==='NO_ELIGIBLE_PLAYER' ? 'No eligible positive-value Player; the 5% adjusted-value window applies.' : v.tier==='ELITE_QB' ? `Elite QB acquisition protection governs ${teamName(v.protectedSide)}.` : v.tier==='CORNERSTONE' ? `Franchise Cornerstone acquisition protection governs ${teamName(v.protectedSide)}.` : `Standard player acquisition protection governs ${teamName(v.protectedSide)}.`;
   let tradeIntelligence=[
     { label:'PRIMARY READ', value:primary },
     {
@@ -148,19 +164,14 @@ function buildTradeSnapshot() {
       label:'PACKAGE STRUCTURE',
       value: state.A.length>=3||state.B.length>=3 ? 'Quantity-for-quality protection is active.' : 'Package compression is limited in this deal.'
     },
+    { label:'FAIRNESS SCORE', value:fairnessRead(v) },
     { label:'SUGGESTED CORRECTION', value:v.correction }
   ];
-  let requiredTarget=null;
-  let fairMaximum=null;
-  if(v.mode==='DIRECTIONAL') {
-    let protectedPackage= v.protectedSide==='A' ? A.adj : B.adj;
-    let multiplier= v.tier==='ELITE_QB' ? 1.30 : v.tier==='CORNERSTONE' ? 1.20 : 1.10;
-    requiredTarget=protectedPackage*multiplier;
-    fairMaximum=requiredTarget*1.08;
-  }
+  let requiredTarget= typeof v.requiredTarget==='number' ? v.requiredTarget : null;
+  let fairMaximum= typeof v.fairMaximum==='number' ? v.fairMaximum : null;
   return {
-    web_release:'v1.4.0',
-    ruleset_version:'v4.2',
+    web_release:'v1.5.0',
+    ruleset_version:'v4.4',
     user_team_assets:A.arr.map(snapshotAsset),
     cpu_team_assets:B.arr.map(snapshotAsset),
     user_raw_value:A.raw,
@@ -203,14 +214,14 @@ function render() {
   $('#atotal').textContent=A.adj.toFixed(1);
   $('#btotal').textContent=B.adj.toFixed(1);
   $('#verdict').textContent=v.v;
-  $('#gap').textContent=v.v==='ADD ASSETS'?'':`Adjusted gap ${(v.gap*100).toFixed(1)}%`;
+  $('#gap').textContent=v.v==='ADD ASSETS'?'':`Fairness ${scoreText(v)} / 100${v.favored?` · favors ${teamName(v.favored)}`:''}`;
   $('#vbox').className='verdict '+v.v.toLowerCase().replace(' ','-');
   let all=[...A.arr,...B.arr],
     bestA=A.sorted[0],
     bestB=B.sorted[0],
     draftA=A.arr.filter(x=>x.type==='Draft Pick').reduce((s,x)=>s+x.value,0),
     draftB=B.arr.filter(x=>x.type==='Draft Pick').reduce((s,x)=>s+x.value,0);
-  let primary=v.mode==='INCOMPLETE'?'Add assets to both sides.':v.mode==='DRAFT_ONLY'?'Draft trade-up protection and the 8% acceptance window apply.':v.mode==='POSITIVE_PLAYER_TIE'?'Exact protected-player value tie; the 8% adjusted-value window applies.':v.mode==='NO_ELIGIBLE_PLAYER'?'No eligible positive-value Player; the 8% adjusted-value window applies.':v.tier==='ELITE_QB'?`Elite QB acquisition protection governs ${teamName(v.protectedSide)}.`:v.tier==='CORNERSTONE'?`Franchise Cornerstone acquisition protection governs ${teamName(v.protectedSide)}.`:`Standard player acquisition protection governs ${teamName(v.protectedSide)}.`;
+  let primary=v.mode==='INCOMPLETE'?'Add assets to both sides.':v.mode==='DRAFT_ONLY'?'Draft trade-up protection and the 5% acceptance window apply.':v.mode==='POSITIVE_PLAYER_TIE'?'Exact protected-player value tie; the 5% adjusted-value window applies.':v.mode==='NO_ELIGIBLE_PLAYER'?'No eligible positive-value Player; the 5% adjusted-value window applies.':v.tier==='ELITE_QB'?`Elite QB acquisition protection governs ${teamName(v.protectedSide)}.`:v.tier==='CORNERSTONE'?`Franchise Cornerstone acquisition protection governs ${teamName(v.protectedSide)}.`:`Standard player acquisition protection governs ${teamName(v.protectedSide)}.`;
   $('#primary').innerHTML='<b>Primary Read:</b> '+primary;
   let reads=[
     [
@@ -233,6 +244,7 @@ function render() {
       'PACKAGE STRUCTURE',
       state.A.length>=3||state.B.length>=3?'Quantity-for-quality protection is active.':'Package compression is limited in this deal.'
     ],
+    ['FAIRNESS SCORE',v.mode==='INCOMPLETE'?'Add assets to both sides.':fairnessRead(v)],
     ['SUGGESTED CORRECTION',v.correction]
   ];
   $('#reads').innerHTML=reads.map(r=>`<div class="read"><b>${r[0]}</b><span>${r[1]}</span></div>`).join('');
@@ -252,6 +264,9 @@ function bindCards() {
       side=card.dataset.side,
       a=state[side].find(x=>x.id==card.dataset.id);
     a[el.dataset.k]=el.value;
+    // Ruleset v4.4: exact 1st-round slots are current draft only and Future
+    // 1sts are next year or later, so keep timing valid for the chosen pick.
+    if(a.type==='Draft Pick')a.timing=pickTiming(a);
     render();
     requestAnimationFrame(()=> {
       let c=document.querySelector(`.asset[data-id="${a.id}"]`);

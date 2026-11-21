@@ -1,5 +1,5 @@
 /*
- * Madden League Trade Calculator - valuation engine (Ruleset v4.2)
+ * Madden League Trade Calculator - valuation engine (Ruleset v4.4)
  *
  * GOVERNED CODE. Every constant, multiplier, threshold and comparison in this
  * file is part of the published ruleset. Changing any of them changes trade
@@ -22,60 +22,60 @@
 // ----------------------------------------------------------------------------
 
 const PICK_VALUES={
-  "1.01": 90,
-  "1.02": 83,
-  "1.03": 77,
-  "1.04": 71,
-  "1.05": 67,
-  "1.06": 63,
-  "1.07": 60,
-  "1.08": 57,
-  "1.09": 55,
-  "1.10": 53,
-  "1.11": 50,
-  "1.12": 48,
-  "1.13": 46,
-  "1.14": 44,
-  "1.15": 42,
-  "1.16": 40,
-  "1.17": 38,
-  "1.18": 37,
-  "1.19": 36,
-  "1.20": 35,
-  "1.21": 34,
-  "1.22": 33,
-  "1.23": 32,
-  "1.24": 31,
-  "1.25": 30,
-  "1.26": 29,
-  "1.27": 28,
-  "1.28": 27,
-  "1.29": 26,
-  "1.30": 25,
-  "1.31": 24,
-  "1.32": 23,
-  "Early 2nd": 19,
-  "Mid 2nd": 16,
-  "Late 2nd": 13,
-  "Early 3rd": 9,
-  "Mid 3rd": 7,
-  "Late 3rd": 5,
-  "4th": 4,
-  "5th": 3,
-  "6th": 2,
-  "7th": 1,
-  "Future Early 1st": 67,
-  "Future Mid 1st": 46,
-  "Future Late 1st": 31,
-  "Future 1st - Unknown": 44
+  "1.01": 100,
+  "1.02": 99.7,
+  "1.03": 99,
+  "1.04": 98.2,
+  "1.05": 97.2,
+  "1.06": 96.2,
+  "1.07": 94.9,
+  "1.08": 93.6,
+  "1.09": 92.2,
+  "1.10": 90.7,
+  "1.11": 89.1,
+  "1.12": 87.4,
+  "1.13": 85.7,
+  "1.14": 83.9,
+  "1.15": 82,
+  "1.16": 80,
+  "1.17": 80,
+  "1.18": 78,
+  "1.19": 76,
+  "1.20": 74,
+  "1.21": 72,
+  "1.22": 70,
+  "1.23": 68,
+  "1.24": 66,
+  "1.25": 64,
+  "1.26": 62,
+  "1.27": 60,
+  "1.28": 58,
+  "1.29": 56,
+  "1.30": 54,
+  "1.31": 52,
+  "1.32": 50,
+  "Early 2nd": 30,
+  "Mid 2nd": 26,
+  "Late 2nd": 22,
+  "Early 3rd": 16,
+  "Mid 3rd": 13,
+  "Late 3rd": 10,
+  "4th": 7,
+  "5th": 5,
+  "6th": 3,
+  "7th": 2,
+  "Future Early 1st": 97.2,
+  "Future Mid 1st": 85.7,
+  "Future Late 1st": 66,
+  "Future 1st - Unknown": 83.9
 };
 
 const POS={
   QB:1.4,
   EDGE:1.2,
-  CB:1.15,
-  WR:1.15,
-  LT:1.1,
+  CB:1.2,
+  WR:1.2,
+  OT:1.1,
   DT:1.05,
   TE:1,
   S:1,
@@ -87,7 +87,38 @@ const POS={
   P:.5
 };
 
-const TIMING={'Current draft':1,'Next year':.85,'Two years away':.7};
+// Ruleset v4.4: continuous draft discount. Timing = e^(-r*t), with r chosen so
+// that one year out is exactly 0.85: r = ln(1/0.85).
+const DRAFT_RATE=Math.log(1/.85);
+
+const TIMING={
+  'Current draft':1,
+  'Next year':Math.exp(-DRAFT_RATE*1),
+  'Two years away':Math.exp(-DRAFT_RATE*2)
+};
+
+// Pick / timing pairing (Ruleset v4.4). Exact first-round slots (1.01-1.32)
+// exist only in the current draft. Future 1st projections exist only in a
+// later draft. Round 2-7 tiers may be any timing. An invalid or blank timing
+// is read as the pick's default timing, so each pick is discounted once.
+function isSlotPick(pick) {
+  return /^1\.\d\d$/.test(pick||'')
+}
+
+function isFutureFirst(pick) {
+  return (pick||'').startsWith('Future ')
+}
+
+function allowedTimings(pick) {
+  if(isSlotPick(pick))return ['Current draft'];
+  if(isFutureFirst(pick))return ['Next year','Two years away'];
+  return Object.keys(TIMING)
+}
+
+function pickTiming(a) {
+  let allowed=allowedTimings(a.pick);
+  return allowed.includes(a.timing)?a.timing:allowed[0]
+}
 
 const CREDIT=[1,.9,.75,.6,.5,.5];
 
@@ -97,6 +128,26 @@ const DEV={
   Superstar:[1.65,1.5,1.3,1.15,1],
   'X-Factor':[2,1.75,1.5,1.3,1.15]
 };
+
+// Ruleset v4.4 curve and verdict constants
+const OVR_FLOOR=60,       // OVR at or below this is worth zero
+  OVR_SPAN=30,            // curve reference point: OVR 90 (floor + 30)
+  OVR_SCALE=34,           // value at OVR 90; sets round-1 picks at ~1.74x their
+                          // v4.2 weight against players
+  OVR_POWER=1.3;          // > 1: each OVR point is worth more than the last
+
+const AGING={             // Aging = e^(-k * max(0, age - start))
+  under80:{start:30,k:.105},
+  over80:{start:31,k:.08}
+};
+
+const CONTROL_RATE=.1,    // per-year discount on future contract control
+  CONTROL_AT_5=1.34;      // 5 years of control keeps the v4.2 value
+
+const FAIR_WINDOW=.05,    // FAIR = target through target x 1.05; 5% even-trade window
+  QUESTIONABLE_LIMIT=.05, // under 5% outside the FAIR window
+  UNFAIR_LIMIT=.15,       // 5% to under 15% outside; 15%+ = LEAGUE-BREAKING
+  SCORE_SPREAD=.12;       // Fairness Score = 100 * e^(-(d / 0.12)^2)
 
 const EPS=1e-9;
 
@@ -112,6 +163,14 @@ function teamName(side) {
 // Player and Draft Pick value components
 // ----------------------------------------------------------------------------
 
+// Ruleset v4.4: OVR value = 34 * ((OVR - 60) / 30)^1.3. The derivative,
+// (34 / 30) * 1.3 * ((OVR - 60) / 30)^0.3, rises with OVR, so stars outgain
+// depth players.
+function ovrValue(ovr) {
+  let d=Math.max(0,ovr-OVR_FLOOR);
+  return OVR_SCALE*Math.pow(d/OVR_SPAN,OVR_POWER)
+}
+
 function ageBand(a) {
   return a<=23?0:a<=26?1:a<=29?2:a<=31?3:4
 }
@@ -122,9 +181,19 @@ function capMult(a) {
   return c<=(q?10:5)?1.15:c<=(q?20:10)?1.08:c<=(q?35:20)?1:c<=(q?50:30)?.9:.8
 }
 
+// Ruleset v4.4: contract control is the integral of discounted future years,
+//   base(Y) = 1 + b * integral from 0 to (Y - 1) of e^(-0.1 t) dt
+//           = 1 + b * (1 - e^(-0.1 (Y - 1))) / 0.1,
+// with b set so five years of control is exactly 1.34.
+function controlIntegral(y) {
+  return (1-Math.exp(-CONTROL_RATE*(y-1)))/CONTROL_RATE
+}
+
+const CONTROL_SCALE=(CONTROL_AT_5-1)/controlIntegral(5);
+
 function control(a) {
-  let y=Number(a.years||1),
-    base=y<=1?1:y===2?1.07:y===3?1.16:y===4?1.25:1.34,
+  let y=Math.max(1,Number(a.years||1)),
+    base=1+CONTROL_SCALE*controlIntegral(y),
     cm=capMult(a);
   return cm>=1?base:cm===.9?1+(base-1)/2:1
 }
@@ -143,11 +212,14 @@ function early(a) {
   return y===0?1.5:y===1?1.3:y===2?1.15:1
 }
 
+// Ruleset v4.4: exponential aging decay, the solution of dA/dage = -k * A.
+// Under 80 OVR decays from age 30 at k = 0.105; 80+ OVR from age 31 at
+// k = 0.08. Applies to every development trait.
 function aging(a) {
   let o=+a.ovr,
-    ag=+a.age;
-  if(o>=70&&o<=79&&ag>=31)return ag<=32?.9:ag<=34?.75:.6;
-  return 1
+    ag=+a.age,
+    c=o>=80?AGING.over80:AGING.under80;
+  return Math.exp(-c.k*Math.max(0,ag-c.start))
 }
 
 function scar(a) {
@@ -155,9 +227,9 @@ function scar(a) {
 }
 
 function baseValue(a) {
-  if(a.type==='Draft Pick')return (PICK_VALUES[a.pick]||0)*(TIMING[a.timing]||1);
+  if(a.type==='Draft Pick')return (PICK_VALUES[a.pick]||0)*TIMING[pickTiming(a)];
   if(a.ovr===''||a.age===''||!a.pos||!a.dev)return 0;
-  return Math.max(0,+a.ovr-60)*POS[a.pos]*DEV[a.dev][ageBand(+a.age)]*capMult(a)*scar(a)*early(a)*role(a)*aging(a)*control(a)
+  return ovrValue(+a.ovr)*POS[a.pos]*DEV[a.dev][ageBand(+a.age)]*capMult(a)*scar(a)*early(a)*role(a)*aging(a)*control(a)
 }
 
 function qbage(a,other) {
@@ -206,67 +278,106 @@ function candidate(arr) {
   return ps[0]||null
 }
 
-function fallback(g) {
-  return g<.12?'QUESTIONABLE':g<.22?'UNFAIR':'LEAGUE-BREAKING'
+// Ruleset v4.4: severity is measured as distance outside the FAIR window,
+// relative to the nearest window edge. Band edges are lower-inclusive (EPS).
+function severity(d) {
+  return d<=EPS?'FAIR':d<QUESTIONABLE_LIMIT-EPS?'QUESTIONABLE':d<UNFAIR_LIMIT-EPS?'UNFAIR':'LEAGUE-BREAKING'
+}
+
+// Fairness Score: a Gaussian falloff from 100 inside the FAIR window.
+function fairnessScore(d) {
+  return 100*Math.exp(-Math.pow(Math.max(0,d)/SCORE_SPREAD,2))
+}
+
+// Directional window test. "pay" is what the paying side's partner receives
+// (the counter-package); target and ceiling bound the FAIR window.
+// Returns distance outside the window and which side the miss favours.
+function windowRead(pay,target,ceiling,protectedSide,payingSide) {
+  if(pay<target-EPS)return {d:(target-pay)/target,favored:protectedSide,short:true};
+  if(pay>ceiling+EPS)return {d:(pay-ceiling)/ceiling,favored:payingSide,short:false};
+  return {d:0,favored:null,short:false}
+}
+
+function result(v) {
+  return {...v,score:v.mode==='INCOMPLETE'?0:fairnessScore(v.distance)}
 }
 
 function verdict(A,B) {
-  if(!A.adj||!B.adj)return {v:'ADD ASSETS',gap:0,mode:'INCOMPLETE',correction:''};
+  if(!A.adj||!B.adj)return {v:'ADD ASSETS',gap:0,distance:0,score:0,favored:null,mode:'INCOMPLETE',correction:''};
   let gap=Math.abs(A.adj-B.adj)/Math.max(A.adj,B.adj),
     all=[...A.arr,...B.arr],
-    allDraft=all.length&&all.every(a=>a.type==='Draft Pick');
+    allDraft=all.length&&all.every(a=>a.type==='Draft Pick'),
+    hi=Math.max(A.adj,B.adj),
+    lo=Math.min(A.adj,B.adj),
+    hiSide=A.adj>B.adj?'A':B.adj>A.adj?'B':null,
+    loSide=hiSide==='A'?'B':'A';
+  // Even-trade path: the lower package must reach 95% of the higher one.
+  function evenPath(mode) {
+    let d=Math.max(0,gap-FAIR_WINDOW),
+      fair=d<=EPS,
+      amount=Math.max(0,hi*(1-FAIR_WINDOW)-lo);
+    return result({
+      v:severity(d),
+      gap,
+      distance:d,
+      favored:fair?null:hiSide,
+      mode,
+      correction:fair?'No correction needed.':`Increase ${teamName(loSide)} received package by ${amount.toFixed(4)} adjusted-value points to enter the ${FAIR_WINDOW*100}% window.`
+    })
+  }
   if(allDraft) {
     let ba=Math.max(...A.arr.map(x=>x.value)),
-      bb=Math.max(...B.arr.map(x=>x.value)),
-      fair=false;
-    if(ba===bb)fair=gap<=.08+EPS;
-    else {
-      let strong=ba>bb?A:B,
-        weak=ba>bb?B:A,
-        best=Math.max(ba,bb),
-        other=Math.min(ba,bb),
-        prem=best===90?1.15:best>=77?1.08:best>other*1.08?1.04:1,
-        target=strong.adj*prem;
-      fair=weak.adj>=target-EPS&&weak.adj<=target*1.08+EPS
-    }
-    return {
-      v:fair?'FAIR':fallback(gap),
+      bb=Math.max(...B.arr.map(x=>x.value));
+    if(ba===bb)return evenPath('DRAFT_ONLY');
+    let strongSide=ba>bb?'A':'B',
+      strong=strongSide==='A'?A:B,
+      weakSide=strongSide==='A'?'B':'A',
+      weak=strongSide==='A'?B:A,
+      best=Math.max(ba,bb),
+      other=Math.min(ba,bb),
+      // The trade-up premium is keyed to the strongest pick's identity
+      // (1.01 / 1.02-1.03), not to its value.
+      top=strong.arr.reduce((t,x)=>x.value>t.value?x:t),
+      prem=top.pick==='1.01'?1.15:['1.02','1.03'].includes(top.pick)?1.08:best>other*1.08?1.04:1,
+      target=strong.adj*prem,
+      ceiling=target*(1+FAIR_WINDOW),
+      w=windowRead(weak.adj,target,ceiling,strongSide,weakSide),
+      amount=w.short?target-weak.adj:weak.adj-ceiling;
+    return result({
+      v:severity(w.d),
       gap,
+      distance:w.d,
+      favored:w.favored,
       mode:'DRAFT_ONLY',
-      correction:fair?'No correction needed.':'Adjust the trade-down package to the protected target window.'
-    }
+      protectedSide:strongSide,
+      requiredTarget:target,
+      fairMaximum:ceiling,
+      correction:w.d<=EPS?'No correction needed.':w.short?`Increase ${teamName(weakSide)} received package by ${amount.toFixed(4)} adjusted-value points.`:`Reduce ${teamName(weakSide)} received package by ${amount.toFixed(4)} adjusted-value points.`
+    })
   }
   let ca=candidate(A.arr),
     cb=candidate(B.arr);
-  if((ca&&cb&&ca.value===cb.value)||(!ca&&!cb)) {
-    let fair=gap<=.08+EPS,
-      hi=Math.max(A.adj,B.adj),
-      lo=Math.min(A.adj,B.adj),
-      side=A.adj<B.adj?'A':'B',
-      amount=Math.max(0,hi*.92-lo);
-    return {
-      v:fair?'FAIR':fallback(gap),
-      gap,
-      mode:ca?'POSITIVE_PLAYER_TIE':'NO_ELIGIBLE_PLAYER',
-      correction:fair?'No correction needed.':`Increase ${teamName(side)} received package by ${amount.toFixed(4)} adjusted-value points to enter the 8% window.`
-    }
-  }
+  if((ca&&cb&&ca.value===cb.value)||(!ca&&!cb))return evenPath(ca?'POSITIVE_PLAYER_TIE':'NO_ELIGIBLE_PLAYER');
   let protectedSide=!cb||(ca&&ca.value>cb.value)?'A':'B',
     pc=protectedSide==='A'?ca:cb,
     protectedPkg=protectedSide==='A'?A.adj:B.adj,
     counterPkg=protectedSide==='A'?B.adj:A.adj,
     m=pc.rank===3?1.3:pc.rank===2?1.2:1.1,
     target=protectedPkg*m,
-    ceiling=target*1.08,
-    fair=counterPkg>=target-EPS&&counterPkg<=ceiling+EPS,
+    ceiling=target*(1+FAIR_WINDOW),
     counterSide=protectedSide==='A'?'B':'A',
-    amount=counterPkg<target?target-counterPkg:counterPkg-ceiling;
-  return {
-    v:fair?'FAIR':fallback(gap),
+    w=windowRead(counterPkg,target,ceiling,protectedSide,counterSide),
+    amount=w.short?target-counterPkg:counterPkg-ceiling;
+  return result({
+    v:severity(w.d),
     gap,
+    distance:w.d,
+    favored:w.favored,
     mode:'DIRECTIONAL',
     tier:pc.rank===3?'ELITE_QB':pc.rank===2?'CORNERSTONE':'STANDARD',
     protectedSide,
-    correction:fair?'No correction needed.':counterPkg<target?`Increase ${teamName(counterSide)} received package by ${amount.toFixed(4)} adjusted-value points.`:`Reduce ${teamName(counterSide)} received package by ${amount.toFixed(4)} adjusted-value points.`
-  }
+    requiredTarget:target,
+    fairMaximum:ceiling,
+    correction:w.d<=EPS?'No correction needed.':w.short?`Increase ${teamName(counterSide)} received package by ${amount.toFixed(4)} adjusted-value points.`:`Reduce ${teamName(counterSide)} received package by ${amount.toFixed(4)} adjusted-value points.`
+  })
 }
