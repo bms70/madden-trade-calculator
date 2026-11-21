@@ -416,7 +416,7 @@ Formal release documentation and final cross-file alignment are completed throug
 
 ## Post-release Maintenance
 
-Web Release v1.4.0 remains frozen.
+Web Release v1.4.0 remains frozen. Later fixes are recorded here as v1.4.0 maintenance rather than as a new Web Release number; none of them changes Ruleset v4.2.
 
 A later post-release maintenance refactor modularized the browser application source to improve maintainability and auditability.
 
@@ -437,7 +437,7 @@ The structural-refactor validation record is maintained at:
 
 `docs/validation/REFACTOR_AUDIT_v1.4.0.md`
 
-Deployment of the refactored source remains subject to its separate validation and merge process.
+The refactored source has been validated, merged to `main`, and deployed.
 
 ### Accept & Log confirmation
 
