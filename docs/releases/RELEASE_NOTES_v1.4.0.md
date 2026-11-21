@@ -1,7 +1,7 @@
-# Madden League Trade Calculator — Web Release v1.4.0
+﻿# Madden League Trade Calculator â€” Web Release v1.4.0
 
-**Ruleset:** v4.2  
-**Release theme:** Trade History, Administration & UX  
+**Ruleset:** v4.2
+**Release theme:** Trade History, Administration & UX
 **Ruleset impact:** None
 
 ## Overview
@@ -271,4 +271,29 @@ Future work may expand transaction history with richer league-team, player, Draf
 
 Technical validation for Web Release v1.4.0 is complete and PASS.
 
-Final governed-document alignment, final cross-file audit, repository-cleanliness review, PR/merge, tag, and publication remain release-closeout activities until those steps are completed.
+## Release Closeout
+
+The original Web Release v1.4.0 release-closeout process subsequently
+completed:
+
+- governed-document alignment
+- final cross-file audit
+- repository-cleanliness review
+- PR review and merge to `main`
+- v1.4.0 tag/release publication
+
+Web Release v1.4.0 is frozen.
+
+## Post-release Maintenance
+
+A later maintenance refactor modularized the browser application source to
+improve maintainability and auditability.
+
+The refactor does not create a new Web Release or Ruleset.
+
+**Web Release:** v1.4.0
+**Ruleset:** v4.2
+**Ruleset impact:** None
+
+Deployment of the modular source remains subject to its separate validation
+and merge process.
