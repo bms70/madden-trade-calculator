@@ -12,7 +12,7 @@
         <div class="brandrow">
           <div>
             <div class="brand">MADDEN LEAGUE TRADE CALCULATOR</div>
-            <div class="ver">Web Release v1.4.0 · Ruleset v4.2</div>
+            <div class="ver">Web Release v1.5.0 · Ruleset v4.3</div>
           </div>
           <div class="brand-actions">
             <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false">Dark mode</button>
@@ -63,7 +63,7 @@
         </div>
         <div class="accept-confirm" id="acceptConfirm" role="dialog" aria-labelledby="acceptConfirmTitle" aria-describedby="acceptConfirmDescription" hidden>
           <h2 id="acceptConfirmTitle">Log this trade as accepted?</h2>
-          <p id="acceptConfirmDescription">The current trade details, calculator result, and Ruleset v4.2 evaluation will be saved to Trade History.</p>
+          <p id="acceptConfirmDescription">The current trade details, calculator result, and Ruleset v4.3 evaluation will be saved to Trade History.</p>
           <div class="accept-confirm-actions">
             <button type="button" class="btn" id="cancelAcceptTrade">Cancel</button>
             <button type="button" class="btn accept-confirm-button" id="confirmAcceptTrade">Accept &amp; Log</button>
@@ -92,7 +92,7 @@
             <p>Read each side as “What does this team get?” Example: if the User Team sends a quarterback to
               the CPU Team for two picks, put both picks under User Team Receives and the quarterback under
               CPU Team Receives.</p>
-            <p>Each side supports up to six assets in Ruleset v4.2.</p>
+            <p>Each side supports up to six assets in Ruleset v4.3.</p>
           </div>
           <div class="rulecard">
             <h2>Adding a Player</h2>
@@ -106,9 +106,13 @@
           </div>
           <div class="rulecard">
             <h2>Adding a Draft Pick</h2>
-            <p>Choose <b>Draft Pick</b>, select the exact current pick or future-first projection, then choose
-              Current draft, Next year, or Two years away.</p>
-            <p>If timing is blank, the calculator treats it as Current draft.</p>
+            <p>Choose <b>Draft Pick</b>, then select the pick. The Timing list shows only the options that fit
+              that pick:</p>
+            <ul>
+              <li>Exact first-round slots (1.01–1.32) are this year's picks, so they are always Current draft.</li>
+              <li>Future 1sts are Next year or Two years away.</li>
+              <li>Round 2–7 picks can be Current draft, Next year, or Two years away.</li>
+            </ul>
           </div>
           <div class="rulecard">
             <h2>Optional Fields & Defaults</h2>
@@ -116,7 +120,7 @@
               <li>Blank Years in League is neutral and is not Year 0.</li>
               <li>Blank Years Remaining uses neutral contract control.</li>
               <li>Either blank role means no role adjustment.</li>
-              <li>Blank Draft Timing means Current draft.</li>
+              <li>Blank Draft Timing means Current draft, except a Future 1st, which means Next year.</li>
               <li>Blank cap hit is $0M for valuation.</li>
             </ul>
           </div>
@@ -164,7 +168,7 @@
           the verdict. For valuation policy, thresholds, multipliers, and point values, use the Rules tab.</p>
       </section>
       <section id="rules" class="panel" hidden>
-        <div class="rulesintro"><strong>Ruleset v4.2 member guide.</strong> Player/mixed protection is
+        <div class="rulesintro"><strong>Ruleset v4.3 member guide.</strong> Player/mixed protection is
           directional: the higher eligible positive-value Player determines the protected acquisition side.
           Exact cross-package Player-value ties use the 8% Adjusted Gap path. Combined formulas and
           implementation code are intentionally not shown.</div>
@@ -196,13 +200,14 @@
             <h2>Draft Pick Values</h2>
             <p>Current first-round reference points:</p>
             <div class="picks" id="pickGrid"></div>
-            <p><b>Later:</b> 2nds 19/16/13 · 3rds 9/7/5 · 4th/5th/6th/7th 4/3/2/1.<br><b>Future 1sts:</b>
-              Early 67 · Mid 46 · Late 31 · Unknown 44.</p>
+            <p><b>Later:</b> 2nds 30/26/22 · 3rds 16/13/10 · 4th/5th/6th/7th 7/5/3/2.<br><b>Future 1sts</b>
+              (before timing): Early 97.2 · Mid 85.7 · Late 66 · Unknown 83.9.</p>
           </div>
           <div class="rulecard">
             <h2>Draft Timing</h2>
             <p>Delayed draft capital receives less weight: Current draft 1.00x, Next year .85x, Two years away
-              .70x. Blank timing defaults to Current.</p>
+              .70x. Exact first-round slots are Current draft only; Future 1sts are Next year or Two years
+              away. Each pick is discounted once.</p>
           </div>
           <div class="rulecard">
             <h2>Package Quality</h2>

@@ -2,8 +2,8 @@
 
 A responsive web calculator for evaluating Player and Draft Pick trades in a Madden league, with persistent accepted-Trade history and protected administrative maintenance.
 
-**Current Web Release:** v1.4.0  
-**Current Ruleset:** v4.2
+**Current Web Release:** v1.5.0  
+**Current Ruleset:** v4.3
 
 ---
 
@@ -11,11 +11,11 @@ A responsive web calculator for evaluating Player and Draft Pick trades in a Mad
 
 The current production mapping is:
 
-**Web Release v1.4.0 | Ruleset v4.2**
+**Web Release v1.5.0 | Ruleset v4.3**
 
 Web Releases and Rulesets are versioned independently.
 
-Web Release v1.4.0 adds application, persistence, administrative, historical, and user-experience functionality while preserving Ruleset v4.2 as the governing trade-valuation framework.
+Web Release v1.5.0 introduces Ruleset v4.3, which revalues Draft Picks: higher first-round and round 2–7 values, Future 1sts re-anchored to the new curve, pick/timing pairing, and draft-only protection keyed to pick identity. Player valuation and the v1.4.0 application features are unchanged.
 
 ---
 
@@ -26,7 +26,7 @@ The current web application is provided through:
 - `index.html` - Page structure and ordered stylesheet/script loading.
 - `styles.css` - Application styling, responsive layouts, Light/Dark appearance palettes, Trade History styling, and Admin styling.
 - `theme.js` - Browser-local Light/Dark preference restoration and theme application.
-- `valuation.js` - Governed Ruleset v4.2 Web valuation engine.
+- `valuation.js` - Governed Ruleset v4.3 Web valuation engine.
 - `calculator-ui.js` - Calculator state, calculator rendering, Trade Intelligence presentation, accepted-Trade snapshot construction, duplicate-state protection, and calculator event wiring.
 - `trade-history.js` - Public read-only Trade History retrieval/presentation and frozen historical detail rendering.
 - `admin.js` - Browser administrative-session UI, Active Trades presentation, deletion confirmation, and protected Audit Log presentation.
@@ -203,19 +203,27 @@ Changing appearance does not change:
 
 ---
 
-## Ruleset v4.2
+## Ruleset v4.3
 
-Ruleset v4.2 remains the governing valuation framework.
+Ruleset v4.3 is the governing valuation framework.
 
 The canonical specification is:
 
-`docs/rules/CANONICAL_RULESET_v4.2.md`
+`docs/rules/CANONICAL_RULESET_v4.3.md`
 
-Ruleset v4.2 preserves:
+Ruleset v4.3 changes Draft Pick valuation:
+
+- First round: 1.01 = 100 down to 1.16 = 80 (the top seven picks hold value), then 1.17 = 80 down to 1.32 = 50.
+- Rounds 2–7 raised: 2nds 30/26/22, 3rds 16/13/10, 4th–7th 7/5/3/2.
+- Future 1sts re-anchored: Early 97.2, Mid 85.7, Late 66, Unknown 83.9 (before timing).
+- Exact slots 1.01–1.32 are Current draft only; Future 1sts are Next year or Two years away, so each pick is discounted once.
+- Draft-only 1.01 and 1.02–1.03 protection is selected by which pick it is, not by its value.
+
+Ruleset v4.3 carries forward from v4.2:
 
 - Six assets per side
 - Full internal precision
-- Player and Draft Pick valuation
+- Player valuation
 - Package-quality credits
 - Player/mixed acquisition protection
 - Draft-only protection
@@ -223,7 +231,7 @@ Ruleset v4.2 preserves:
 - Suggested Correction
 - Seven Trade Intelligence reads
 
-Web Release v1.4.0 does not introduce a new valuation Ruleset.
+Ruleset v4.2 is archived under `archive/ruleset-v4.2/`.
 
 ---
 
@@ -253,7 +261,7 @@ Wiki documentation includes topics such as:
 - Ruleset Overview
 - Releases
 - Development
-- Web Release v1.4.0
+- Web Release v1.5.0
 - Architecture
 - Ruleset v5.0 Roadmap
 - Glossary
@@ -271,15 +279,14 @@ Canonical and member-facing Ruleset documentation.
 
 Current governed Ruleset files include:
 
-- `CANONICAL_RULESET_v4.2.md`
-- `Madden League Trade Rules and Valuation Guide - Ruleset v4.2.docx`
+- `CANONICAL_RULESET_v4.3.md`
+- `Madden League Trade Rules and Valuation Guide - Ruleset v4.2.docx` (member guide; **v4.3 update pending**)
 
 ### `docs/releases/`
 
 Release notes and governed release records.
 
-Web Release v1.4.0 adds:
-
+- `RELEASE_NOTES_v1.5.0.md`
 - `RELEASE_NOTES_v1.4.0.md`
 
 Historical v1.3.0 release records are preserved under `archive/v1.3.0/`, not in their former active documentation locations. They remain historical records and are not rewritten merely because a newer Web Release exists.
@@ -309,7 +316,7 @@ Current reference implementation:
 
 - `Madden League Trade Calculator v4.2.xlsx`
 
-The workbook remains a Ruleset v4.2 reference implementation.
+The workbook is a Ruleset v4.2 reference implementation. **A v4.3 workbook is pending**, so Excel/Web parity for Draft Pick values is not yet re-established.
 
 ### `supabase/`
 
@@ -338,7 +345,7 @@ Historical v1.3.0 release records are preserved under `archive/v1.3.0/`.
 - `index.html` — page structure and ordered stylesheet/script loading
 - `styles.css` — application styling, responsive layouts, Light/Dark appearance palettes, Trade History styling, and Admin styling
 - `theme.js` — browser-local Light/Dark preference restoration and theme application
-- `valuation.js` — governed Ruleset v4.2 Web valuation engine
+- `valuation.js` — governed Ruleset v4.3 Web valuation engine
 - `calculator-ui.js` — calculator state, rendering, Trade Intelligence presentation, accepted-Trade snapshot construction, duplicate-state protection, and calculator event wiring
 - `trade-history.js` — public read-only Trade History retrieval/presentation and frozen historical detail rendering
 - `admin.js` — browser administrative-session UI, Active Trades presentation, deletion confirmation, and protected Audit Log presentation
@@ -352,7 +359,7 @@ Historical v1.3.0 release records are preserved under `archive/v1.3.0/`.
 
 Different repository artifacts serve different purposes.
 
-- **Valuation and Ruleset policy:** `docs/rules/CANONICAL_RULESET_v4.2.md`
+- **Valuation and Ruleset policy:** `docs/rules/CANONICAL_RULESET_v4.3.md`
 - **Web structure/application composition:** `index.html`
 - **Web presentation:** `styles.css`
 - **Governed Web valuation implementation:** `valuation.js`
@@ -379,7 +386,7 @@ Web Releases and Rulesets are versioned independently.
 
 Current production mapping:
 
-**Web Release v1.4.0 | Ruleset v4.2**
+**Web Release v1.5.0 | Ruleset v4.3**
 
 A Web Release may introduce:
 
@@ -397,6 +404,15 @@ A Ruleset version identifies the governed trade-valuation framework.
 ---
 
 ## Release Validation
+
+### Web Release v1.5.0 / Ruleset v4.3
+
+- Automated Ruleset v4.3 Draft Pick regression (`tests/ruleset-v4.3-draft-picks.test.js`): **30 / 30 PASS**
+- Excel/Web parity: **PENDING** (v4.3 workbook not yet built)
+- Member guide (.docx) and Wiki update: **PENDING**
+- Desktop/mobile browser smoke: **PENDING release-owner sign-off**
+
+### Web Release v1.4.0 / Ruleset v4.2
 
 Web Release v1.4.0 completed the technical release-validation gate while preserving Ruleset v4.2.
 
@@ -416,7 +432,7 @@ Formal release documentation and final cross-file alignment are completed throug
 
 ## Post-release Maintenance
 
-Web Release v1.4.0 remains frozen. Later fixes are recorded here as v1.4.0 maintenance rather than as a new Web Release number; none of them changes Ruleset v4.2.
+Web Release v1.4.0 is frozen. Later fixes are recorded here as v1.4.0 maintenance rather than as a new Web Release number; none of them changes Ruleset v4.2.
 
 A later post-release maintenance refactor modularized the browser application source to improve maintainability and auditability.
 
@@ -483,5 +499,5 @@ The Wiki is the human-readable project handbook.
 
 Canonical Ruleset specifications, application source, backend/persistence source, validation records, release records, reference implementations, roadmaps, and historical archives remain maintained in the repository.
 
-**Current release:** Web Release v1.4.0  
-**Current valuation authority:** Ruleset v4.2
+**Current release:** Web Release v1.5.0  
+**Current valuation authority:** Ruleset v4.3

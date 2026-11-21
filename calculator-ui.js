@@ -65,7 +65,7 @@ function esc(s) {
 function card(a,side,val) {
   let label=a.type==='Draft Pick'?a.pick:(a.name||'Player'),
     meta=a.type==='Draft Pick'?`Draft Pick · ${a.timing}`:`${a.pos} · ${a.ovr||'—'} OVR · ${a.dev}`;
-  return `<div class="asset" data-id="${a.id}" data-side="${side}"><button type="button" class="summary toggle"><div><div class="aname">${esc(label)}</div><div class="meta">${esc(meta)}</div></div><div class="aval">${val?val.toFixed(1):'—'}</div></button><div class="editor"><div class="fields"><label>Asset type<select data-k="type">${opts(['Player','Draft Pick'],a.type)}</select></label>${a.type==='Draft Pick'?`<label>Pick<select data-k="pick">${opts(Object.keys(PICK_VALUES),a.pick)}</select></label><label>Timing<select data-k="timing">${opts(Object.keys(TIMING),a.timing)}</select></label>`:`<label>Player name<input data-k="name" value="${esc(a.name)}"></label><label>OVR<input type="number" min="0" max="99" data-k="ovr" value="${a.ovr}"></label><label>Age<input type="number" min="18" max="60" data-k="age" value="${a.age}"></label><label>Position<select data-k="pos">${opts(Object.keys(POS),a.pos)}</select></label><label>Dev trait<select data-k="dev">${opts(Object.keys(DEV),a.dev)}</select></label><label>Cap hit $M<input type="number" min="0" data-k="cap" value="${a.cap}"></label><label>Years left<input type="number" min="1" max="10" step="1" inputmode="numeric" data-k="years" value="${a.years}"></label><label>Years in league<input type="number" min="0" max="40" data-k="league" value="${a.league}"></label><label>Current role<select data-k="current"><option value=""></option>${opts(['Starter','Backup'],a.current)}</select></label><label>Projected role<select data-k="projected"><option value=""></option>${opts(['Starter','Backup'],a.projected)}</select></label>`}</div><div class="acts"><button type="button" class="btn remove">Remove</button><button type="button" class="btn done">Done</button></div></div></div>`
+  return `<div class="asset" data-id="${a.id}" data-side="${side}"><button type="button" class="summary toggle"><div><div class="aname">${esc(label)}</div><div class="meta">${esc(meta)}</div></div><div class="aval">${val?val.toFixed(1):'—'}</div></button><div class="editor"><div class="fields"><label>Asset type<select data-k="type">${opts(['Player','Draft Pick'],a.type)}</select></label>${a.type==='Draft Pick'?`<label>Pick<select data-k="pick">${opts(Object.keys(PICK_VALUES),a.pick)}</select></label><label>Timing<select data-k="timing">${opts(allowedTimings(a.pick),pickTiming(a))}</select></label>`:`<label>Player name<input data-k="name" value="${esc(a.name)}"></label><label>OVR<input type="number" min="0" max="99" data-k="ovr" value="${a.ovr}"></label><label>Age<input type="number" min="18" max="60" data-k="age" value="${a.age}"></label><label>Position<select data-k="pos">${opts(Object.keys(POS),a.pos)}</select></label><label>Dev trait<select data-k="dev">${opts(Object.keys(DEV),a.dev)}</select></label><label>Cap hit $M<input type="number" min="0" data-k="cap" value="${a.cap}"></label><label>Years left<input type="number" min="1" max="10" step="1" inputmode="numeric" data-k="years" value="${a.years}"></label><label>Years in league<input type="number" min="0" max="40" data-k="league" value="${a.league}"></label><label>Current role<select data-k="current"><option value=""></option>${opts(['Starter','Backup'],a.current)}</select></label><label>Projected role<select data-k="projected"><option value=""></option>${opts(['Starter','Backup'],a.projected)}</select></label>`}</div><div class="acts"><button type="button" class="btn remove">Remove</button><button type="button" class="btn done">Done</button></div></div></div>`
 }
 
 // ----------------------------------------------------------------------------
@@ -159,8 +159,8 @@ function buildTradeSnapshot() {
     fairMaximum=requiredTarget*1.08;
   }
   return {
-    web_release:'v1.4.0',
-    ruleset_version:'v4.2',
+    web_release:'v1.5.0',
+    ruleset_version:'v4.3',
     user_team_assets:A.arr.map(snapshotAsset),
     cpu_team_assets:B.arr.map(snapshotAsset),
     user_raw_value:A.raw,
@@ -252,6 +252,9 @@ function bindCards() {
       side=card.dataset.side,
       a=state[side].find(x=>x.id==card.dataset.id);
     a[el.dataset.k]=el.value;
+    // Ruleset v4.3: exact 1st-round slots are current draft only and Future
+    // 1sts are next year or later, so keep timing valid for the chosen pick.
+    if(a.type==='Draft Pick')a.timing=pickTiming(a);
     render();
     requestAnimationFrame(()=> {
       let c=document.querySelector(`.asset[data-id="${a.id}"]`);

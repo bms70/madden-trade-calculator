@@ -1,5 +1,5 @@
 /*
- * Madden League Trade Calculator - valuation engine (Ruleset v4.2)
+ * Madden League Trade Calculator - valuation engine (Ruleset v4.3)
  *
  * GOVERNED CODE. Every constant, multiplier, threshold and comparison in this
  * file is part of the published ruleset. Changing any of them changes trade
@@ -22,52 +22,52 @@
 // ----------------------------------------------------------------------------
 
 const PICK_VALUES={
-  "1.01": 90,
-  "1.02": 83,
-  "1.03": 77,
-  "1.04": 71,
-  "1.05": 67,
-  "1.06": 63,
-  "1.07": 60,
-  "1.08": 57,
-  "1.09": 55,
-  "1.10": 53,
-  "1.11": 50,
-  "1.12": 48,
-  "1.13": 46,
-  "1.14": 44,
-  "1.15": 42,
-  "1.16": 40,
-  "1.17": 38,
-  "1.18": 37,
-  "1.19": 36,
-  "1.20": 35,
-  "1.21": 34,
-  "1.22": 33,
-  "1.23": 32,
-  "1.24": 31,
-  "1.25": 30,
-  "1.26": 29,
-  "1.27": 28,
-  "1.28": 27,
-  "1.29": 26,
-  "1.30": 25,
-  "1.31": 24,
-  "1.32": 23,
-  "Early 2nd": 19,
-  "Mid 2nd": 16,
-  "Late 2nd": 13,
-  "Early 3rd": 9,
-  "Mid 3rd": 7,
-  "Late 3rd": 5,
-  "4th": 4,
-  "5th": 3,
-  "6th": 2,
-  "7th": 1,
-  "Future Early 1st": 67,
-  "Future Mid 1st": 46,
-  "Future Late 1st": 31,
-  "Future 1st - Unknown": 44
+  "1.01": 100,
+  "1.02": 99.7,
+  "1.03": 99,
+  "1.04": 98.2,
+  "1.05": 97.2,
+  "1.06": 96.2,
+  "1.07": 94.9,
+  "1.08": 93.6,
+  "1.09": 92.2,
+  "1.10": 90.7,
+  "1.11": 89.1,
+  "1.12": 87.4,
+  "1.13": 85.7,
+  "1.14": 83.9,
+  "1.15": 82,
+  "1.16": 80,
+  "1.17": 80,
+  "1.18": 78,
+  "1.19": 76,
+  "1.20": 74,
+  "1.21": 72,
+  "1.22": 70,
+  "1.23": 68,
+  "1.24": 66,
+  "1.25": 64,
+  "1.26": 62,
+  "1.27": 60,
+  "1.28": 58,
+  "1.29": 56,
+  "1.30": 54,
+  "1.31": 52,
+  "1.32": 50,
+  "Early 2nd": 30,
+  "Mid 2nd": 26,
+  "Late 2nd": 22,
+  "Early 3rd": 16,
+  "Mid 3rd": 13,
+  "Late 3rd": 10,
+  "4th": 7,
+  "5th": 5,
+  "6th": 3,
+  "7th": 2,
+  "Future Early 1st": 97.2,
+  "Future Mid 1st": 85.7,
+  "Future Late 1st": 66,
+  "Future 1st - Unknown": 83.9
 };
 
 const POS={
@@ -88,6 +88,29 @@ const POS={
 };
 
 const TIMING={'Current draft':1,'Next year':.85,'Two years away':.7};
+
+// Pick / timing pairing (Ruleset v4.3). Exact first-round slots (1.01-1.32)
+// exist only in the current draft. Future 1st projections exist only in a
+// later draft. Round 2-7 tiers may be any timing. An invalid or blank timing
+// is read as the pick's default timing, so each pick is discounted once.
+function isSlotPick(pick) {
+  return /^1\.\d\d$/.test(pick||'')
+}
+
+function isFutureFirst(pick) {
+  return (pick||'').startsWith('Future ')
+}
+
+function allowedTimings(pick) {
+  if(isSlotPick(pick))return ['Current draft'];
+  if(isFutureFirst(pick))return ['Next year','Two years away'];
+  return Object.keys(TIMING)
+}
+
+function pickTiming(a) {
+  let allowed=allowedTimings(a.pick);
+  return allowed.includes(a.timing)?a.timing:allowed[0]
+}
 
 const CREDIT=[1,.9,.75,.6,.5,.5];
 
@@ -155,7 +178,7 @@ function scar(a) {
 }
 
 function baseValue(a) {
-  if(a.type==='Draft Pick')return (PICK_VALUES[a.pick]||0)*(TIMING[a.timing]||1);
+  if(a.type==='Draft Pick')return (PICK_VALUES[a.pick]||0)*TIMING[pickTiming(a)];
   if(a.ovr===''||a.age===''||!a.pos||!a.dev)return 0;
   return Math.max(0,+a.ovr-60)*POS[a.pos]*DEV[a.dev][ageBand(+a.age)]*capMult(a)*scar(a)*early(a)*role(a)*aging(a)*control(a)
 }
@@ -225,7 +248,10 @@ function verdict(A,B) {
         weak=ba>bb?B:A,
         best=Math.max(ba,bb),
         other=Math.min(ba,bb),
-        prem=best===90?1.15:best>=77?1.08:best>other*1.08?1.04:1,
+        // Ruleset v4.3: the trade-up premium is keyed to the strongest pick's
+        // identity (1.01 / 1.02-1.03), not to its value.
+        top=strong.arr.reduce((t,x)=>x.value>t.value?x:t),
+        prem=top.pick==='1.01'?1.15:['1.02','1.03'].includes(top.pick)?1.08:best>other*1.08?1.04:1,
         target=strong.adj*prem;
       fair=weak.adj>=target-EPS&&weak.adj<=target*1.08+EPS
     }
