@@ -183,6 +183,7 @@ function buildTradeSnapshot() {
 // ----------------------------------------------------------------------------
 
 function render() {
+  closeAcceptConfirmation();
   for(let side of ['A','B']) {
     let t=totals(side),
       el=document.querySelector(`.side[data-side="${side}"]`);
@@ -280,7 +281,57 @@ $$('.add').forEach(b=>b.onclick=()=> {
   }
 });
 
-$('#acceptTrade').onclick=async()=> {
+// ----------------------------------------------------------------------------
+// Accept & Log confirmation
+//
+// Selecting Accept & Log Trade opens an inline confirmation. Nothing is saved
+// until Accept & Log is confirmed. render() closes the confirmation, so any
+// change to the trade while it is open cancels it.
+// ----------------------------------------------------------------------------
+
+function closeAcceptConfirmation() {
+  let panel=$('#acceptConfirm');
+  if(panel)panel.hidden=true;
+}
+
+function openAcceptConfirmation() {
+  if(loggingTrade)return;
+  let snapshot=buildTradeSnapshot();
+  if(!snapshot) {
+    $('#status').textContent= 'Complete both sides of the trade before logging it.';
+    render();
+    return;
+  }
+  if(!window.MaddenStorage?.isConfigured) {
+    $('#status').textContent= 'Trade storage is unavailable. No historical record was created.';
+    return;
+  }
+  let panel=$('#acceptConfirm');
+  let description=$('#acceptConfirmDescription');
+  if(!panel)return;
+  if(description) {
+    description.textContent= `The current trade details, calculator result (${snapshot.verdict}), and Ruleset ${snapshot.ruleset_version} evaluation will be saved to Trade History. Only log trades that have actually been accepted.`;
+  }
+  panel.hidden=false;
+  $('#status').textContent='Confirm below to log this trade, or select Cancel.';
+  let cancel=$('#cancelAcceptTrade');
+  if(cancel)cancel.focus();
+}
+
+$('#acceptTrade').onclick=openAcceptConfirmation;
+
+$('#cancelAcceptTrade').onclick=()=> {
+  closeAcceptConfirmation();
+  $('#status').textContent='Trade was not logged.';
+  $('#acceptTrade').focus();
+};
+
+$('#confirmAcceptTrade').onclick=async()=> {
+  closeAcceptConfirmation();
+  await logAcceptedTrade();
+};
+
+async function logAcceptedTrade() {
   if(loggingTrade)return;
   let snapshot=buildTradeSnapshot();
   if(!snapshot) {
@@ -317,7 +368,7 @@ $('#acceptTrade').onclick=async()=> {
     let currentSnapshot= v.mode==='INCOMPLETE' ? null : buildTradeSnapshot();
     button.disabled= v.mode==='INCOMPLETE'|| !window.MaddenStorage?.isConfigured|| ( lastLoggedSnapshotKey!==null && tradeSnapshotKey(currentSnapshot)===lastLoggedSnapshotKey );
   }
-};
+}
 
 $('#clear').onclick=()=> {
   state={A:[],B:[]};
