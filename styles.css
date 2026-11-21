@@ -441,6 +441,50 @@ main {
   cursor: not-allowed;
 }
 
+.accept-confirm {
+  max-width: 520px;
+  margin: 12px auto 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.accept-confirm h2 {
+  margin: 0;
+  color: var(--green);
+  font-size: 14px;
+}
+
+.accept-confirm p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.accept-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.accept-confirm-actions .btn {
+  cursor: pointer;
+}
+
+.accept-confirm-actions #cancelAcceptTrade {
+  background: var(--secondary-bg);
+  color: var(--secondary-text);
+}
+
+.accept-confirm-button {
+  background: var(--green);
+  color: #fff;
+  font-weight: 850;
+}
+
 .admin-login-card {
   max-width: 520px;
   margin: 0 auto;
@@ -1002,6 +1046,10 @@ textarea:focus-visible {
 }
 
 [data-theme="dark"] .admin-confirm-delete {
+  color: #fff;
+}
+
+[data-theme="dark"] .accept-confirm-button {
   color: #fff;
 }
 

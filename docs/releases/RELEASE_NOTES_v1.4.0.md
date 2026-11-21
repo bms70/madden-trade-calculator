@@ -1,4 +1,4 @@
-﻿# Madden League Trade Calculator â€” Web Release v1.4.0
+# Madden League Trade Calculator — Web Release v1.4.0
 
 **Ruleset:** v4.2
 **Release theme:** Trade History, Administration & UX

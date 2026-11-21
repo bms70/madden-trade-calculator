@@ -61,6 +61,14 @@
         <div class="trade-actions">
           <button type="button" class="accept-trade" id="acceptTrade" disabled>Accept &amp; Log Trade</button>
         </div>
+        <div class="accept-confirm" id="acceptConfirm" role="dialog" aria-labelledby="acceptConfirmTitle" aria-describedby="acceptConfirmDescription" hidden>
+          <h2 id="acceptConfirmTitle">Log this trade as accepted?</h2>
+          <p id="acceptConfirmDescription">The current trade details, calculator result, and Ruleset v4.2 evaluation will be saved to Trade History.</p>
+          <div class="accept-confirm-actions">
+            <button type="button" class="btn" id="cancelAcceptTrade">Cancel</button>
+            <button type="button" class="btn accept-confirm-button" id="confirmAcceptTrade">Accept &amp; Log</button>
+          </div>
+        </div>
         <div class="status" id="status" aria-live="polite">Up to six assets per side. Select an asset to edit it.</div>
       </section>
       <section id="howto" class="panel" hidden>

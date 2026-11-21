@@ -438,6 +438,18 @@ The structural-refactor validation record is maintained at:
 
 Deployment of the refactored source remains subject to its separate validation and merge process.
 
+### Accept & Log confirmation
+
+A later maintenance change added the confirmation step that the v1.4.0 member workflow describes. **Accept & Log Trade** now opens an inline confirmation (**Cancel** / **Accept & Log**), and nothing is saved until the trade is confirmed. Changing the trade while the confirmation is open closes it.
+
+This changes `index.html`, `calculator-ui.js`, and `styles.css` only. It does not change the accepted-Trade snapshot fields, persistence, backend functions, or Ruleset v4.2 valuation.
+
+**Ruleset impact:** None
+
+### Documentation encoding cleanup
+
+`docs/releases/RELEASE_NOTES_v1.4.0.md` and `docs/validation/FINAL_CROSS_FILE_AUDIT_v1.4.0.md` were re-saved as UTF-8 without a byte-order mark, and mis-encoded characters (`â€”`, `Â·`) were restored to `—` and `·`. No content was changed.
+
 ---
 
 ## Future Development
