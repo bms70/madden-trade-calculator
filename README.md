@@ -285,7 +285,7 @@ Canonical and member-facing Ruleset documentation.
 Current governed Ruleset files include:
 
 - `CANONICAL_RULESET_v4.4.md`
-- `Madden League Trade Rules and Valuation Guide - Ruleset v4.2.docx` (member guide; **v4.4 update pending**)
+- `Madden League Trade Rules and Valuation Guide - Ruleset v4.4.docx`
 
 ### `docs/releases/`
 
@@ -319,9 +319,9 @@ Reference implementations used for parity and validation.
 
 Current reference implementation:
 
-- `Madden League Trade Calculator v4.2.xlsx`
+- `Madden League Trade Calculator v4.4.xlsx`
 
-The workbook is a Ruleset v4.2 reference implementation. **A v4.4 workbook is pending**, so Excel/Web parity for Draft Pick values is not yet re-established.
+The workbook is the Ruleset v4.4 reference implementation. The v4.2 workbook and member guide are archived under `archive/ruleset-v4.2/`.
 
 ### `supabase/`
 
@@ -414,10 +414,11 @@ A Ruleset version identifies the governed trade-valuation framework.
 
 - Automated Ruleset v4.4 regression (`node tests/ruleset-v4.4.test.js`): **64 / 64 PASS**
 - v4.2 → v4.4 impact comparison: `docs/validation/IMPACT_COMPARISON_v4.2_to_v4.4.md`
-- `accept-trade` Supabase function updated to accept v1.5.0 / v4.4: **must be deployed before the site goes live**
-- Excel/Web parity: **PENDING** (v4.4 workbook not yet built)
-- Member guide (.docx) and Wiki update: **PENDING**
-- Desktop/mobile browser smoke: **PENDING release-owner sign-off**
+- Excel/Web parity (`docs/validation/PARITY_REPORT_v1.5.0_RULESET_v4.4.md`): **16 / 16 PASS** (LibreOffice recalculation)
+- Desktop Excel recalculation: **PENDING release-owner sign-off**
+- Member guide (.docx) and Wiki: **UPDATED**
+- `accept-trade` deployment: **COMPLETE**
+- Desktop/mobile browser smoke: **COMPLETE by release-owner sign-off**
 
 ### Web Release v1.4.0 / Ruleset v4.2
 
