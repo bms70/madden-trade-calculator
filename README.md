@@ -219,7 +219,7 @@ Ruleset v4.4 changes:
 - Exact slots 1.01–1.32 are Current draft only; Future 1sts are Next year or Two years away, so each pick is discounted once.
 - Draft-only 1.01 and 1.02–1.03 protection is selected by which pick it is, not by its value.
 - Positions: LT becomes OT (both tackles); CB and WR rise to 1.20, matching EDGE.
-- OVR star curve: each OVR point above 60 is worth more than the last (OVR 90 unchanged at 30).
+- OVR star curve: each OVR point above 60 is worth more than the last (OVR 90 = 34). Players are scaled so first-round picks carry about 1.74× their v4.2 weight against players.
 - Aging is exponential decay for every OVR and dev trait: under 80 OVR from age 30, 80+ OVR from age 31.
 - Contract control is a discounted integral: 2–5 years close to v4.2, and 6–7 year deals keep earning.
 - Draft timing is a continuous discount (Two years away becomes 0.7225x).

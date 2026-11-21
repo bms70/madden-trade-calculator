@@ -35,7 +35,7 @@ The full first-round table is in `docs/rules/CANONICAL_RULESET_v4.4.md`.
 
 | Factor | v4.2 | v4.4 |
 |---|---|---|
-| OVR | Linear: OVR − 60 | Star curve: 30 × ((OVR − 60) ÷ 30)^1.3 (90 OVR unchanged at 30) |
+| OVR | Linear: OVR − 60 | Star curve: 34 × ((OVR − 60) ÷ 30)^1.3 (90 OVR = 34, was 30) |
 | Positions | EDGE 1.20, CB/WR 1.15, LT 1.10 | EDGE/CB/WR 1.20, OT 1.10 (covers both tackles) |
 | Aging | 70–79 OVR only, steps 0.90 / 0.75 / 0.60 from 31 | Every player: e^(−0.105 × years past 30) under 80 OVR; e^(−0.08 × years past 31) at 80+ |
 | Contract control | 1.00 / 1.07 / 1.16 / 1.25 / 1.34 (5+) | Discounted integral: 1.00 / 1.10 / 1.19 / 1.27 / 1.34 / 1.41 / 1.47 |

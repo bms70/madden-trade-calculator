@@ -55,8 +55,16 @@ function emptyAsset() {
 }
 
 // Ruleset v4.4 Fairness Score read: score plus which side the trade favours.
+// Display only: a trade outside the window never shows 100, even when its
+// exact score rounds there.
+function scoreText(v,digits=0) {
+  if(!v.favored)return '100';
+  let cap=digits?99.9:99;
+  return Math.min(cap,v.score).toFixed(digits)
+}
+
 function fairnessRead(v) {
-  let score=v.score.toFixed(1);
+  let score=scoreText(v,1);
   return v.favored
     ? `${score} / 100. Favors ${teamName(v.favored)}; ${(v.distance*100).toFixed(1)}% outside the FAIR window.`
     : `${score} / 100. Inside the FAIR window.`
@@ -206,7 +214,7 @@ function render() {
   $('#atotal').textContent=A.adj.toFixed(1);
   $('#btotal').textContent=B.adj.toFixed(1);
   $('#verdict').textContent=v.v;
-  $('#gap').textContent=v.v==='ADD ASSETS'?'':`Fairness ${v.score.toFixed(0)} / 100${v.favored?` · favors ${teamName(v.favored)}`:''}`;
+  $('#gap').textContent=v.v==='ADD ASSETS'?'':`Fairness ${scoreText(v)} / 100${v.favored?` · favors ${teamName(v.favored)}`:''}`;
   $('#vbox').className='verdict '+v.v.toLowerCase().replace(' ','-');
   let all=[...A.arr,...B.arr],
     bestA=A.sorted[0],

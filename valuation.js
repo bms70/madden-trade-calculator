@@ -131,7 +131,9 @@ const DEV={
 
 // Ruleset v4.4 curve and verdict constants
 const OVR_FLOOR=60,       // OVR at or below this is worth zero
-  OVR_ANCHOR=30,          // OVR 90 (floor + 30) keeps the v4.2 value of 30
+  OVR_SPAN=30,            // curve reference point: OVR 90 (floor + 30)
+  OVR_SCALE=34,           // value at OVR 90; sets round-1 picks at ~1.74x their
+                          // v4.2 weight against players
   OVR_POWER=1.3;          // > 1: each OVR point is worth more than the last
 
 const AGING={             // Aging = e^(-k * max(0, age - start))
@@ -161,11 +163,12 @@ function teamName(side) {
 // Player and Draft Pick value components
 // ----------------------------------------------------------------------------
 
-// Ruleset v4.4: OVR value = 30 * ((OVR - 60) / 30)^1.3. The derivative,
-// 1.3 * ((OVR - 60) / 30)^0.3, rises with OVR, so stars outgain depth players.
+// Ruleset v4.4: OVR value = 34 * ((OVR - 60) / 30)^1.3. The derivative,
+// (34 / 30) * 1.3 * ((OVR - 60) / 30)^0.3, rises with OVR, so stars outgain
+// depth players.
 function ovrValue(ovr) {
   let d=Math.max(0,ovr-OVR_FLOOR);
-  return OVR_ANCHOR*Math.pow(d/OVR_ANCHOR,OVR_POWER)
+  return OVR_SCALE*Math.pow(d/OVR_SPAN,OVR_POWER)
 }
 
 function ageBand(a) {

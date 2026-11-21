@@ -12,9 +12,11 @@ Ruleset v4.4 revalues Draft Picks, replaces several step tables with continuous 
 Player value = OVR value × Position × Dev/Age × Cap × Contract control × Early career × Cornerstone scarcity × Role × Aging, then × QB-to-QB age context. Unchanged factors keep their v4.2 values.
 
 ### OVR value (star curve)
-OVR value = 30 × (max(0, OVR − 60) ÷ 30)^1.3.
+OVR value = 34 × (max(0, OVR − 60) ÷ 30)^1.3.
 
-OVR 90 keeps its v4.2 value of 30. The derivative, 1.3 × ((OVR − 60) ÷ 30)^0.3, rises with OVR, so each point is worth more than the one before it. Reference: 70 = 7.2 · 80 = 17.7 · 85 = 23.7 · 90 = 30 · 95 = 36.7 · 99 = 42.2. OVR 60 or lower = 0.
+The derivative, (34 ÷ 30) × 1.3 × ((OVR − 60) ÷ 30)^0.3, rises with OVR, so each point is worth more than the one before it. Reference: 70 = 8.2 · 75 = 13.8 · 80 = 20.1 · 85 = 26.8 · 90 = 34 · 95 = 41.5 · 99 = 47.8.
+
+**Pick/player balance.** The scale of 34 (v4.2 equivalent: 30) is set so that, across a reference basket of 400 players (OVR 76–92, ages 23–32, all dev traits, QB/WR/EDGE/HB/LB, $8M, 3 years) and the 32 first-round slots, first-round picks carry about 1.74× their v4.2 weight relative to players (geometric means). The effect is not uniform: about 1.05× at 1.01, 1.88× at 1.16, and 2.05× at 1.32. OVR 60 or lower = 0.
 
 ### Position
 QB 1.40 · EDGE 1.20 · CB 1.20 · WR 1.20 · OT 1.10 · DT 1.05 · TE 1.00 · S 1.00 · LB 0.95 · HB 0.90 · IOL 0.90 · FB 0.50 · K 0.50 · P 0.50. OT replaces LT and covers both tackle spots.

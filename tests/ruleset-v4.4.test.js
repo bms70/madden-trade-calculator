@@ -100,10 +100,10 @@ check('LT renamed to OT', api.POS.OT === 1.1 && api.POS.LT === undefined);
 check('EDGE, CB, WR all 1.20', api.POS.EDGE === 1.2 && api.POS.CB === 1.2 && api.POS.WR === 1.2);
 
 // 8. OVR star curve
-check('OVR 90 keeps value 30', near(api.ovrValue(90), 30));
+check('OVR 90 = 34', near(api.ovrValue(90), 34));
 check('OVR 60 is zero', api.ovrValue(60) === 0 && api.ovrValue(55) === 0);
-check('OVR 80 below linear (17.7)', Math.abs(api.ovrValue(80) - 17.7) < 0.05);
-check('OVR 99 above linear (42.2)', Math.abs(api.ovrValue(99) - 42.2) < 0.05);
+check('OVR 80 = 20.1', Math.abs(api.ovrValue(80) - 20.06) < 0.05);
+check('OVR 99 = 47.8', Math.abs(api.ovrValue(99) - 47.8) < 0.05);
 check('Marginal OVR value rises with OVR', (api.ovrValue(95) - api.ovrValue(94)) > (api.ovrValue(75) - api.ovrValue(74)));
 
 // 9. Aging decay
