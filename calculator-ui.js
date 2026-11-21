@@ -54,6 +54,14 @@ function emptyAsset() {
   }
 }
 
+// Ruleset v4.4 Fairness Score read: score plus which side the trade favours.
+function fairnessRead(v) {
+  let score=v.score.toFixed(1);
+  return v.favored
+    ? `${score} / 100. Favors ${teamName(v.favored)}; ${(v.distance*100).toFixed(1)}% outside the FAIR window.`
+    : `${score} / 100. Inside the FAIR window.`
+}
+
 function opts(list,val) {
   return list.map(x=>`<option ${x===val?'selected':''}>${x}</option>`).join('')
 }
@@ -125,7 +133,7 @@ function buildTradeSnapshot() {
   let bestB=B.sorted[0];
   let draftA=A.arr .filter(x=>x.type==='Draft Pick') .reduce((sum,x)=>sum+x.value,0);
   let draftB=B.arr .filter(x=>x.type==='Draft Pick') .reduce((sum,x)=>sum+x.value,0);
-  let primary= v.mode==='DRAFT_ONLY' ? 'Draft trade-up protection and the 8% acceptance window apply.' : v.mode==='POSITIVE_PLAYER_TIE' ? 'Exact protected-player value tie; the 8% adjusted-value window applies.' : v.mode==='NO_ELIGIBLE_PLAYER' ? 'No eligible positive-value Player; the 8% adjusted-value window applies.' : v.tier==='ELITE_QB' ? `Elite QB acquisition protection governs ${teamName(v.protectedSide)}.` : v.tier==='CORNERSTONE' ? `Franchise Cornerstone acquisition protection governs ${teamName(v.protectedSide)}.` : `Standard player acquisition protection governs ${teamName(v.protectedSide)}.`;
+  let primary= v.mode==='DRAFT_ONLY' ? 'Draft trade-up protection and the 5% acceptance window apply.' : v.mode==='POSITIVE_PLAYER_TIE' ? 'Exact protected-player value tie; the 5% adjusted-value window applies.' : v.mode==='NO_ELIGIBLE_PLAYER' ? 'No eligible positive-value Player; the 5% adjusted-value window applies.' : v.tier==='ELITE_QB' ? `Elite QB acquisition protection governs ${teamName(v.protectedSide)}.` : v.tier==='CORNERSTONE' ? `Franchise Cornerstone acquisition protection governs ${teamName(v.protectedSide)}.` : `Standard player acquisition protection governs ${teamName(v.protectedSide)}.`;
   let tradeIntelligence=[
     { label:'PRIMARY READ', value:primary },
     {
@@ -148,19 +156,14 @@ function buildTradeSnapshot() {
       label:'PACKAGE STRUCTURE',
       value: state.A.length>=3||state.B.length>=3 ? 'Quantity-for-quality protection is active.' : 'Package compression is limited in this deal.'
     },
+    { label:'FAIRNESS SCORE', value:fairnessRead(v) },
     { label:'SUGGESTED CORRECTION', value:v.correction }
   ];
-  let requiredTarget=null;
-  let fairMaximum=null;
-  if(v.mode==='DIRECTIONAL') {
-    let protectedPackage= v.protectedSide==='A' ? A.adj : B.adj;
-    let multiplier= v.tier==='ELITE_QB' ? 1.30 : v.tier==='CORNERSTONE' ? 1.20 : 1.10;
-    requiredTarget=protectedPackage*multiplier;
-    fairMaximum=requiredTarget*1.08;
-  }
+  let requiredTarget= typeof v.requiredTarget==='number' ? v.requiredTarget : null;
+  let fairMaximum= typeof v.fairMaximum==='number' ? v.fairMaximum : null;
   return {
     web_release:'v1.5.0',
-    ruleset_version:'v4.3',
+    ruleset_version:'v4.4',
     user_team_assets:A.arr.map(snapshotAsset),
     cpu_team_assets:B.arr.map(snapshotAsset),
     user_raw_value:A.raw,
@@ -203,14 +206,14 @@ function render() {
   $('#atotal').textContent=A.adj.toFixed(1);
   $('#btotal').textContent=B.adj.toFixed(1);
   $('#verdict').textContent=v.v;
-  $('#gap').textContent=v.v==='ADD ASSETS'?'':`Adjusted gap ${(v.gap*100).toFixed(1)}%`;
+  $('#gap').textContent=v.v==='ADD ASSETS'?'':`Fairness ${v.score.toFixed(0)} / 100${v.favored?` · favors ${teamName(v.favored)}`:''}`;
   $('#vbox').className='verdict '+v.v.toLowerCase().replace(' ','-');
   let all=[...A.arr,...B.arr],
     bestA=A.sorted[0],
     bestB=B.sorted[0],
     draftA=A.arr.filter(x=>x.type==='Draft Pick').reduce((s,x)=>s+x.value,0),
     draftB=B.arr.filter(x=>x.type==='Draft Pick').reduce((s,x)=>s+x.value,0);
-  let primary=v.mode==='INCOMPLETE'?'Add assets to both sides.':v.mode==='DRAFT_ONLY'?'Draft trade-up protection and the 8% acceptance window apply.':v.mode==='POSITIVE_PLAYER_TIE'?'Exact protected-player value tie; the 8% adjusted-value window applies.':v.mode==='NO_ELIGIBLE_PLAYER'?'No eligible positive-value Player; the 8% adjusted-value window applies.':v.tier==='ELITE_QB'?`Elite QB acquisition protection governs ${teamName(v.protectedSide)}.`:v.tier==='CORNERSTONE'?`Franchise Cornerstone acquisition protection governs ${teamName(v.protectedSide)}.`:`Standard player acquisition protection governs ${teamName(v.protectedSide)}.`;
+  let primary=v.mode==='INCOMPLETE'?'Add assets to both sides.':v.mode==='DRAFT_ONLY'?'Draft trade-up protection and the 5% acceptance window apply.':v.mode==='POSITIVE_PLAYER_TIE'?'Exact protected-player value tie; the 5% adjusted-value window applies.':v.mode==='NO_ELIGIBLE_PLAYER'?'No eligible positive-value Player; the 5% adjusted-value window applies.':v.tier==='ELITE_QB'?`Elite QB acquisition protection governs ${teamName(v.protectedSide)}.`:v.tier==='CORNERSTONE'?`Franchise Cornerstone acquisition protection governs ${teamName(v.protectedSide)}.`:`Standard player acquisition protection governs ${teamName(v.protectedSide)}.`;
   $('#primary').innerHTML='<b>Primary Read:</b> '+primary;
   let reads=[
     [
@@ -233,6 +236,7 @@ function render() {
       'PACKAGE STRUCTURE',
       state.A.length>=3||state.B.length>=3?'Quantity-for-quality protection is active.':'Package compression is limited in this deal.'
     ],
+    ['FAIRNESS SCORE',v.mode==='INCOMPLETE'?'Add assets to both sides.':fairnessRead(v)],
     ['SUGGESTED CORRECTION',v.correction]
   ];
   $('#reads').innerHTML=reads.map(r=>`<div class="read"><b>${r[0]}</b><span>${r[1]}</span></div>`).join('');
@@ -252,7 +256,7 @@ function bindCards() {
       side=card.dataset.side,
       a=state[side].find(x=>x.id==card.dataset.id);
     a[el.dataset.k]=el.value;
-    // Ruleset v4.3: exact 1st-round slots are current draft only and Future
+    // Ruleset v4.4: exact 1st-round slots are current draft only and Future
     // 1sts are next year or later, so keep timing valid for the chosen pick.
     if(a.type==='Draft Pick')a.timing=pickTiming(a);
     render();

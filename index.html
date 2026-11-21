@@ -12,7 +12,7 @@
         <div class="brandrow">
           <div>
             <div class="brand">MADDEN LEAGUE TRADE CALCULATOR</div>
-            <div class="ver">Web Release v1.5.0 · Ruleset v4.3</div>
+            <div class="ver">Web Release v1.5.0 · Ruleset v4.4</div>
           </div>
           <div class="brand-actions">
             <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false">Dark mode</button>
@@ -63,7 +63,7 @@
         </div>
         <div class="accept-confirm" id="acceptConfirm" role="dialog" aria-labelledby="acceptConfirmTitle" aria-describedby="acceptConfirmDescription" hidden>
           <h2 id="acceptConfirmTitle">Log this trade as accepted?</h2>
-          <p id="acceptConfirmDescription">The current trade details, calculator result, and Ruleset v4.3 evaluation will be saved to Trade History.</p>
+          <p id="acceptConfirmDescription">The current trade details, calculator result, and Ruleset v4.4 evaluation will be saved to Trade History.</p>
           <div class="accept-confirm-actions">
             <button type="button" class="btn" id="cancelAcceptTrade">Cancel</button>
             <button type="button" class="btn accept-confirm-button" id="confirmAcceptTrade">Accept &amp; Log</button>
@@ -92,7 +92,7 @@
             <p>Read each side as “What does this team get?” Example: if the User Team sends a quarterback to
               the CPU Team for two picks, put both picks under User Team Receives and the quarterback under
               CPU Team Receives.</p>
-            <p>Each side supports up to six assets in Ruleset v4.3.</p>
+            <p>Each side supports up to six assets in Ruleset v4.4.</p>
           </div>
           <div class="rulecard">
             <h2>Adding a Player</h2>
@@ -141,10 +141,10 @@
             <h2>Common Trade Types</h2>
             <p><b>Player/mixed:</b> the higher eligible positive-value Player determines the protected
               acquisition side. Standard, Cornerstone, or Elite QB protection sets the directional target.</p>
-            <p><b>Exact Player-value tie:</b> protection tier does not break a cross-package tie; the 8%
+            <p><b>Exact Player-value tie:</b> protection tier does not break a cross-package tie; the 5%
               Adjusted Gap path applies.</p>
             <p><b>Draft-only:</b> the stronger pick can trigger 1.15x, 1.08x, 1.04x, or 1.00x protection with
-              the 8% acceptance window.</p>
+              the 5% acceptance window.</p>
           </div>
           <div class="rulecard">
             <h2>Common Mistakes</h2>
@@ -168,9 +168,9 @@
           the verdict. For valuation policy, thresholds, multipliers, and point values, use the Rules tab.</p>
       </section>
       <section id="rules" class="panel" hidden>
-        <div class="rulesintro"><strong>Ruleset v4.3 member guide.</strong> Player/mixed protection is
+        <div class="rulesintro"><strong>Ruleset v4.4 member guide.</strong> Player/mixed protection is
           directional: the higher eligible positive-value Player determines the protected acquisition side.
-          Exact cross-package Player-value ties use the 8% Adjusted Gap path. Combined formulas and
+          Exact cross-package Player-value ties use the 5% Adjusted Gap path. Combined formulas and
           implementation code are intentionally not shown.</div>
         <div class="rulesgrid">
           <div class="rulecard">
@@ -178,10 +178,16 @@
             <p>Player value considers OVR, age and development, position scarcity, cap cost, contract control,
               early-career status, lineup role, aging treatment, and QB-to-QB age context.</p>
             <ul>
-              <li>Position emphasis: QB 1.40x; EDGE 1.20x; CB/WR 1.15x; LT 1.10x; DT 1.05x; TE/S 1.00x; LB
+              <li>OVR: every point above 60 counts, and each point is worth more than the one before it, so
+                stars gain value faster than depth players. 60 OVR or lower has no value.</li>
+              <li>Position emphasis: QB 1.40x; EDGE/CB/WR 1.20x; OT 1.10x; DT 1.05x; TE/S 1.00x; LB
                 .95x; HB/IOL .90x; FB/K/P .50x.</li>
               <li>Early career: Year 0 1.50x; Year 1 1.30x; Year 2 1.15x; Year 3+ 1.00x.</li>
-              <li>Contract control: 1/2/3/4/5+ years = 1.00/1.07/1.16/1.25/1.34x before cap-tier interaction.</li>
+              <li>Contract control: 1/2/3/4/5/6/7 years ≈ 1.00/1.10/1.19/1.27/1.34/1.41/1.47x before cap-tier
+                interaction. Each added year counts a little less than the one before.</li>
+              <li>Aging: players under 80 OVR lose about 10% of value per year from age 30 (31 ≈ .90x, 33 ≈
+                .73x, 35 ≈ .59x). Players 80+ OVR lose about 8% per year from age 31 (33 ≈ .85x, 35 ≈ .73x,
+                37 ≈ .62x). Applies to every development trait.</li>
             </ul>
           </div>
           <div class="rulecard">
@@ -194,7 +200,7 @@
                 1.20x acquisition requirement.</li>
               <li>Standard player acquisition: 1.10x required return.</li>
             </ul>
-            <p>FAIR requires the counter-package to fall between the target and target × 1.08, inclusive.</p>
+            <p>FAIR requires the counter-package to fall between the target and target × 1.05, inclusive.</p>
           </div>
           <div class="rulecard">
             <h2>Draft Pick Values</h2>
@@ -206,7 +212,7 @@
           <div class="rulecard">
             <h2>Draft Timing</h2>
             <p>Delayed draft capital receives less weight: Current draft 1.00x, Next year .85x, Two years away
-              .70x. Exact first-round slots are Current draft only; Future 1sts are Next year or Two years
+              ≈.72x. Exact first-round slots are Current draft only; Future 1sts are Next year or Two years
               away. Each pick is discounted once.</p>
           </div>
           <div class="rulecard">
@@ -223,22 +229,27 @@
               <li>Other meaningful trade-up: 1.04x.</li>
               <li>Near-lateral: 1.00x.</li>
             </ul>
-            <p>Draft-only FAIR treatment uses an 8% target window.</p>
+            <p>Draft-only FAIR treatment uses a 5% target window.</p>
           </div>
           <div class="rulecard">
             <h2>Verdicts</h2>
             <ul>
-              <li><b>FAIR:</b> applicable acquisition test passes.</li>
-              <li><b>QUESTIONABLE:</b> not FAIR; adjusted gap under 12%.</li>
-              <li><b>UNFAIR:</b> 12% to under 22%.</li>
-              <li><b>LEAGUE-BREAKING:</b> 22% or more.</li>
+              <li><b>FAIR:</b> inside the FAIR window for the applicable test.</li>
+              <li><b>QUESTIONABLE:</b> under 5% outside the FAIR window.</li>
+              <li><b>UNFAIR:</b> 5% to under 15% outside.</li>
+              <li><b>LEAGUE-BREAKING:</b> 15% or more outside.</li>
             </ul>
+            <p>Distance is measured from the nearest edge of the window, so falling short and overpaying are
+              judged the same way. For a plain even-trade comparison: FAIR up to a 5% gap, QUESTIONABLE under
+              10%, UNFAIR under 20%.</p>
+            <p><b>Fairness Score</b> (0–100): 100 inside the FAIR window, falling off smoothly the further
+              outside it a trade lands, with the side the trade favors.</p>
           </div>
           <div class="rulecard">
             <h2>About the Calculator</h2>
             <p>The calculator uses full internal precision. Display rounding is presentation only. Trade
               Intelligence includes Primary Read, Best Asset, Raw Value, Adjusted Value, Draft Capital,
-              Package Structure, and Suggested Correction.</p>
+              Package Structure, Fairness Score, and Suggested Correction.</p>
           </div>
         </div>
         <p class="disclosure">Reference values explain league policy; they are not a reproduction of the

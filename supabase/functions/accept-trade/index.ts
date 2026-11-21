@@ -77,14 +77,24 @@ function validateTradePayload(
 
   const trade = value;
 
-  if (trade.web_release !== "v1.4.0") {
+  // Accepted Web Release / Ruleset pairs. v1.4.0 / v4.2 stays accepted so
+  // this function can be deployed before the v1.5.0 site goes live.
+  const supportedReleases: Record<string, string> = {
+    "v1.4.0": "v4.2",
+    "v1.5.0": "v4.4",
+  };
+
+  if (
+    typeof trade.web_release !== "string" ||
+    !Object.hasOwn(supportedReleases, trade.web_release)
+  ) {
     return {
       valid: false,
       message: "Unsupported Web Release version.",
     };
   }
 
-  if (trade.ruleset_version !== "v4.2") {
+  if (trade.ruleset_version !== supportedReleases[trade.web_release]) {
     return {
       valid: false,
       message: "Unsupported Ruleset version.",
