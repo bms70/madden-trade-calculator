@@ -79,7 +79,7 @@ Decisions taken on this spec are logged in `V5_OPEN_QUESTIONS.md` (Q25–Q28, al
 | Mark reviewed | Queue → Mark reviewed → `review-trade` (`REVIEW`) | Status REVIEWED, audit `TRADE_REVIEWED` |
 | Correct | Queue → Correct → edit → Save correction + reason → `review-trade` (`CORRECT`) | New revision, trade row shows corrected values, status REVIEWED, audit `TRADE_CORRECTED` |
 | Reverse | Queue or All trades → Reverse + reason → `review-trade` (`REVERSE`) | Status REVERSED, `deleted_at` set, audit `TRADE_REVERSED` |
-| Create league (site owner) | Run `docs/roadmap/v5/sql/create-league.sql` in the Supabase SQL editor with the name, password and team list | League + 32 teams, audit `LEAGUE_CREATED` |
+| Create league (site owner) | In the Supabase dashboard (Explorer): `owner_create_league`, a Snallabot export, `owner_load_teams`, `owner_set_commissioner_password` ([V5_OWNER_TOOLKIT.md](V5_OWNER_TOOLKIT.md)) | League + 32 teams, audit `LEAGUE_CREATED`, `TEAM_UPDATED`, `COMMISSIONER_PASSWORD_SET` |
 
 ## 5. API
 
@@ -159,10 +159,10 @@ The baseline rule: deploy backend first, merge the site last, and keep every ste
 |---|---|---|
 | 0 | **Backup:** export `trades` and `audit_events` (CSV) to `backups/`; record row counts | — |
 | 1 | Apply migration `…_league_mode.sql`: `league_teams`, `trade_revisions`, `trade_assets`, additive columns on `trades` and `audit_events`, read functions, write functions (`leagues` already exists). The public read policy on `trades` **stays for now** | A down migration that drops the new objects (no existing data touched) |
-| 2 | The site owner sets the main league's commissioner password and seeds its 32 teams (from the latest `leagueteams` import, or the captured payload), entering the password at run time (never committed). The league row already exists from the Snallabot connection. Then `commissioner_password_hash` becomes required | Clear the password; delete the team rows |
+| 2 | The site owner runs `owner_load_teams` and `owner_set_commissioner_password` (runbook: [V5_WEB_V2.0_RUNBOOK.md](V5_WEB_V2.0_RUNBOOK.md)): sets the main league's commissioner password and seeds its 32 teams (from the latest `leagueteams` import, or the captured payload), entering the password at run time (never committed). The league row already exists from the Snallabot connection. Then `commissioner_password_hash` becomes required | Clear the password; delete the team rows |
 | 3 | Deploy `accept-trade` (accepts v2.0 and v1.5.0) and the four commissioner functions | Redeploy the v1.5.0 `accept-trade` |
-| 4 | Migrate history (schema §7): every existing trade → main league, pre-league; revision 0 for each; one `PRE_LEAGUE_MIGRATION` audit event. Check counts against step 0 | Clear the league fields on pre-league trades; delete revisions |
-| 5 | **Merge the v2.0 site** (`release/web-v2.0` → `main`); GitHub Pages deploys. Then apply migration `…_drop_public_trade_read.sql` | Revert the merge; re-create the policy |
+| 4 | `owner_move_pre_league_history`: every existing trade → main league, pre-league (active → Reviewed, deleted → Reversed, Q22); revision 0 for each; one `PRE_LEAGUE_MIGRATION` audit event. Check counts against step 0 | Clear the league fields on pre-league trades; delete revisions |
+| 5 | **Merge the v2.0 site** (`release/web-v2.0` → `main`); GitHub Pages deploys. Then a one-file PR adds `…_drop_public_trade_read.sql` to `main` and it's pushed (it isn't in the release branch, so step 1's push can't apply it early) | Revert the merge; re-create the policy |
 | 6 | Re-run the step 4 sweep for any v1.5.0 trades logged during the window | — |
 | 7 | Smoke test on the live site (§10). Retire the old Admin functions and the `ADMIN_PASSWORD` secret | Redeploy the old functions |
 | 8 | About a week later: maintenance update removing `v1.5.0` from `accept-trade` | — |
@@ -180,7 +180,7 @@ The baseline rule: deploy backend first, merge the site last, and keep every ste
 | `styles.css` | Switch, badges, queue |
 | `supabase/migrations/` | `20261122160000_league_mode.sql` (built: teams, trade revisions and assets, review fields, audit actions, login lockout, read functions, submit / review / login / audit-log functions). The policy drop is staged in `docs/roadmap/v5/sql/web-v2.0-drop-public-trade-read.sql` and only copied into migrations at release step 5 |
 | `supabase/functions/` | Built: `accept-trade` changed; four new commissioner functions; shared validation, session and handler modules in `_shared/`. Contracts in [V5_WEB_V2.0_FUNCTIONS.md](V5_WEB_V2.0_FUNCTIONS.md). The four old Admin functions are removed after launch |
-| `docs/roadmap/v5/sql/create-league.sql` | Site-owner script: set the commissioner password and seed teams on the existing league row (or create a new league) |
+| `supabase/migrations/20261122170000_owner_toolkit.sql` | Built (step 6): site-owner functions run in Explorer: `owner_leagues`, `owner_teams`, `owner_load_teams` (from the newest Snallabot export), `owner_set_team`, `owner_set_commissioner_password` (also clears lockouts), `owner_create_league`, `owner_rename_league`, `owner_set_league_status`, `owner_rotate_import_secret`, `owner_move_pre_league_history`. Dashboard only; audited as SITE_OWNER. Guide: `V5_OWNER_TOOLKIT.md`; launch: `V5_WEB_V2.0_RUNBOOK.md`; tests `tests/web-v2.0-owner-toolkit.test.py` |
 | `valuation.js` | **No change** |
 
 ## 10. Tests and acceptance
@@ -218,7 +218,7 @@ Branch `release/web-v2.0`, one `feature/web-v2.0-<topic>` branch per item, in th
 3. `league-switch`: mode switch, league bar, team pickers, display names, submit.
 4. `history`: league history and badges.
 5. `commissioner`: sign-in, queue, review actions, audit log.
-6. `migration-script`: `create-league.sql`, history migration, runbook.
+6. `migration-script`: owner toolkit (league setup, teams, password, history move), runbook.
 7. `release`: docs, manifest addendum, smoke test, then the release PR.
 
 ## 13. Risks specific to v2.0

@@ -92,7 +92,7 @@
 
     let a = teamByName(trade.submitting_team);
     let b = teamByName(trade.other_team);
-    if (a && b && a.controlled_by === 'HUMAN' && b.controlled_by === 'HUMAN') flags.push('Human to human');
+    if (a && b && a.controlled_by === 'USER' && b.controlled_by === 'USER') flags.push('Human to human');
 
     let when = Date.parse(trade.accepted_at);
     let key = assetKey(trade.user_team_assets) + '>' + assetKey(trade.cpu_team_assets);
