@@ -45,7 +45,7 @@ The finish line is **Web v5.0 + Ruleset v5.0**. Releases before that follow thes
 ### Phase 1 — League data foundation and identity · no release (docs)
 - Finalize this folder: data-source feasibility, field mapping, league data spec, identity and access, plus a sample normalized schema (SQL).
 - **Capture spike:** point the main league's Snallabot at a temporary receiver and run one full export. Confirm the platform label, all route paths, the free-agent payload, and whether the week or offseason stage is sent.
-- **Exit (Gate A):** passed on paper; the capture confirms the field mapping.
+- **Exit (Gate A):** passed. The main-league capture (2026-11-21) confirmed the field mapping; free agents were ruled out of scope.
 
 ### Phase 2 — League layer and import layer · **Web v2.0**, then **v3.0**
 
