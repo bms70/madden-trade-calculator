@@ -16,7 +16,7 @@ Ruleset v5.0 roadmap, Phase 1. Drafted 2026-11-21. Manual entry plus a commissio
 |---|---|---|
 | League | `league_id`, name (unique, used for access), Madden version, platform label, external EA league ID (optional), commissioner password hash, status | Site owner creates it |
 | Team | `league_id`, `team_id`, name, abbreviation, controlled_by (user / CPU) | Seeded with 32 NFL teams, or from an import (`userName` empty = CPU) |
-| Trade | `league_id`, `trade_id`, status (pending / approved / rejected), submitter name, "my team", other team, original snapshot, corrected snapshot (if the commissioner edited it), auditor, reason, timestamps | Trade flow |
+| Trade | `league_id`, `trade_id`, review status (unreviewed / reviewed / reversed), submitter name, "my team", other team, original snapshot, corrected snapshot (if the commissioner edited it), reviewer, reversal reason, timestamps | Trade flow |
 | Trade asset | `trade_id`, side, asset type (player / pick), the submitted v4.4 inputs, optional link to an imported `player_id` / `pick_id` and `snapshot_id`, imported values at the time of pre-fill, list of fields edited after pre-fill | Trade flow |
 
 ## Imports and league context (Web v3.0+)
