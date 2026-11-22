@@ -268,8 +268,10 @@ for fn in ["submit_league_trade(null, null, null, 'x', null, '{}'::jsonb)",
 for t in ["league_teams", "trade_revisions", "trade_assets", "commissioner_login_attempts"]:
     failed, err = psql(f"select count(*) from public.{t};", role="anon", expect_error=True)
     check(f"anon can't read {t}", failed and "42501" in err, err[-200:])
-check("public trades policy still in place until the site merge (anon can read trades)",
-      int(psql("select count(*) from public.trades;", role="anon")) >= 1)
+# Since release step 5 the drop is a real migration (20261122180000), so the
+# public read is already gone once all migrations are applied.
+failed, err = psql("select count(*) from public.trades;", role="anon", expect_error=True)
+check("with all migrations applied, anon can't read trades directly (release step 5)", failed and "42501" in err, err[-200:])
 
 # ---------------------------------------------------------------- integrity
 failed, err = psql(f"insert into trades (web_release, ruleset_version, user_raw_value, cpu_raw_value, user_adjusted_value, cpu_adjusted_value, adjusted_gap, verdict, evaluation_mode, league_id) "
@@ -281,12 +283,12 @@ check("a pre-league trade may have no teams", psql("select count(*) from trades 
 check("Snallabot receiver still present after league mode",
       psql("select count(*) from pg_proc where proname = 'record_snallabot_payload';") == "1")
 
-# ---------------------------------------------------------------- staged post-merge migration (release step 5)
+# ---------------------------------------------------------------- release step 5 migration (re-run is harmless)
 with open(os.path.join(ROOT, "docs", "roadmap", "v5", "sql", "web-v2.0-drop-public-trade-read.sql"), encoding="utf-8") as f:
     psql(f.read())
 failed, err = psql("select count(*) from public.trades;", role="anon", expect_error=True)
-check("after the staged step-5 migration, anon can't read trades directly", failed and "42501" in err, err[-200:])
-check("after it, league history still works through the function (corrected + pre-league trade)",
+check("re-running the step-5 SQL is harmless; anon still can't read trades", failed and "42501" in err, err[-200:])
+check("league history still works through the function (corrected + pre-league trade)",
       psql("select count(*) || ',' || count(*) filter (where is_pre_league) from league_trade_history('test league');", role="anon") == "2,1")
 
 passed = sum(results)
