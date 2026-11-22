@@ -65,7 +65,13 @@ Individual Asset Value = Player Value × QB-to-QB age context
 OVR value = 34 × (max(0, OVR − 60) ÷ 30)^1.3
 ```
 
-OVR 60 or lower is worth 0. Each OVR point is worth more than the one before it.
+OVR 60 or lower is worth 0. The slope of the curve,
+
+```
+d(OVR value)/d(OVR) = (34 ÷ 30) × 1.3 × ((OVR − 60) ÷ 30)^0.3
+```
+
+rises with OVR, so each point is worth more than the one before it.
 
 | OVR | 65 | 70 | 75 | 80 | 85 | 90 | 95 | 99 |
 |---|---|---|---|---|---|---|---|---|
@@ -137,8 +143,11 @@ Age ≤ 26 **and** OVR ≥ 87 **and** Superstar or X-Factor → **1.25×**. Any 
 
 ### 2.8 Aging (exponential decay)
 
+Aging is the solution of the decay equation dA/d(age) = −k × A, with A = 1 at the start age. Each extra year removes the same fraction of the value that remains:
+
 ```
-Aging = e^(−k × max(0, age − start))
+dA/d(age) = −k × A,  A(start) = 1
+⇒ Aging = e^(−k × max(0, age − start))
 ```
 
 This applies to every dev trait.
@@ -150,10 +159,21 @@ This applies to every dev trait.
 
 ### 2.9 Contract control (discounted integral)
 
+Each future year of control is worth a little less than the one before it (a 10% continuous discount). Control is the area under that discounted curve:
+
 ```
 Y = max(1, years left; blank = 1)
-base(Y) = 1 + b × (1 − e^(−0.1 × (Y − 1))) ÷ 0.1
-b = 0.34 ÷ ((1 − e^(−0.4)) ÷ 0.1) ≈ 0.10313   (so base(5) = 1.34)
+
+base(Y) = 1 + b × ∫₀^(Y−1) e^(−0.1t) dt
+
+Solving the integral:
+∫₀^(Y−1) e^(−0.1t) dt = [−e^(−0.1t) ÷ 0.1] from 0 to (Y−1)
+                      = (1 − e^(−0.1(Y−1))) ÷ 0.1
+
+so base(Y) = 1 + b × (1 − e^(−0.1(Y−1))) ÷ 0.1
+
+b is set so five years of control is exactly 1.34:
+b = 0.34 ÷ ((1 − e^(−0.4)) ÷ 0.1) ≈ 0.10313
 ```
 
 | Years left | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
@@ -227,8 +247,10 @@ How the table was built: 1.01–1.16 follow `100 − 20 × (n ÷ 15)^1.5` with n
 
 ### 3.3 Timing
 
+Timing is a continuous discount, with the rate r set so that one year out is exactly 0.85:
+
 ```
-Timing = e^(−r × t),  r = ln(1 ÷ 0.85)
+Timing = e^(−r × t),  r = ln(1 ÷ 0.85) ≈ 0.1625
 ```
 
 | Timing | t | Multiplier |
