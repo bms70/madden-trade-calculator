@@ -1,6 +1,6 @@
 # V5_WEB_V2.0_SPEC
 
-Web Release v2.0 (League mode) design spec. Ruleset v5.0 roadmap, Phase 2. Drafted 2026-11-21. **Ruleset stays v4.4.** This is the plan the v2.0 build follows. It turns the decisions in `V5_IDENTITY_AND_ACCESS.md` and `V5_PHASE_PLAN.md` into screens, flows, an API, a snapshot contract, a migration and a release order. The database design comes from `V5_SAMPLE_SCHEMA.sql` (sections 1–3, 6 and 7).
+Web Release v2.0 (League mode) design spec. Ruleset v5.0 roadmap, Phase 2. Drafted 2026-11-21. **Ruleset stays v4.4.** This is the plan the v2.0 build follows. It turns the decisions in `V5_IDENTITY_AND_ACCESS.md` and `V5_PHASE_PLAN.md` into screens, flows, an API, a snapshot contract, a migration and a release order. The database design comes from `V5_SAMPLE_SCHEMA.sql` (sections 1–3, 6 and 7). **`leagues` already exists** from the Snallabot connection (`V5_SNALLABOT_CONNECTION.md`, migration `20261122060000`), so v2.0 extends it rather than creating it.
 
 Decisions taken on this spec are logged in `V5_OPEN_QUESTIONS.md` (Q25–Q28, all decided 2026-11-21): practice mode stops logging; team editing in v2.1; login throttling; the main league's name is decided and the site owner sets its password. **The league name is deliberately not written in this public repo** (knowing it is the access); scripts take it as a parameter.
 
@@ -153,8 +153,8 @@ The baseline rule: deploy backend first, merge the site last, and keep every ste
 | Step | What | Reversible by |
 |---|---|---|
 | 0 | **Backup:** export `trades` and `audit_events` (CSV) to `backups/`; record row counts | — |
-| 1 | Apply migration `…_league_mode.sql`: `leagues`, `league_teams`, `trade_revisions`, `trade_assets`, additive columns on `trades` and `audit_events`, read functions, write functions. The public read policy on `trades` **stays for now** | A down migration that drops the new objects (no existing data touched) |
-| 2 | The site owner creates the main league with `create-league.sql`, entering the league name and commissioner password at run time (never committed), plus the 32 teams from the captured `leagueteams` payload | Delete the league rows |
+| 1 | Apply migration `…_league_mode.sql`: `league_teams`, `trade_revisions`, `trade_assets`, additive columns on `trades` and `audit_events`, read functions, write functions (`leagues` already exists). The public read policy on `trades` **stays for now** | A down migration that drops the new objects (no existing data touched) |
+| 2 | The site owner sets the main league's commissioner password and seeds its 32 teams (from the latest `leagueteams` import, or the captured payload), entering the password at run time (never committed). The league row already exists from the Snallabot connection. Then `commissioner_password_hash` becomes required | Clear the password; delete the team rows |
 | 3 | Deploy `accept-trade` (accepts v2.0 and v1.5.0) and the four commissioner functions | Redeploy the v1.5.0 `accept-trade` |
 | 4 | Migrate history (schema §7): every existing trade → main league, pre-league; revision 0 for each; one `PRE_LEAGUE_MIGRATION` audit event. Check counts against step 0 | Clear the league fields on pre-league trades; delete revisions |
 | 5 | **Merge the v2.0 site** (`release/web-v2.0` → `main`); GitHub Pages deploys. Then apply migration `…_drop_public_trade_read.sql` | Revert the merge; re-create the policy |
@@ -174,7 +174,7 @@ The baseline rule: deploy backend first, merge the site last, and keep every ste
 | `styles.css` | Switch, badges, queue |
 | `supabase/migrations/` | `league_mode`, `drop_public_trade_read`, `login_attempts` |
 | `supabase/functions/` | `accept-trade` changed; four new commissioner functions; four old ones removed after launch |
-| `docs/roadmap/v5/sql/create-league.sql` | Site-owner league creation script |
+| `docs/roadmap/v5/sql/create-league.sql` | Site-owner script: set the commissioner password and seed teams on the existing league row (or create a new league) |
 | `valuation.js` | **No change** |
 
 ## 10. Tests and acceptance

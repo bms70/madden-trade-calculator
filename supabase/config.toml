@@ -482,3 +482,10 @@ entrypoint = "./functions/admin-audit-log/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/admin-audit-log/*.html" ]
+
+[functions.snallabot-import]
+enabled = true
+# Snallabot sends no auth header; the secret in the URL path is checked by the function.
+verify_jwt = false
+import_map = "./functions/snallabot-import/deno.json"
+entrypoint = "./functions/snallabot-import/index.ts"

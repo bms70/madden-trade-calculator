@@ -4,7 +4,7 @@
 --
 -- Run against a SCRATCH Postgres 15+ database, never the live Supabase project:
 --   1. create roles anon, authenticated (nologin) and service_role (nologin bypassrls)
---   2. apply supabase/migrations/*.sql in order
+--   2. apply supabase/migrations/*.sql in order (includes the Snallabot connection)
 --   3. apply docs/roadmap/v5/V5_SAMPLE_SCHEMA.sql
 --   4. psql -f docs/roadmap/v5/V5_SAMPLE_SCHEMA_TESTS.sql
 -- Expected last line: 33 / 33 PASS
