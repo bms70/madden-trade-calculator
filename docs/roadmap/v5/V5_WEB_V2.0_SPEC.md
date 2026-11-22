@@ -2,7 +2,7 @@
 
 Web Release v2.0 (League mode) design spec. Ruleset v5.0 roadmap, Phase 2. Drafted 2026-11-21. **Ruleset stays v4.4.** This is the plan the v2.0 build follows. It turns the decisions in `V5_IDENTITY_AND_ACCESS.md` and `V5_PHASE_PLAN.md` into screens, flows, an API, a snapshot contract, a migration and a release order. The database design comes from `V5_SAMPLE_SCHEMA.sql` (sections 1–3, 6 and 7).
 
-Items marked **Proposed** need the commissioner's confirmation; they're logged in `V5_OPEN_QUESTIONS.md`.
+Decisions taken on this spec are logged in `V5_OPEN_QUESTIONS.md`: Q25 decided (practice mode stops logging); Q26 and Q27 **assumed** as recommended until confirmed; Q28 (the league's name) open, needed for release step 2.
 
 ## 1. Scope
 
@@ -19,7 +19,7 @@ Items marked **Proposed** need the commissioner's confirmation; they're logged i
 
 - Imports, players, standings, calendar, draft picks (Web v3.0+).
 - Pre-filled assets (`trade_assets.edited_fields` stays empty).
-- Commissioner team editing on screen: human / CPU and owner label (**Proposed:** v2.1; SQL until then).
+- Commissioner team editing on screen: human / CPU and owner label (**Assumed: v2.1**, Q26; SQL fixes until then).
 - Any change to `valuation.js` or the v4.4 verdicts.
 
 ## 2. Governed-file rules for this release
@@ -50,7 +50,7 @@ Items marked **Proposed** need the commissioner's confirmation; they're logged i
 
 ### 3.3 Calculator, practice mode
 
-- Exactly the v1.5.0 calculator with no team pickers. **Proposed:** practice mode **doesn't log trades**. The Accept & Log button is replaced by a line: "Practice mode doesn't log trades. Switch to League to submit one." This follows the identity decision that practice mode writes nothing (confirm: Q25).
+- Exactly the v1.5.0 calculator with no team pickers. **Decided (Q25, 2026-11-21): practice mode doesn't log trades.** The Accept & Log button is replaced by a line: "Practice mode doesn't log trades. Switch to League to submit one."
 
 ### 3.4 Trade History
 
@@ -105,7 +105,7 @@ All writes go through Edge Functions using the service role. Multi-row writes ru
 | `commissioner-audit-log` | New (replaces `admin-audit-log`) | token | — | This league's audit events |
 
 - **Retired at launch:** `admin-login`, `admin-session-check`, `delete-trade`, `admin-audit-log`, and the `ADMIN_PASSWORD` secret. `ADMIN_SESSION_SECRET` stays as the signing key. v1 tokens (no `leagueId`) are rejected.
-- **Login throttling (Proposed):** after 5 wrong passwords for a league within 15 minutes, `commissioner-login` refuses for 15 minutes (counted in a small `login_attempts` table). Today's admin login has no throttle; a per-league password guessed by brute force would expose corrections and reversals.
+- **Login throttling (Assumed, Q27):** after 5 wrong passwords for a league within 15 minutes, `commissioner-login` refuses for 15 minutes (counted in a small `login_attempts` table). Today's admin login has no throttle; a per-league password guessed by brute force would expose corrections and reversals.
 
 ### 5.3 Database functions (service role only)
 
@@ -172,7 +172,7 @@ The baseline rule: deploy backend first, merge the site last, and keep every ste
 | `admin.js` → `commissioner.js` | League sign-in, review queue, Mark reviewed / Correct / Reverse, audit log |
 | `storage.js` | `leagueLookup`, `leagueTeams`, `leagueHistory`, `submitLeagueTrade`, `commissionerLogin`, `reviewTrade`, `commissionerAuditLog` |
 | `styles.css` | Switch, badges, queue |
-| `supabase/migrations/` | `league_mode`, `drop_public_trade_read`, `login_attempts` (if throttling is approved) |
+| `supabase/migrations/` | `league_mode`, `drop_public_trade_read`, `login_attempts` |
 | `supabase/functions/` | `accept-trade` changed; four new commissioner functions; four old ones removed after launch |
 | `docs/roadmap/v5/sql/create-league.sql` | Site-owner league creation script |
 | `valuation.js` | **No change** |
@@ -192,11 +192,11 @@ The baseline rule: deploy backend first, merge the site last, and keep every ste
 3. Enter the main league: 32 teams with the correct names (OMH, AZ), and the 6 human teams marked.
 4. Submit a FAIR trade and an UNFAIR one. Both appear in history as Unreviewed; the UNFAIR one is flagged in the queue.
 5. Mark one reviewed, correct the other (both revisions visible), reverse a test trade (gone from history, present in the audit log).
-6. A wrong password is refused, and the throttle triggers after 5 tries (if approved).
+6. A wrong password is refused, and the throttle triggers after 5 tries.
 7. Pre-league trades are present with the Pre-league badge; the count matches the backup.
 8. Light and dark mode, desktop and mobile.
 
-**Exit (phase plan):** a real trade can be submitted, logged, reviewed, corrected and reversed in league mode, and practice mode is unchanged (apart from no longer logging trades, if Q25 is confirmed).
+**Exit (phase plan):** a real trade can be submitted, logged, reviewed, corrected and reversed in league mode, and practice mode is unchanged apart from no longer logging trades (Q25).
 
 ## 11. Docs at release
 
