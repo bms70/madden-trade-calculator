@@ -18,7 +18,8 @@ Planning for Ruleset v5.0 / Web v5.0, drafted 2026-11-21 from the commissioner's
 | Unfair verdicts | Can still be submitted; flagged in the review queue | Decided |
 | Trade posture | FYI only until Ruleset v5.0. Full rule in v5.0 | Decided |
 | Posture, in season | No effect weeks 1–3, then a **squared curve** from week 4 to full effect at week 9 (the trade deadline) | Decided |
-| Posture, offseason | Last season's record counts at full strength after the season, **fading to zero by preseason week 3** | Decided |
+| Posture, offseason | Last season's record counts at full strength after the season, **fading to zero by preseason week 3**. It steps down at each stage (re-signing → free agency → draft → preseason weeks 1, 2, 3) along the **in-season squared curve in reverse** (Q19, 2026-11-22) | Decided |
+| Posture effect sizes | **Set in Phase 6 calibration** from league history; no starting values (Q20, 2026-11-22) | Decided |
 | Posture strength | Scales with how lopsided the record is | Assumed |
 | Posture, CPU teams | Can only **raise** what the CPU team demands, never below v4.4 | Assumed |
 | Posture, human teams | A warning plus a very small protective effect | Decided |
@@ -98,7 +99,7 @@ Each candidate factor is classified Keep / Retune / Add / Reject, with evidence:
 
 | Candidate | Notes |
 |---|---|
-| **Trade posture** | CPU: raise-only. Human: small protective effect. Squared in-season ramp over weeks 4–9; offseason fade to preseason week 3; strength scaled by record. Effect sizes set here |
+| **Trade posture** | CPU: raise-only. Human: small protective effect. Squared in-season ramp over weeks 4–9; offseason fade by stage to preseason week 3 (squared curve in reverse); strength scaled by record. Effect sizes set here, from Phase 6 calibration (Q20) |
 | **Long snapper position** | Add LS (0.50 assumed) |
 | Durability | From injury rating / durability grade |
 | Position-specific aging | Using physical ratings |
