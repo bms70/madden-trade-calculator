@@ -336,7 +336,7 @@ create table public.league_calendar (
     league_id uuid primary key references public.leagues(id),
     season integer not null,
     phase text not null,                 -- PRESEASON / REGULAR / POSTSEASON / OFFSEASON
-    week integer,                        -- preseason 1-3 (CAPTURE) or regular 1-18
+    week integer,                        -- 1-based: standings weekIndex + 1 (capture 2026-11-21)
     offseason_stage text,                -- RESIGNING / FREE_AGENCY / DRAFT (CAPTURE)
     source text not null default 'MANUAL',
     updated_at timestamptz not null default now(),
@@ -393,11 +393,11 @@ create table public.import_snapshots (
     id uuid primary key default gen_random_uuid(),
     league_id uuid not null references public.leagues(id),
     source text not null,
-    platform_label text,                 -- CAPTURE
+    platform_label text,                 -- 'pc' for the main league (confirmed)
     external_league_id bigint,
-    season integer,                      -- standings calendarYear (A10, CAPTURE)
-    week integer,                        -- CAPTURE: may not be sent
-    offseason_stage text,                -- CAPTURE: may not be sent
+    season integer,                      -- standings calendarYear (confirmed)
+    week integer,                        -- standings weekIndex + 1 (confirmed)
+    offseason_stage text,                -- from standings stageIndex (offseason values to confirm)
     first_received_at timestamptz not null default now(),
     last_received_at timestamptz not null default now(),
     status text not null default 'RECEIVING',
@@ -634,9 +634,11 @@ grant execute on function public.verify_commissioner_password(uuid, text) to ser
 --   values ('<league name>', crypt('<commissioner password>', gen_salt('bf', 12)))
 --   returning id;                                    -- -> :league_id
 --
---   -- b) Seed the 32 teams (abbreviation, city, nickname, division).
---   insert into public.league_teams (league_id, abbreviation, city_name, nickname, division)
---   values (:league_id, 'ARI', 'Arizona', 'Cardinals', 'NFC West'), ... ;
+--   -- b) Seed the 32 teams from the league's leagueteams payload, not a fixed
+--   --    NFL list: the main league has a relocated team (OMH Omaha Bulls) and
+--   --    uses AZ for Arizona. external_team_id = teamId (unique per league only).
+--   insert into public.league_teams (league_id, external_team_id, abbreviation, city_name, nickname, division, controlled_by)
+--   values (:league_id, 776994823, 'AZ', 'Arizona', 'Cardinals', 'NFC West', 'CPU'), ... ;
 --
 --   -- c) Move existing history into the league as pre-league.
 --   --    Active trades become REVIEWED; v1.4.0 Admin-deleted trades REVERSED.

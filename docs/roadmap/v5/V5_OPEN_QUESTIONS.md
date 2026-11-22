@@ -17,11 +17,11 @@ Last updated: 2026-11-21.
 |---|---|---|
 | 8 | Trades per season | **10–30**, until known |
 | 13 | Can CPU posture lower demands? | **No, raise only**, never below v4.4 |
-| 18 | Source of the offseason stage | A **manual field, pre-filled from the import** when the export carries it |
 | — | Long snapper value in v5.0 | **0.50** (same as K/P) |
 | — | Posture strength scales with the record? | **Yes.** A lopsided record counts fully, a middling one barely |
 | 22 | How do pre-league trades look after the v2.0 migration? | Active trades become **Reviewed**, v1.4.0 Admin-deleted trades **Reversed**, all marked pre-league (sample schema) |
-| 23 | Offseason stages for the league calendar | **Re-signing, Free agency, Draft**, then preseason weeks 1–3; to be checked against the capture |
+| 23 | Offseason stages for the league calendar | **Re-signing, Free agency, Draft**, then preseason weeks 1–3; check against an offseason export |
+| 24 | Standings `stageIndex` values | **0 = preseason, 1 = regular season** (1 confirmed); offseason values from an offseason export |
 
 ## Answered
 
@@ -56,3 +56,6 @@ Last updated: 2026-11-21.
 | **Who can create leagues?** | **Only the site owner**, who also sets each commissioner password |
 | **v5 branching model?** | **Approved** (2026-11-21): `v5/phase-*`, `release/web-v*`, `feature/*`, `fix/*`, `v5/ruleset-v5.0`; the v5 candidate is its own engine file |
 | **Baseline tag?** | **Yes:** `ruleset-v4.4-baseline` on `a0703dd` |
+| **Source of the week and stage?** (Q18) | **Manual field, pre-filled from standings:** `calendarYear`, `stageIndex`, current week = `weekIndex + 1` (capture, 2026-11-21) |
+| **Do free agents matter?** | **No.** Free agents can't be traded; they're out of v5 scope. The receiver keeps the raw body but doesn't map it (2026-11-21) |
+| **Main-league capture?** | Done 2026-11-21: platform `pc`, league `5481323`, all routes confirmed, 40 requests for a current-week export |

@@ -15,7 +15,7 @@ Ruleset v5.0 roadmap, Phase 1. Drafted 2026-11-21. Manual entry plus a commissio
 | Entity | Key fields | Source |
 |---|---|---|
 | League | `league_id`, name (unique, used for access), Madden version, platform label, external EA league ID (optional), commissioner password hash, status | Site owner creates it |
-| Team | `league_id`, `team_id`, name, abbreviation, controlled_by (user / CPU) | Seeded with 32 NFL teams, or from an import (`userName` empty = CPU) |
+| Team | `league_id`, `team_id`, name, abbreviation, controlled_by (user / CPU) | Seeded from the league's `leagueteams` payload (the main league has a relocated team, and Arizona is `AZ`), or entered by the commissioner. `userName` empty = CPU |
 | Trade | `league_id`, `trade_id`, review status (unreviewed / reviewed / reversed), submitter name, "my team", other team, original snapshot, corrected snapshot (if the commissioner edited it), reviewer, reversal reason, timestamps | Trade flow |
 | Trade asset | `trade_id`, side, asset type (player / pick), the submitted v4.4 inputs, optional link to an imported `player_id` / `pick_id` and `snapshot_id`, imported values at the time of pre-fill, list of fields edited after pre-fill | Trade flow |
 
@@ -27,7 +27,7 @@ Ruleset v5.0 roadmap, Phase 1. Drafted 2026-11-21. Manual entry plus a commissio
 | Raw payload | `snapshot_id`, route, body | Importer (kept for reprocessing and debugging) |
 | Player | `league_id`, `snapshot_id`, `player_id` (Madden `rosterId`), name, position, OVR, age, dev trait, cap hit, years remaining, years in league, `team_id` or free agent, practice-squad / IR flags | Import or CSV |
 | Team standing | `league_id`, `snapshot_id`, `team_id`, wins / losses / ties, cap figures | Import (feeds trade posture) |
-| League calendar | `league_id`, season, current week or offseason stage | Manual field, pre-filled from the import when available |
+| League calendar | `league_id`, season, current week or offseason stage | Manual field, pre-filled from standings (`calendarYear`, `stageIndex`, `weekIndex + 1`) |
 | Draft pick | `league_id`, `pick_id`, season, round, original team, current owner, pick number or timing | Commissioner-maintained |
 
 ## Asset fields → v4.4 inputs
@@ -55,7 +55,14 @@ Main design choices:
 - **Every asset column mirrors a v4.4 input** with the calculator's ranges: OVR 0–99, age 18–60, years left 1–10 or blank, years in league 0–40, cap hit in $M, roles Starter / Backup. LS can be stored on imported players but has no v4.4 position.
 - **Existing history migrates as pre-league:** active trades become Reviewed, v1.4.0 Admin-deleted trades become Reversed, and each trade's current evaluation becomes revision 0. The steps are sketched in section 7 of the schema.
 
+## Confirmed by the main-league capture (2026-11-21)
+
+- Platform label `pc`; all route paths confirmed (see `V5_FIELD_MAPPING.md`).
+- Standings carry the season, stage and current week, so the league calendar can be pre-filled.
+- Team IDs are only unique within a league; team names and abbreviations come from the league's own payload.
+- Free agents are out of scope.
+
 ## Still to confirm
 
-- The platform label and route paths for the main league.
-- Whether any payload carries a week or offseason stage.
+- Whether the same three team rosters go missing on every export.
+- `stageIndex` values for preseason and the offseason stages.

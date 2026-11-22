@@ -18,7 +18,7 @@ The Companion export works for League Info and weekly stats, but Rosters has bee
 ## How the Companion export works
 
 - **Push, not pull.** The commissioner opens the league in the Companion App, taps Export, enters a website URL, ticks categories (League Info, Rosters, weekly stats) and starts it. The app POSTs JSON to that URL. EA doesn't document any of this.
-- **Route shape** (from an open-source receiver; still to be confirmed on a capture from the main league):
+- **Route shape** (from an open-source receiver; **confirmed on the main league, 2026-11-21**, platform label `pc`):
   - `/{platform}/{leagueId}/leagueteams` → `leagueTeamInfoList`
   - `/{platform}/{leagueId}/standings` → `teamStandingInfoList`
   - `/{platform}/{leagueId}/team/{teamId}/roster` → `rosterInfoList` (one POST per team)
@@ -49,7 +49,7 @@ All three pull data from EA using the commissioner's EA sign-in, mimicking the C
 | How it gets data | Direct EA connection | "Sync" with a stored EA access token; also accepts Companion exports | "Real-time EA sync" (method not documented) |
 | Madden 27 | **Confirmed** (solo-league test) | Not confirmed | Not confirmed |
 | Rosters while Companion is broken | **Yes** | Probably, unconfirmed | Probably, unconfirmed |
-| Free agents | Yes | Unknown | Unknown |
+| Free agents | Yes (out of v5 scope) | Unknown | Unknown |
 | **Can it send data to us?** | **Yes: export URLs in the dashboard**, same format as the Companion App | Not documented | Not documented |
 | Requirements | A Discord server (the league has one) | Web account | Web account |
 | Recreate franchise? | No | No | No setup docs found |
@@ -59,6 +59,13 @@ All three pull data from EA using the commissioner's EA sign-in, mimicking the C
 - Export URLs can be added in the dashboard, and **auto update** is offered. No CSV export.
 - Historical league data and rosters appear to be available.
 - Real payloads were captured with webhook.site and mapped in `V5_FIELD_MAPPING.md`.
+
+## Main-league capture (commissioner, 2026-11-21)
+
+- One current-week export (week 4) to a fresh webhook.site URL: 40 requests, about 6 MB, every expected route present.
+- Platform label `pc`, league ID `5481323`. Standings carry the current week and stage.
+- 29 of 32 team rosters arrived (Tennessee, Houston and Minnesota missing; risk R21).
+- Anonymized samples: `capture-2026-11-21/`. Gate A confirmed.
 
 What this means for the design:
 

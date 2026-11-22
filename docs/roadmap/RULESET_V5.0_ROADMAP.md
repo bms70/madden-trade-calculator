@@ -49,7 +49,7 @@ Considered and not adopted (2026-11-21): starting the transaction ledger in Phas
 **Phase 1 — League data foundation and identity.**
 - Data source (decided): Snallabot sends to our Supabase receiver, with Companion as a backup. Manual entry plus a commissioner audit is the primary path, and every field stays editable.
 - Identity (decided): members enter a league by its plain name, with no sign-in. Only the commissioner imports data.
-- Remaining: a sample normalized schema, and a capture spike on the main league.
+- Done: a sample normalized schema (`v5/V5_SAMPLE_SCHEMA.sql`) and the main-league capture (`v5/capture-2026-11-21/`). Gate A confirmed.
 
 **Phase 2 — League layer and source-independent import layer** (Web v2.0 league mode, then Web v3.0 imports). Exit: one real league snapshot loads without changing v4.4 valuation.
 
@@ -69,7 +69,7 @@ Considered and not adopted (2026-11-21): starting the transaction ledger in Phas
 
 ## Decision gates
 
-- **A — Data viability.** *Passed on paper: manual entry plus audit, with Snallabot imports.*
+- **A — Data viability.** *Passed: manual entry plus audit, with Snallabot imports. Confirmed by the main-league capture on 2026-11-21 (`v5/V5_FIELD_MAPPING.md`).*
 - **B — Historical evidence:** the data shows repeatable patterns that v4.4 misses.
 - **C — Model value:** the candidate is a defensible improvement over v4.4.
 - **D — Shadow validation:** stable results, regression passed, league approval.
