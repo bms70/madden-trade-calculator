@@ -52,3 +52,5 @@ Last updated: 2026-11-21.
 | **Audit timing?** | **Log now, review after.** Trades are logged immediately as Unreviewed; the commissioner marks them Reviewed, corrects them, or reverses them |
 | **Who approves human-to-human trades?** | **The commissioner alone** |
 | **Who can create leagues?** | **Only the site owner**, who also sets each commissioner password |
+| **v5 branching model?** | **Approved** (2026-11-21): `v5/phase-*`, `release/web-v*`, `feature/*`, `fix/*`, `v5/ruleset-v5.0`; the v5 candidate is its own engine file |
+| **Baseline tag?** | **Yes:** `ruleset-v4.4-baseline` on `a0703dd` |

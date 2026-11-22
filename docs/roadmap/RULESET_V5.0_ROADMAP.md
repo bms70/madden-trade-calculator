@@ -4,10 +4,13 @@ This is a working roadmap, not a frozen ruleset specification. Last updated: 202
 
 **Principle:** Ruleset v4.4 stays the production baseline. League integration gets built first. A change becomes Ruleset v5.0 only once league-data-driven valuation changes are backed by evidence, regression-tested, and validated in shadow mode.
 
-## Phase 1 documents
+## Phase 0 and 1 documents
 
 | Document | Purpose |
 |---|---|
+| [`v5/V5_PROJECT_CHARTER.md`](v5/V5_PROJECT_CHARTER.md) | Scope, goals, non-goals, governance, branching (Phase 0) |
+| [`v5/V5_ASSUMPTIONS_AND_RISKS.md`](v5/V5_ASSUMPTIONS_AND_RISKS.md) | Every assumption and risk, with owner and resolving phase (Phase 0) |
+| [`v5/V5_BASELINE_MANIFEST_v4.4.md`](v5/V5_BASELINE_MANIFEST_v4.4.md) | Frozen v4.4 / v1.5.0 baseline: files, hashes, test results (Phase 0) |
 | [`v5/V5_PHASE_PLAN.md`](v5/V5_PHASE_PLAN.md) | Phases, releases, decisions, risks |
 | [`v5/V5_DATA_SOURCE_FEASIBILITY.md`](v5/V5_DATA_SOURCE_FEASIBILITY.md) | Companion App status, relay comparison, Snallabot adoption |
 | [`v5/V5_FIELD_MAPPING.md`](v5/V5_FIELD_MAPPING.md) | Madden 27 export fields mapped to v4.4 inputs |
