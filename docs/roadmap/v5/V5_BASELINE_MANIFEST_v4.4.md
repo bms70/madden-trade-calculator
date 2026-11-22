@@ -125,3 +125,11 @@ The two changed baseline files and the new files that carry `accept-trade` logic
 | 10c | `supabase/functions/_shared/http.ts` | New: shared HTTP helpers | 2212 | `3a5fcebdfad9ffb7c3ad06d17eb0b8958ffd44c2d6a5f82ebedf67b7ed140f77` | `0738172e9f441c9f4cabb1ee301a993cf52ad480` |
 
 About a week after launch, a maintenance update removes `v1.5.0` from `trade-validation.ts` (runbook step 8). Record its new hash here when that update lands.
+
+## Addendum: reference workbook pick-entry fix (2026-11-22)
+
+File 6 changed. Valuation is unchanged: no constant, table value or rule changed. The 16 parity scenarios still match the web engine, 32 / 32 with picks entered as text and as numbers. Details: `docs/validation/PARITY_REPORT_v1.5.0_RULESET_v4.4.md`.
+
+| # | File | Change | Bytes | SHA-256 | Git blob |
+|---|---|---|---|---|---|
+| 6 | `reference/Madden League Trade Calculator v4.4.xlsx` | Player / Pick cells formatted as Text; 15 formulas accept a pick stored as a number; pick drop-down | 37669 | `b8995a9137d15cf524be750576386bda9fed19c68a709ad00082a40a67d284d5` | `0c2399280a7781a01175a217e137f2a6f051842d` |
