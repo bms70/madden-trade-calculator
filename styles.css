@@ -677,6 +677,166 @@ main {
   color: var(--red);
 }
 
+.comm-head-actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 8px;
+  align-items: end;
+  min-width: 240px;
+}
+
+.comm-head-actions label {
+  grid-column: 1 / -1;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.comm-head-actions input {
+  padding: 7px 9px;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text);
+}
+
+.comm-signout {
+  cursor: pointer;
+}
+
+.comm-queue {
+  margin-top: 12px;
+}
+
+.comm-action {
+  display: grid;
+  gap: 8px;
+}
+
+.comm-action[hidden],
+#commUnlocked[hidden],
+#commLocked[hidden],
+#commNoLeague[hidden] {
+  display: none;
+}
+
+.comm-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 7px;
+}
+
+.comm-flag {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--unfair-bg);
+  color: var(--orange);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.comm-note {
+  margin: 7px 0 0;
+  font-size: 10px;
+  color: var(--muted);
+  white-space: pre-wrap;
+}
+
+.comm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.comm-actions .btn {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.comm-review {
+  background: var(--fair-bg);
+  color: var(--green);
+}
+
+.comm-correct {
+  background: var(--secondary-bg);
+  color: var(--secondary-text);
+}
+
+.admin-audit-action.comm-audit-trade_reviewed,
+.admin-audit-action.comm-audit-trade_corrected {
+  color: var(--green);
+}
+
+.admin-audit-action.comm-audit-pre_league_migration,
+.admin-audit-action.comm-audit-league_created {
+  color: var(--navy);
+}
+
+.correction-bar {
+  display: grid;
+  grid-template-columns: 1fr minmax(180px, 280px) auto;
+  gap: 6px 10px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  background: var(--questionable-bg);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.correction-bar[hidden] {
+  display: none;
+}
+
+.correction-text strong {
+  display: block;
+  color: var(--amber);
+  font-size: 13px;
+}
+
+.correction-text span {
+  font-size: 10px;
+  color: var(--text);
+}
+
+.correction-bar label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.correction-bar input {
+  padding: 8px 9px;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text);
+}
+
+.correction-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.correction-actions .btn {
+  cursor: pointer;
+}
+
+.correction-status {
+  grid-column: 1 / -1;
+  font-size: 10px;
+  color: var(--red);
+}
+
+.correction-status:empty {
+  display: none;
+}
+
 .admin-login-card {
   max-width: 520px;
   margin: 0 auto;
@@ -701,19 +861,19 @@ main {
   line-height: 1.45;
 }
 
-#adminLoginForm {
+.comm-form {
   display: grid;
   gap: 8px;
   margin-top: 16px;
 }
 
-#adminLoginForm label {
+.comm-form label {
   font-size: 10px;
   font-weight: 800;
   color: var(--muted);
 }
 
-#adminPassword {
+.comm-form input {
   width: 100%;
   padding: 10px;
   border: 1px solid var(--input-border);
@@ -752,7 +912,7 @@ main {
   padding: 14px;
 }
 
-#lockAdmin {
+.comm-signout {
   background: var(--secondary-bg);
   color: var(--secondary-text);
   font-weight: 800;
@@ -792,8 +952,7 @@ main {
   line-height: 1.45;
 }
 
-#adminTradesList,
-#adminAuditList {
+.comm-list {
   display: grid;
   gap: 8px;
   margin-top: 10px;
@@ -914,20 +1073,19 @@ main {
   line-height: 1.45;
 }
 
-#adminDeleteForm {
+.comm-action {
   display: grid;
   gap: 8px;
   margin-top: 14px;
 }
 
-#adminDeleteForm label {
+.comm-action label {
   font-size: 9px;
   font-weight: 800;
   color: var(--muted);
 }
 
-#adminDeleteName,
-#adminDeleteReason {
+.comm-action textarea {
   width: 100%;
   border: 1px solid var(--input-border);
   border-radius: 8px;
@@ -936,7 +1094,7 @@ main {
   font: inherit;
 }
 
-#adminDeleteReason {
+.comm-action textarea {
   resize: vertical;
 }
 
@@ -1392,6 +1550,14 @@ textarea:focus-visible {
   }
   .admin-trade-packages {
     grid-template-columns: 1fr;
+  }
+  .tab {
+    padding: 8px 6px;
+  }
+  .correction-bar,
+  .admin-unlocked-head {
+    grid-template-columns: 1fr;
+    display: grid;
   }
 }
 

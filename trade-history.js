@@ -11,7 +11,8 @@
  * text is unchanged. Pre-league trades have no teams and keep the side names.
  *
  * resetTradeHistory() is called by league-mode.js (league entered or left,
- * mode changed), calculator-ui.js (trade submitted) and admin.js (deletion).
+ * mode changed), calculator-ui.js (trade submitted) and commissioner.js
+ * (review, correction, reversal).
  */
 
 // ----------------------------------------------------------------------------

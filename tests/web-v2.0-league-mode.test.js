@@ -1,7 +1,8 @@
 // Web v2.0 league mode in the browser scripts: snapshot contract, display-only
 // team names, practice mode, league entry and submission.
 // Run from the repo root: node tests/web-v2.0-league-mode.test.js
-// Also covers league Trade History (trade-history.js, build step 4).
+// Also covers league Trade History (trade-history.js, step 4) and the
+// Commissioner area with correction mode (commissioner.js, step 5).
 //
 // Loads valuation.js, league-mode.js and calculator-ui.js unchanged into a vm
 // with a small fake DOM, and compares every parity scenario's snapshot with
@@ -33,7 +34,7 @@ function fakeElement(selector) {
     textContent: '',
     innerHTML: '',
     value: '',
-    hidden: selector === '#acceptConfirm' || selector === '#history',
+    hidden: ['#acceptConfirm', '#history', '#commAction', '#correctionBar'].includes(selector),
     disabled: false,
     className: '',
     dataset: {},
@@ -46,6 +47,7 @@ function fakeElement(selector) {
     },
     setAttribute(k, v) { this.attributes[k] = v; },
     focus() {},
+    click() {},
     scrollIntoView() {},
     querySelector(s) { if (!children.has(s)) children.set(s, fakeElement(s)); return children.get(s); },
     closest() { return null; },
@@ -54,10 +56,23 @@ function fakeElement(selector) {
 
 function makeWindow({ storage, localStore = new Map() } = {}) {
   const elements = new Map();
+  const buttons = new Map();
   const document = {
     elements,
     querySelector(s) { if (!elements.has(s)) elements.set(s, fakeElement(s)); return elements.get(s); },
-    querySelectorAll() { return []; },
+    querySelectorAll(sel) {
+      if (sel !== '#commissioner [data-action]') return [];
+      const html = ['#commQueue', '#commAll'].map(id => (elements.get(id) || { innerHTML: '' }).innerHTML).join('');
+      return [...html.matchAll(/data-action="([A-Z]+)" data-trade-id="([^"]+)"/g)].map(m => {
+        const key = m[1] + '|' + m[2];
+        if (!buttons.has(key)) {
+          const button = fakeElement('button');
+          button.dataset = { action: m[1], tradeId: m[2] };
+          buttons.set(key, button);
+        }
+        return buttons.get(key);
+      });
+    },
   };
   const localStorage = {
     getItem: k => (localStore.has(k) ? localStore.get(k) : null),
@@ -79,9 +94,10 @@ const valuationSrc = read('valuation.js');
 const leagueSrc = read('league-mode.js');
 const uiSrc = read('calculator-ui.js');
 const historySrc = read('trade-history.js');
+const commSrc = read('commissioner.js');
 const baselineUiSrc = execFileSync('git', ['show', 'ruleset-v4.4-baseline:calculator-ui.js'], { cwd: root, encoding: 'utf8' });
 
-const PAGE = [['valuation.js', valuationSrc], ['league-mode.js', leagueSrc], ['calculator-ui.js', uiSrc], ['trade-history.js', historySrc]];
+const PAGE = [['valuation.js', valuationSrc], ['league-mode.js', leagueSrc], ['calculator-ui.js', uiSrc], ['trade-history.js', historySrc], ['commissioner.js', commSrc]];
 const current = () => { const w = makeWindow(); load(w, PAGE); return w; };
 const baseline = () => { const w = makeWindow(); load(w, [['valuation.js', valuationSrc], ['calculator-ui.js', baselineUiSrc]]); return w; };
 const run = (w, code) => vm.runInContext(code, w.ctx);
@@ -371,6 +387,130 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   hel('#leagueLeave').onclick();
   await new Promise(r => setTimeout(r, 0));
   check('leaving the league clears history on screen', hel('#historyState').textContent === 'Enter a league to see its trade history.' && vm.runInContext('historyRecords.length', h.ctx) === 0);
+
+  // -------------------------------------------------------------------------
+  // 8. Commissioner area and correction mode (step 5)
+  // -------------------------------------------------------------------------
+  const TEAMS3 = TEAMS.concat([{ team_id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', abbreviation: 'AZ', city_name: 'Arizona', nickname: 'Cardinals', division: 'NFC West', controlled_by: 'HUMAN' }]);
+  const NOW = Date.now();
+  const iso = ms => new Date(ms).toISOString();
+  const tradeRow = o => Object.assign({ trade_id: o.id, accepted_at: iso(NOW - 3600e3), ruleset_version: 'v4.4', web_release: 'v2.0', review_status: 'UNREVIEWED', is_pre_league: false, current_revision: 0, submitter_name: 'Sam', submitter_note: null, reviewed_at: null, submitting_team: 'Dallas Cowboys', other_team: '<Omaha> & Co' }, snapA, o);
+  const commRows = [
+    tradeRow({ id: 'c-new', trade_number: 70, accepted_at: iso(NOW - 600e3), verdict: 'FAIR', submitting_team: 'Dallas Cowboys', other_team: 'Arizona Cardinals' }),
+    tradeRow({ id: 'c-dup', trade_number: 69, accepted_at: iso(NOW - 1200e3) }),
+    tradeRow({ id: 'c-old', trade_number: 68, accepted_at: iso(NOW - 7200e3) }),
+    tradeRow({ id: 'c-done', trade_number: 67, review_status: 'REVIEWED', verdict: 'FAIR' }),
+    tradeRow({ id: 'c-pre', trade_number: 5, web_release: 'v1.5.0', is_pre_league: true, submitting_team: null, other_team: null }),
+  ];
+  const ccalls = [];
+  let reviewReply = { ok: true, data: { ok: true, trade: { tradeNumber: 68, reviewStatus: 'REVIEWED', currentRevision: 0 } }, error: null, status: 200 };
+  let loginReply = { ok: false, data: { ok: false, error: 'Wrong password.' }, error: 'Wrong password.', status: 401 };
+  const cstorage = Object.assign({}, hstorage, {
+    leagueTeams: async () => ({ ok: true, teams: TEAMS3 }),
+    leagueHistory: async name => { ccalls.push(['history', name]); return { ok: true, data: commRows.map(r => Object.assign({ id: r.trade_id }, r)) }; },
+    commissionerLogin: async (name, pw) => { ccalls.push(['login', name, pw]); return loginReply; },
+    commissionerAuditLog: async (token, id) => { ccalls.push(['audit', token, id]); return { ok: true, data: { ok: true, events: [{ occurredAt: iso(NOW), action: 'TRADE_CORRECTED', tradeNumber: 66, actorRole: 'COMMISSIONER', actorName: 'Commish', reason: 'Fix <pick>', details: { verdict_before: 'UNFAIR', verdict_after: 'FAIR' } }] }, error: null, status: 200 }; },
+    reviewTrade: async args => { ccalls.push(['review', args]); return reviewReply; },
+  });
+  const cw = makeWindow({ storage: cstorage });
+  load(cw, PAGE);
+  const cel = s => cw.document.querySelector(s);
+  const CA = vm.runInContext('CommissionerArea', cw.ctx);
+  const CLM = vm.runInContext('LeagueMode', cw.ctx);
+
+  await CA.show();
+  check('commissioner: no league -> asks for one', cel('#commNoLeague').hidden === false && cel('#commLocked').hidden === true && cel('#commUnlocked').hidden === true);
+
+  vm.runInContext("LeagueMode.state.mode = 'LEAGUE';", cw.ctx);
+  cel('#leagueInput').value = 'Sample League';
+  await cel('#leagueEntry').onsubmit({ preventDefault() {} });
+  await CA.show();
+  check('commissioner: league entered -> sign-in shown', cel('#commLocked').hidden === false && cel('#commLeagueName').textContent === 'Sample League');
+
+  cel('#commPassword').value = 'nope';
+  await cel('#commLoginForm').onsubmit({ preventDefault() {} });
+  check('wrong password message, password cleared', cel('#commStatus').textContent === 'Wrong password.' && cel('#commPassword').value === '' && cel('#commUnlocked').hidden === true);
+
+  loginReply = { ok: false, data: { ok: false, error: 'Too many wrong passwords. Try again later.', retryAfterSeconds: 610 }, error: 'Too many wrong passwords. Try again later.', status: 429 };
+  cel('#commPassword').value = 'nope';
+  await cel('#commLoginForm').onsubmit({ preventDefault() {} });
+  check('lockout shows minutes', cel('#commStatus').textContent === 'Too many wrong passwords. Try again in 11 minutes.');
+
+  const session = { token: 'tok-123', expiresAt: iso(NOW + 1800e3), leagueId: LEAGUE.id, leagueName: 'Sample League' };
+  loginReply = { ok: true, data: { ok: true, session }, error: null, status: 200 };
+  cel('#commPassword').value = 'right';
+  await cel('#commLoginForm').onsubmit({ preventDefault() {} });
+  check('signed in: unlocked, sign-in sent the league name', cel('#commUnlocked').hidden === false && ccalls.some(c => c[0] === 'login' && c[1] === 'Sample League' && c[2] === 'right'));
+  check('token kept out of browser storage', ![...cw.localStore.values()].some(v => String(v).includes('tok-123')));
+  check('audit log loaded with the token and league', ccalls.some(c => c[0] === 'audit' && c[1] === 'tok-123' && c[2] === LEAGUE.id));
+  const audit = cel('#commAudit').innerHTML;
+  check('audit card: label, verdict change, escaped reason', audit.includes('Corrected') && audit.includes('Verdict UNFAIR → FAIR') && audit.includes('Fix &lt;pick&gt;'));
+
+  const queue = cel('#commQueue').innerHTML;
+  const order = ['Trade #68', 'Trade #69', 'Trade #70'].map(t => queue.indexOf(t));
+  check('queue: unreviewed league trades only, oldest first', order.every(i => i >= 0) && order[0] < order[1] && order[1] < order[2] && !queue.includes('Trade #67') && !queue.includes('Trade #5<'));
+  check('queue status counts 3', cel('#commQueueStatus').textContent === '3 to review.');
+  const flagsOf = id => CA._tradeFlags(commRows.map(r => Object.assign({ id: r.trade_id }, r)).find(r => r.id === id), commRows.map(r => Object.assign({ id: r.trade_id }, r)));
+  check('flags: not FAIR', flagsOf('c-old').includes('Rated ' + snapA.verdict) || snapA.verdict === 'FAIR');
+  check('flags: human to human', flagsOf('c-new').includes('Human to human') && !flagsOf('c-old').includes('Human to human'));
+  check('flags: possible duplicate within 24h', flagsOf('c-dup').includes('Possible duplicate') && flagsOf('c-old').includes('Possible duplicate') && !flagsOf('c-new').includes('Possible duplicate'));
+  check('all trades lists every active trade', ['Trade #70', 'Trade #67', 'Trade #5'].every(t => cel('#commAll').innerHTML.includes(t)));
+  check('reviewed trade has no Mark reviewed button', !/data-action="REVIEW" data-trade-id="c-done"/.test(cel('#commAll').innerHTML));
+
+  const button = (action, id) => cw.document.querySelectorAll('#commissioner [data-action]').find(b => b.dataset.action === action && b.dataset.tradeId === id);
+
+  cel('#commName').value = '';
+  button('REVIEW', 'c-old').onclick();
+  check('actions need the commissioner name', cel('#commAction').hidden !== false && cel('#commQueueStatus').textContent.startsWith('Add your name'));
+
+  cel('#commName').value = 'Commish';
+  button('REVERSE', 'c-old').onclick();
+  cel('#commReason').value = '  ';
+  await cel('#commAction').onsubmit({ preventDefault() {} });
+  check('reverse needs a reason (no call)', cel('#commActionStatus').textContent === 'Reversing a trade needs a reason.' && !ccalls.some(c => c[0] === 'review'));
+
+  button('REVIEW', 'c-old').onclick();
+  cel('#commReason').value = 'Looks fine';
+  await cel('#commAction').onsubmit({ preventDefault() {} });
+  const reviewCall = ccalls.find(c => c[0] === 'review');
+  check('mark reviewed sends token, league, trade, name, comment', reviewCall && reviewCall[1].token === 'tok-123' && reviewCall[1].leagueId === LEAGUE.id && reviewCall[1].tradeId === 'c-old' && reviewCall[1].action === 'REVIEW' && reviewCall[1].commissionerName === 'Commish' && reviewCall[1].reason === 'Looks fine');
+  check('after review: form closed, message, name remembered', cel('#commAction').hidden === true && cel('#commQueueStatus').textContent === 'Trade #68 marked reviewed. 3 to review.' && cw.localStore.get('maddenTrade.commissionerName') === 'Commish');
+
+  // Correction mode
+  vm.runInContext(`LeagueMode.state.teamA = '${TEAMS[1].team_id}'; LeagueMode.state.teamB = '';`, cw.ctx);
+  button('CORRECT', 'c-new').onclick();
+  check('correction: bar shown, submit hidden', CA.isCorrecting() && cel('#correctionBar').hidden === false && cel('#acceptTrade').hidden === true && cel('#correctionTitle').textContent === 'Correcting trade #70');
+  check('correction: trade teams shown', CLM.state.teamA === TEAMS[0].team_id && CLM.state.teamB === TEAMS3[2].team_id && cel('#aheading').textContent === 'DALLAS COWBOYS RECEIVES');
+  const loaded = vm.runInContext('JSON.stringify(state)', cw.ctx);
+  const loadedState = JSON.parse(loaded);
+  check('correction: assets loaded into the calculator', loadedState.A.length === snapA.user_team_assets.length && loadedState.B.length === snapA.cpu_team_assets.length && loadedState.A[0].type === snapA.user_team_assets[0].type);
+  const reloaded = vm.runInContext('buildTradeSnapshot()', cw.ctx);
+  check('correction: reloaded trade re-evaluates to the same values', reloaded && Math.abs(reloaded.user_adjusted_value - snapA.user_adjusted_value) < 1e-9 && reloaded.verdict === snapA.verdict);
+
+  await cel('#saveCorrection').onclick();
+  check('save needs a reason', cel('#correctionStatus').textContent === 'A correction needs a reason.' && ccalls.filter(c => c[0] === 'review').length === 1);
+
+  vm.runInContext("state.B.push(Object.assign(emptyAsset(), { type: 'Draft Pick', pick: '1.20', timing: 'Current draft' })); render();", cw.ctx);
+  cel('#correctionReason').value = 'Missing pick';
+  reviewReply = { ok: true, data: { ok: true, trade: { tradeNumber: 70, reviewStatus: 'REVIEWED', currentRevision: 1 } }, error: null, status: 200 };
+  await cel('#saveCorrection').onclick();
+  const correctCall = ccalls.filter(c => c[0] === 'review')[1];
+  check('correction sends CORRECT with the edited v2.0 snapshot', correctCall && correctCall[1].action === 'CORRECT' && correctCall[1].reason === 'Missing pick' && correctCall[1].trade.web_release === 'v2.0' && correctCall[1].trade.cpu_team_assets.length === snapA.cpu_team_assets.length + 1);
+  check('correction snapshot keeps engine side names', /User Team|CPU Team/.test(JSON.stringify(correctCall[1].trade.trade_intelligence)));
+  check('after save: bar hidden, teams restored, trade cleared', !CA.isCorrecting() && cel('#correctionBar').hidden === true && CLM.state.teamA === TEAMS[1].team_id && CLM.state.teamB === '' && vm.runInContext('state.A.length + state.B.length', cw.ctx) === 0);
+
+  // Session end on a 401
+  reviewReply = { ok: false, data: { ok: false, error: 'Commissioner sign-in required.', reason: 'expired' }, error: 'Commissioner sign-in required.', status: 401 };
+  button('REVIEW', 'c-dup').onclick();
+  await cel('#commAction').onsubmit({ preventDefault() {} });
+  check('401 signs the commissioner out', cel('#commUnlocked').hidden === true && cel('#commStatus').textContent.includes('session ended'));
+
+  // League change signs out
+  loginReply = { ok: true, data: { ok: true, session }, error: null, status: 200 };
+  cel('#commPassword').value = 'right';
+  await cel('#commLoginForm').onsubmit({ preventDefault() {} });
+  cel('#leagueLeave').onclick();
+  check('leaving the league signs out', cel('#commUnlocked').hidden === true && cel('#commNoLeague').hidden === false && CA._area.session === null);
 
   console.log(`\n${pass} / ${pass + fail} ${fail ? 'FAIL' : 'PASS'}`);
   process.exit(fail ? 1 : 0);
