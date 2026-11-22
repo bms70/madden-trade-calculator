@@ -2,7 +2,7 @@
 
 Web Release v2.0 (League mode) design spec. Ruleset v5.0 roadmap, Phase 2. Drafted 2026-11-21. **Ruleset stays v4.4.** This is the plan the v2.0 build follows. It turns the decisions in `V5_IDENTITY_AND_ACCESS.md` and `V5_PHASE_PLAN.md` into screens, flows, an API, a snapshot contract, a migration and a release order. The database design comes from `V5_SAMPLE_SCHEMA.sql` (sections 1–3, 6 and 7).
 
-Decisions taken on this spec are logged in `V5_OPEN_QUESTIONS.md`: Q25 decided (practice mode stops logging); Q26 and Q27 **assumed** as recommended until confirmed; Q28 (the league's name) open, needed for release step 2.
+Decisions taken on this spec are logged in `V5_OPEN_QUESTIONS.md` (Q25–Q28, all decided 2026-11-21): practice mode stops logging; team editing in v2.1; login throttling; the main league's name is decided and the site owner sets its password. **The league name is deliberately not written in this public repo** (knowing it is the access); scripts take it as a parameter.
 
 ## 1. Scope
 
@@ -19,7 +19,7 @@ Decisions taken on this spec are logged in `V5_OPEN_QUESTIONS.md`: Q25 decided (
 
 - Imports, players, standings, calendar, draft picks (Web v3.0+).
 - Pre-filled assets (`trade_assets.edited_fields` stays empty).
-- Commissioner team editing on screen: human / CPU and owner label (**Assumed: v2.1**, Q26; SQL fixes until then).
+- Commissioner team editing on screen: human / CPU and owner label (**Decided: v2.1**, Q26; SQL fixes until then).
 - Any change to `valuation.js` or the v4.4 verdicts.
 
 ## 2. Governed-file rules for this release
@@ -105,7 +105,7 @@ All writes go through Edge Functions using the service role. Multi-row writes ru
 | `commissioner-audit-log` | New (replaces `admin-audit-log`) | token | — | This league's audit events |
 
 - **Retired at launch:** `admin-login`, `admin-session-check`, `delete-trade`, `admin-audit-log`, and the `ADMIN_PASSWORD` secret. `ADMIN_SESSION_SECRET` stays as the signing key. v1 tokens (no `leagueId`) are rejected.
-- **Login throttling (Assumed, Q27):** after 5 wrong passwords for a league within 15 minutes, `commissioner-login` refuses for 15 minutes (counted in a small `login_attempts` table). Today's admin login has no throttle; a per-league password guessed by brute force would expose corrections and reversals.
+- **Login throttling (Decided, Q27):** after 5 wrong passwords for a league within 15 minutes, `commissioner-login` refuses for 15 minutes (counted in a small `login_attempts` table). Today's admin login has no throttle; a per-league password guessed by brute force would expose corrections and reversals.
 
 ### 5.3 Database functions (service role only)
 
@@ -154,7 +154,7 @@ The baseline rule: deploy backend first, merge the site last, and keep every ste
 |---|---|---|
 | 0 | **Backup:** export `trades` and `audit_events` (CSV) to `backups/`; record row counts | — |
 | 1 | Apply migration `…_league_mode.sql`: `leagues`, `league_teams`, `trade_revisions`, `trade_assets`, additive columns on `trades` and `audit_events`, read functions, write functions. The public read policy on `trades` **stays for now** | A down migration that drops the new objects (no existing data touched) |
-| 2 | Create the main league with `create-league.sql` (name, commissioner password, 32 teams from the captured `leagueteams` payload) | Delete the league rows |
+| 2 | The site owner creates the main league with `create-league.sql`, entering the league name and commissioner password at run time (never committed), plus the 32 teams from the captured `leagueteams` payload | Delete the league rows |
 | 3 | Deploy `accept-trade` (accepts v2.0 and v1.5.0) and the four commissioner functions | Redeploy the v1.5.0 `accept-trade` |
 | 4 | Migrate history (schema §7): every existing trade → main league, pre-league; revision 0 for each; one `PRE_LEAGUE_MIGRATION` audit event. Check counts against step 0 | Clear the league fields on pre-league trades; delete revisions |
 | 5 | **Merge the v2.0 site** (`release/web-v2.0` → `main`); GitHub Pages deploys. Then apply migration `…_drop_public_trade_read.sql` | Revert the merge; re-create the policy |
@@ -217,6 +217,7 @@ Branch `release/web-v2.0`, one `feature/web-v2.0-<topic>` branch per item, in th
 ## 13. Risks specific to v2.0
 
 - **History disappears for anyone who doesn't know the league name** once the public read policy is dropped. That's intended (§6), but members need the league name before launch.
+- **The league name is the access key.** Keep it out of the public repo, wiki, commit messages and PR text; share it with members privately (for example in the league Discord).
 - **Values are computed in the browser,** as in v1.5.0. A tampered request could log made-up values. The commissioner review is the check; a later option is re-running `valuation.js` inside `accept-trade` to verify.
 - **The switchover window** (steps 3–6) can log v1.5.0 trades without a league; step 6 sweeps them.
 - **Migration risk to existing history (R4):** covered by the step 0 backup, count checks, and reversible steps until the merge.
