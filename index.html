@@ -12,7 +12,7 @@
         <div class="brandrow">
           <div>
             <div class="brand">MADDEN LEAGUE TRADE CALCULATOR</div>
-            <div class="ver">Web Release v1.5.0 · Ruleset v4.4</div>
+            <div class="ver">Web Release v2.0 · Ruleset v4.4</div>
           </div>
           <div class="brand-actions">
             <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false">Dark mode</button>
@@ -29,26 +29,49 @@
       </div>
     </header>
     <main>
+      <section class="leaguebar" aria-label="League">
+        <div class="mode-switch" role="group" aria-label="Mode">
+          <button type="button" class="mode-option active" data-mode="PRACTICE" aria-pressed="true">Practice</button>
+          <button type="button" class="mode-option" data-mode="LEAGUE" aria-pressed="false">League</button>
+        </div>
+        <form class="league-entry" id="leagueEntry" hidden>
+          <label for="leagueInput">League name</label>
+          <input type="text" id="leagueInput" maxlength="100" autocomplete="off" spellcheck="false">
+          <button type="submit" class="btn league-enter" id="leagueEnter">Enter</button>
+        </form>
+        <div class="league-current" id="leagueCurrent" hidden>
+          <span class="league-label">League</span>
+          <strong id="leagueName"></strong>
+          <button type="button" class="btn league-leave" id="leagueLeave">Leave league</button>
+        </div>
+        <div class="league-status" id="leagueStatus" aria-live="polite">Practice mode: try trades freely. Nothing is logged.</div>
+      </section>
       <section id="calc" class="panel">
         <section class="result">
-          <div class="score"><small>USER TEAM ADJUSTED</small><strong id="atotal">0.0</strong></div>
+          <div class="score"><small id="alabel">USER TEAM ADJUSTED</small><strong id="atotal">0.0</strong></div>
           <div class="verdict" id="vbox"><strong id="verdict">ADD ASSETS</strong><small id="gap"></small></div>
-          <div class="score"><small>CPU TEAM ADJUSTED</small><strong id="btotal">0.0</strong></div>
+          <div class="score"><small id="blabel">CPU TEAM ADJUSTED</small><strong id="btotal">0.0</strong></div>
         </section>
         <div class="trade">
           <section class="side" data-side="A">
             <div class="sidehead">
-              <h2>USER TEAM RECEIVES</h2>
+              <h2 id="aheading">USER TEAM RECEIVES</h2>
               <span class="count">0 / 6</span>
             </div>
+            <label class="team-pick" hidden>Your team
+              <select id="teamA"></select>
+            </label>
             <div class="assets"></div>
             <button type="button" class="add">+ Add asset</button>
           </section>
           <section class="side" data-side="B">
             <div class="sidehead">
-              <h2>CPU TEAM RECEIVES</h2>
+              <h2 id="bheading">CPU TEAM RECEIVES</h2>
               <span class="count">0 / 6</span>
             </div>
+            <label class="team-pick" hidden>Other team
+              <select id="teamB"></select>
+            </label>
             <div class="assets"></div>
             <button type="button" class="add">+ Add asset</button>
           </section>
@@ -59,16 +82,23 @@
           <div class="details" id="reads"></div>
         </section>
         <div class="trade-actions">
-          <button type="button" class="accept-trade" id="acceptTrade" disabled>Accept &amp; Log Trade</button>
+          <button type="button" class="accept-trade" id="acceptTrade" disabled hidden>Submit to league</button>
+          <p class="practice-note" id="practiceNote">Practice mode doesn't log trades. Switch to League to submit one.</p>
         </div>
-        <div class="accept-confirm" id="acceptConfirm" role="dialog" aria-labelledby="acceptConfirmTitle" aria-describedby="acceptConfirmDescription" hidden>
-          <h2 id="acceptConfirmTitle">Log this trade as accepted?</h2>
-          <p id="acceptConfirmDescription">The current trade details, calculator result, and Ruleset v4.4 evaluation will be saved to Trade History.</p>
+        <form class="accept-confirm" id="acceptConfirm" role="dialog" aria-labelledby="acceptConfirmTitle" aria-describedby="acceptConfirmDescription" hidden>
+          <h2 id="acceptConfirmTitle">Submit this trade to the league?</h2>
+          <p id="acceptConfirmDescription">This trade is logged now as <b>Unreviewed</b>. The commissioner reviews it afterwards.</p>
+          <p class="accept-warning" id="acceptWarning" hidden></p>
+          <label for="submitterName">Your name</label>
+          <input type="text" id="submitterName" maxlength="60" autocomplete="nickname" required>
+          <label for="submitterNote">Note <span class="admin-optional">Optional</span></label>
+          <textarea id="submitterNote" maxlength="500" rows="2" placeholder="For example: deadline deal agreed in Discord"></textarea>
+          <div class="accept-confirm-error" id="acceptConfirmError" aria-live="polite"></div>
           <div class="accept-confirm-actions">
             <button type="button" class="btn" id="cancelAcceptTrade">Cancel</button>
-            <button type="button" class="btn accept-confirm-button" id="confirmAcceptTrade">Accept &amp; Log</button>
+            <button type="submit" class="btn accept-confirm-button" id="confirmAcceptTrade">Submit</button>
           </div>
-        </div>
+        </form>
         <div class="status" id="status" aria-live="polite">Up to six assets per side. Select an asset to edit it.</div>
       </section>
       <section id="howto" class="panel" hidden>
@@ -332,6 +362,7 @@
     <script src="./storage.js"></script>
     <script src="./theme.js"></script>
     <script src="./valuation.js"></script>
+    <script src="./league-mode.js"></script>
     <script src="./calculator-ui.js"></script>
     <script src="./trade-history.js"></script>
     <script src="./admin.js"></script>

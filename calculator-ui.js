@@ -7,7 +7,10 @@
  * PERSISTENCE BOUNDARY: buildTradeSnapshot() defines the frozen accepted-Trade
  * snapshot. Its field names are a contract with storage.js and the database;
  * do not rename, add or remove fields here without a coordinated backend and
- * migration change.
+ * migration change. Web v2.0: the snapshot is the v1.5.0 snapshot with
+ * web_release "v2.0"; league-mode.js adds the league fields on submission and
+ * swaps team names into the displayed text only (never the stored text).
+ * Practice mode doesn't log trades.
  *
  * Initial render() runs at the end of this file, so everything render() calls
  * must be declared in this file or in valuation.js.
@@ -170,7 +173,7 @@ function buildTradeSnapshot() {
   let requiredTarget= typeof v.requiredTarget==='number' ? v.requiredTarget : null;
   let fairMaximum= typeof v.fairMaximum==='number' ? v.fairMaximum : null;
   return {
-    web_release:'v1.5.0',
+    web_release:'v2.0',
     ruleset_version:'v4.4',
     user_team_assets:A.arr.map(snapshotAsset),
     cpu_team_assets:B.arr.map(snapshotAsset),
@@ -193,8 +196,36 @@ function buildTradeSnapshot() {
 // Rendering
 // ----------------------------------------------------------------------------
 
+// Team names in league mode, for display only (see league-mode.js).
+function shown(text,html) {
+  return window.LeagueMode?window.LeagueMode.displayTeams(text,html?esc:null):String(text??'')
+}
+
+function currentSubmissionKey() {
+  let snapshot=buildTradeSnapshot();
+  let key=tradeSnapshotKey(snapshot);
+  return window.LeagueMode?window.LeagueMode.submissionKey(key):key;
+}
+
+// Submit to league: league mode, both teams chosen, a complete trade, storage
+// available, not mid-submit, and not the trade that was just logged.
+function acceptDisabled(v) {
+  return v.mode==='INCOMPLETE'||
+    !window.MaddenStorage?.isConfigured||
+    loggingTrade||
+    !window.LeagueMode?.teamsReady()||
+    (lastLoggedSnapshotKey!==null&&currentSubmissionKey()===lastLoggedSnapshotKey);
+}
+
 function render() {
   closeAcceptConfirmation();
+  let leagueMode=!!window.LeagueMode?.isLeague();
+  for(let side of ['A','B']) {
+    let heading=$(side==='A'?'#aheading':'#bheading'),
+      label=$(side==='A'?'#alabel':'#blabel');
+    if(heading)heading.textContent=window.LeagueMode?window.LeagueMode.sideHeading(side):heading.textContent;
+    if(label)label.textContent=window.LeagueMode?window.LeagueMode.scoreLabel(side):label.textContent;
+  }
   for(let side of ['A','B']) {
     let t=totals(side),
       el=document.querySelector(`.side[data-side="${side}"]`);
@@ -207,14 +238,15 @@ function render() {
     v=verdict(A,B);
   let acceptBtn=$('#acceptTrade');
   if(acceptBtn) {
-    let currentSnapshot= v.mode==='INCOMPLETE' ? null : buildTradeSnapshot();
-    let currentSnapshotKey= tradeSnapshotKey(currentSnapshot);
-    acceptBtn.disabled= v.mode==='INCOMPLETE'|| !window.MaddenStorage?.isConfigured|| loggingTrade|| ( lastLoggedSnapshotKey!==null && currentSnapshotKey===lastLoggedSnapshotKey );
+    acceptBtn.hidden=!leagueMode;
+    acceptBtn.disabled=acceptDisabled(v);
   }
+  let practiceNote=$('#practiceNote');
+  if(practiceNote)practiceNote.hidden=leagueMode;
   $('#atotal').textContent=A.adj.toFixed(1);
   $('#btotal').textContent=B.adj.toFixed(1);
   $('#verdict').textContent=v.v;
-  $('#gap').textContent=v.v==='ADD ASSETS'?'':`Fairness ${scoreText(v)} / 100${v.favored?` · favors ${teamName(v.favored)}`:''}`;
+  $('#gap').textContent=v.v==='ADD ASSETS'?'':shown(`Fairness ${scoreText(v)} / 100${v.favored?` · favors ${teamName(v.favored)}`:''}`);
   $('#vbox').className='verdict '+v.v.toLowerCase().replace(' ','-');
   let all=[...A.arr,...B.arr],
     bestA=A.sorted[0],
@@ -222,7 +254,7 @@ function render() {
     draftA=A.arr.filter(x=>x.type==='Draft Pick').reduce((s,x)=>s+x.value,0),
     draftB=B.arr.filter(x=>x.type==='Draft Pick').reduce((s,x)=>s+x.value,0);
   let primary=v.mode==='INCOMPLETE'?'Add assets to both sides.':v.mode==='DRAFT_ONLY'?'Draft trade-up protection and the 5% acceptance window apply.':v.mode==='POSITIVE_PLAYER_TIE'?'Exact protected-player value tie; the 5% adjusted-value window applies.':v.mode==='NO_ELIGIBLE_PLAYER'?'No eligible positive-value Player; the 5% adjusted-value window applies.':v.tier==='ELITE_QB'?`Elite QB acquisition protection governs ${teamName(v.protectedSide)}.`:v.tier==='CORNERSTONE'?`Franchise Cornerstone acquisition protection governs ${teamName(v.protectedSide)}.`:`Standard player acquisition protection governs ${teamName(v.protectedSide)}.`;
-  $('#primary').innerHTML='<b>Primary Read:</b> '+primary;
+  $('#primary').innerHTML='<b>Primary Read:</b> '+shown(primary,true);
   let reads=[
     [
       'BEST ASSET',
@@ -247,7 +279,7 @@ function render() {
     ['FAIRNESS SCORE',v.mode==='INCOMPLETE'?'Add assets to both sides.':fairnessRead(v)],
     ['SUGGESTED CORRECTION',v.correction]
   ];
-  $('#reads').innerHTML=reads.map(r=>`<div class="read"><b>${r[0]}</b><span>${r[1]}</span></div>`).join('');
+  $('#reads').innerHTML=reads.map(r=>`<div class="read"><b>${r[0]}</b><span>${shown(r[1],true)}</span></div>`).join('');
   bindCards()
 }
 
@@ -311,11 +343,12 @@ $$('.add').forEach(b=>b.onclick=()=> {
 });
 
 // ----------------------------------------------------------------------------
-// Accept & Log confirmation
+// Submit to league (Web v2.0)
 //
-// Selecting Accept & Log Trade opens an inline confirmation. Nothing is saved
-// until Accept & Log is confirmed. render() closes the confirmation, so any
-// change to the trade while it is open cancels it.
+// Submit to league opens an inline form for your name and an optional note.
+// Nothing is saved until Submit is confirmed. render() closes the form, so any
+// change to the trade while it is open cancels it. Practice mode has no submit
+// (Q25).
 // ----------------------------------------------------------------------------
 
 function closeAcceptConfirmation() {
@@ -327,8 +360,12 @@ function openAcceptConfirmation() {
   if(loggingTrade)return;
   let snapshot=buildTradeSnapshot();
   if(!snapshot) {
-    $('#status').textContent= 'Complete both sides of the trade before logging it.';
+    $('#status').textContent= 'Complete both sides of the trade before submitting it.';
     render();
+    return;
+  }
+  if(!window.LeagueMode?.teamsReady()) {
+    $('#status').textContent= 'Enter your league and choose both teams first.';
     return;
   }
   if(!window.MaddenStorage?.isConfigured) {
@@ -336,36 +373,52 @@ function openAcceptConfirmation() {
     return;
   }
   let panel=$('#acceptConfirm');
-  let description=$('#acceptConfirmDescription');
   if(!panel)return;
-  if(description) {
-    description.textContent= `The current trade details, calculator result (${snapshot.verdict}), and Ruleset ${snapshot.ruleset_version} evaluation will be saved to Trade History. Only log trades that have actually been accepted.`;
+  let warning=$('#acceptWarning');
+  if(warning) {
+    let rated=snapshot.verdict!=='FAIR';
+    warning.hidden=!rated;
+    warning.textContent=rated?`This trade is rated ${snapshot.verdict}. You can still submit it; it'll be flagged for the commissioner.`:'';
   }
+  let error=$('#acceptConfirmError');
+  if(error)error.textContent='';
+  let name=$('#submitterName');
+  if(name&&!name.value)name.value=window.LeagueMode.rememberedSubmitter();
   panel.hidden=false;
-  $('#status').textContent='Confirm below to log this trade, or select Cancel.';
-  let cancel=$('#cancelAcceptTrade');
-  if(cancel)cancel.focus();
+  $('#status').textContent='Add your name below and select Submit, or select Cancel.';
+  if(name)name.focus();
 }
 
 $('#acceptTrade').onclick=openAcceptConfirmation;
 
 $('#cancelAcceptTrade').onclick=()=> {
   closeAcceptConfirmation();
-  $('#status').textContent='Trade was not logged.';
+  $('#status').textContent='Trade was not submitted.';
   $('#acceptTrade').focus();
 };
 
-$('#confirmAcceptTrade').onclick=async()=> {
+$('#acceptConfirm').onsubmit=async event=> {
+  event.preventDefault();
+  let who=window.LeagueMode.checkSubmitter($('#submitterName').value,$('#submitterNote').value);
+  if(!who.ok) {
+    $('#acceptConfirmError').textContent=who.error;
+    return;
+  }
   closeAcceptConfirmation();
-  await logAcceptedTrade();
+  await logAcceptedTrade(who.name,who.note);
 };
 
-async function logAcceptedTrade() {
+async function logAcceptedTrade(name,note) {
   if(loggingTrade)return;
   let snapshot=buildTradeSnapshot();
   if(!snapshot) {
-    $('#status').textContent= 'Complete both sides of the trade before logging it.';
+    $('#status').textContent= 'Complete both sides of the trade before submitting it.';
     render();
+    return;
+  }
+  let submission=window.LeagueMode?.buildSubmission(snapshot,name,note);
+  if(!submission) {
+    $('#status').textContent= 'Enter your league, choose both teams and add your name first.';
     return;
   }
   if(!window.MaddenStorage?.isConfigured) {
@@ -375,27 +428,25 @@ async function logAcceptedTrade() {
   loggingTrade=true;
   let button=$('#acceptTrade');
   button.disabled=true;
-  button.textContent='Logging Trade...';
+  button.textContent='Submitting...';
   $('#status').textContent= 'Saving the current trade evaluation...';
   try {
-    let result=await window.MaddenStorage.acceptTrade(snapshot);
+    let result=await window.MaddenStorage.submitLeagueTrade(submission);
     if(!result.ok) {
       $('#status').textContent= result.error|| 'Trade could not be logged. No historical record was created.';
       return;
     }
-    lastLoggedSnapshotKey=tradeSnapshotKey(snapshot);
-    $('#status').textContent= `Trade #${result.trade.tradeNumber} accepted and logged.`;
+    lastLoggedSnapshotKey=window.LeagueMode.submissionKey(tradeSnapshotKey(snapshot));
+    window.LeagueMode.rememberSubmitter(submission.submitter_name);
+    $('#submitterNote').value='';
+    $('#status').textContent= `Logged as trade #${result.trade.tradeNumber}, Unreviewed.`;
   } catch(error) {
     console.error('Unexpected Trade logging failure:',error);
     $('#status').textContent= 'Trade could not be logged. No historical record was created.';
   } finally {
     loggingTrade=false;
-    button.textContent='Accept & Log Trade';
-    let A=totals('A');
-    let B=totals('B');
-    let v=verdict(A,B);
-    let currentSnapshot= v.mode==='INCOMPLETE' ? null : buildTradeSnapshot();
-    button.disabled= v.mode==='INCOMPLETE'|| !window.MaddenStorage?.isConfigured|| ( lastLoggedSnapshotKey!==null && tradeSnapshotKey(currentSnapshot)===lastLoggedSnapshotKey );
+    button.textContent='Submit to league';
+    button.disabled=acceptDisabled(verdict(totals('A'),totals('B')));
   }
 }
 
@@ -437,5 +488,7 @@ if(themeToggle) {
 // ----------------------------------------------------------------------------
 
 $('#pickGrid').innerHTML=Object.entries(PICK_VALUES).filter(([k])=>k.startsWith('1.')).map(([k,v])=>`<div class="pill"><b>${k}</b> = ${v}</div>`).join('');
+
+if(window.LeagueMode)window.LeagueMode.init();
 
 render();

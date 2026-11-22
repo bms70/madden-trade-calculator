@@ -172,10 +172,11 @@ The baseline rule: deploy backend first, merge the site last, and keep every ste
 | File | Change |
 |---|---|
 | `index.html` | Mode switch, league bar, team pickers, submit dialog fields, Commissioner tab (replaces Admin), history badges |
-| `calculator-ui.js` | League state, team pickers, display-name substitution, v2.0 snapshot fields, correction mode. **Baseline file:** manifest addendum |
+| `league-mode.js` (new) | Built (step 3): Practice / League switch, league bar, team pickers, display-only team names, the v2.0 submission and its duplicate guard. Remembers the mode, league name and submitter name in this browser |
+| `calculator-ui.js` | Built (step 3): snapshot `web_release` `v2.0` (every other field identical to v1.5.0), team names in the displayed text, Submit to league with name and note, practice mode without logging. Correction mode comes in step 5. **Baseline file:** manifest addendum |
 | `trade-history.js` | Read via `league_trade_history`; status badges; Original submission view |
 | `admin.js` → `commissioner.js` | League sign-in, review queue, Mark reviewed / Correct / Reverse, audit log |
-| `storage.js` | `leagueLookup`, `leagueTeams`, `leagueHistory`, `submitLeagueTrade`, `commissionerLogin`, `reviewTrade`, `commissionerAuditLog` |
+| `storage.js` | `leagueLookup`, `leagueTeams`, `submitLeagueTrade` (built, step 3); `leagueHistory` (step 4); `commissionerLogin`, `reviewTrade`, `commissionerAuditLog` (step 5) |
 | `styles.css` | Switch, badges, queue |
 | `supabase/migrations/` | `20261122160000_league_mode.sql` (built: teams, trade revisions and assets, review fields, audit actions, login lockout, read functions, submit / review / login / audit-log functions). The policy drop is staged in `docs/roadmap/v5/sql/web-v2.0-drop-public-trade-read.sql` and only copied into migrations at release step 5 |
 | `supabase/functions/` | Built: `accept-trade` changed; four new commissioner functions; shared validation, session and handler modules in `_shared/`. Contracts in [V5_WEB_V2.0_FUNCTIONS.md](V5_WEB_V2.0_FUNCTIONS.md). The four old Admin functions are removed after launch |
@@ -187,7 +188,7 @@ The baseline rule: deploy backend first, merge the site last, and keep every ste
 **Automated**
 
 - `node tests/ruleset-v4.4.test.js`: 64 / 64 (v4.4 unchanged); `valuation.js` hash equals the baseline.
-- `tests/web-v2.0-snapshot.test.js` (new): the v2.0 snapshot has every v1.5.0 field unchanged plus the league fields; display-name substitution never changes stored text.
+- `tests/web-v2.0-league-mode.test.js` (built, 41 / 41): loads the real page scripts in a fake DOM. For all 16 parity scenarios the v2.0 snapshot equals the v1.5.0 snapshot from the `ruleset-v4.4-baseline` tag apart from `web_release`, with league mode on and teams chosen. Team names appear only on screen (HTML-escaped) and never in stored text. Practice mode can't submit. League entry (unknown name, remembered league), team pickers, the submit form, the submission fields and the duplicate guard. `valuation.js` matches its manifest hash.
 - `tests/web-v2.0-functions.test.mjs` (built, 83 / 83): trade and league-field validation; accepted release pairs; commissioner tokens (expiry, tampering, league binding, v1 and v2 tokens kept apart); `accept-trade` league and switchover paths; login OK / BAD / LOCKED / NOT_SET / UNKNOWN; review, correct and reverse inputs; audit log scoped to the token's league.
 - `tests/web-v2.0-db.test.py` (built, 67 / 67): v1.5.0 insert and v1.4.0 delete unaffected; lookup, teams (32, OMH, AZ, 6 human); submit and its rejects; history and revisions; review, correct (both revisions kept), reverse; another league can't act; login OK / BAD / LOCKED / NOT_SET / UNKNOWN with the 15-minute lockout; browser access limits; the staged step-5 migration.
 
