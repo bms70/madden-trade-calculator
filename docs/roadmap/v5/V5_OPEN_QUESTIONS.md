@@ -10,6 +10,7 @@ Last updated: 2026-11-21.
 |---|---|---|---|
 | 19 | Offseason fade shape. Posture is at full strength after the season and fades to zero by preseason week 3. Should it fade stage by stage (re-signing → free agency → draft → preseason weeks 1–3), and along which curve: the squared in-season ramp in reverse, or a straight line? | Phase 7 posture spec | V5_PHASE_PLAN |
 | 20 | Posture effect sizes. The human-team placeholder is a very small protective effect, and the CPU-team effect is larger. Final values get set in Phase 6–7 calibration. Any starting preference? | Phase 7 | V5_PHASE_PLAN |
+| 21 | Approve the v5 branching model in `V5_PROJECT_CHARTER.md` (`v5/phase-*`, `release/web-v*`, `feature/*`, `fix/*`, `v5/ruleset-v5.0`; candidate engine in its own file), and should a `ruleset-v4.4-baseline` tag be created on `a0703dd`? | Phase 2 build start | V5_PROJECT_CHARTER |
 
 ## Assumed (confirm or change)
 
