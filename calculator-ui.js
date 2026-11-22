@@ -220,6 +220,8 @@ function acceptDisabled(v) {
 function render() {
   closeAcceptConfirmation();
   let leagueMode=!!window.LeagueMode?.isLeague();
+  // Correction mode (commissioner.js) saves through its own bar, not Submit.
+  let correcting=!!window.CommissionerArea?.isCorrecting();
   for(let side of ['A','B']) {
     let heading=$(side==='A'?'#aheading':'#bheading'),
       label=$(side==='A'?'#alabel':'#blabel');
@@ -238,11 +240,11 @@ function render() {
     v=verdict(A,B);
   let acceptBtn=$('#acceptTrade');
   if(acceptBtn) {
-    acceptBtn.hidden=!leagueMode;
+    acceptBtn.hidden=!leagueMode||correcting;
     acceptBtn.disabled=acceptDisabled(v);
   }
   let practiceNote=$('#practiceNote');
-  if(practiceNote)practiceNote.hidden=leagueMode;
+  if(practiceNote)practiceNote.hidden=leagueMode||correcting;
   $('#atotal').textContent=A.adj.toFixed(1);
   $('#btotal').textContent=B.adj.toFixed(1);
   $('#verdict').textContent=v.v;
@@ -468,6 +470,9 @@ $$('.tab').forEach(b=>b.onclick=async()=> {
   $$('.panel').forEach(p=> p.hidden=p.id!==b.dataset.tab );
   if(b.dataset.tab==='history'&&!historyLoaded) {
     await loadTradeHistory();
+  }
+  if(b.dataset.tab==='commissioner'&&window.CommissionerArea) {
+    await window.CommissionerArea.show();
   }
 });
 

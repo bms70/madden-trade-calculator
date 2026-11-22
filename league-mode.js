@@ -197,9 +197,10 @@
     if (typeof render === 'function') render();
   }
 
-  // Trade History shows the entered league; reload it when that changes.
+  // Trade History and the Commissioner area follow the entered league.
   function historyChanged() {
     if (typeof resetTradeHistory === 'function') resetTradeHistory();
+    if (window.CommissionerArea) window.CommissionerArea.leagueChanged();
   }
 
   async function enterLeague(rawName, quiet) {
