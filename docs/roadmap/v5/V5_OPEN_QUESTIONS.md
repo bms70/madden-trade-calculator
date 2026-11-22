@@ -20,6 +20,8 @@ Last updated: 2026-11-21.
 | 18 | Source of the offseason stage | A **manual field, pre-filled from the import** when the export carries it |
 | — | Long snapper value in v5.0 | **0.50** (same as K/P) |
 | — | Posture strength scales with the record? | **Yes.** A lopsided record counts fully, a middling one barely |
+| 22 | How do pre-league trades look after the v2.0 migration? | Active trades become **Reviewed**, v1.4.0 Admin-deleted trades **Reversed**, all marked pre-league (sample schema) |
+| 23 | Offseason stages for the league calendar | **Re-signing, Free agency, Draft**, then preseason weeks 1–3; to be checked against the capture |
 
 ## Answered
 

@@ -40,6 +40,21 @@ These are exactly the fields and validation v4.4 already uses: position, OVR, ag
 - For pre-filled assets, the audit view shows imported and submitted values side by side and highlights the fields edited after the pre-fill.
 - The audit view flags trades with an unfair verdict and, from Phase 5, posture warnings.
 
+## Sample schema
+
+[`V5_SAMPLE_SCHEMA.sql`](V5_SAMPLE_SCHEMA.sql) turns these entities into a sample normalized schema. It's a design draft, not a migration: Web v2.0 and v3.0 turn the relevant parts into real migrations. It applies cleanly on top of the four existing migrations, and [`V5_SAMPLE_SCHEMA_TESTS.sql`](V5_SAMPLE_SCHEMA_TESTS.sql) checks it on a scratch Postgres 16 database (33 / 33 PASS, 2026-11-21).
+
+Main design choices:
+
+- **`trades` stays the trade record** and is extended, not replaced. `trade_number`, history queries and `delete_trade_with_audit` keep working. The row holds the current evaluation.
+- **`trade_revisions`** keeps every evaluation: revision 0 is what the member submitted, and each commissioner correction adds one (a reason is required). **`trade_assets`** stores each asset per revision, with the imported values and the list of fields edited after pre-fill.
+- **Same-league teams are enforced by the database.** A trade's two teams must be different and both belong to the trade's league.
+- **One audit trail:** `audit_events` gains `league_id`, `details` and the new actions (reviewed, corrected, reversed, imports, picks, password changes).
+- **No browser access to league tables.** Knowing the name is the access, so if browsers could read `leagues` every name would be listable. Reads go through functions that take the league name (`league_lookup`, `league_team_list`, `league_trade_history`); writes go through Edge Functions. Web v2.0 also replaces today's public read policy on `trades`.
+- **Secrets are stored as hashes only:** bcrypt for commissioner passwords, SHA-256 for import URL secrets.
+- **Every asset column mirrors a v4.4 input** with the calculator's ranges: OVR 0–99, age 18–60, years left 1–10 or blank, years in league 0–40, cap hit in $M, roles Starter / Backup. LS can be stored on imported players but has no v4.4 position.
+- **Existing history migrates as pre-league:** active trades become Reviewed, v1.4.0 Admin-deleted trades become Reversed, and each trade's current evaluation becomes revision 0. The steps are sketched in section 7 of the schema.
+
 ## Still to confirm
 
 - The platform label and route paths for the main league.
