@@ -5,8 +5,8 @@
 -- SAMPLE NORMALIZED SCHEMA. A design draft, NOT a migration.
 --   - Do not copy into supabase/migrations/ as is. Web v2.0 and v3.0 turn the
 --     relevant parts into real, reviewed migrations (V5_PHASE_PLAN.md).
---   - Written to run on top of the four existing v1.4.0 migrations, so it can be
---     tested against a scratch database. It never drops or rewrites existing
+--   - Written to run on top of the existing migrations (v1.4.0 plus the
+--     Snallabot connection), so it can be tested against a scratch database. It never drops or rewrites existing
 --     data; it only adds tables and additive columns.
 --   - Ruleset v4.4 is unchanged. Every asset column here maps one-for-one to an
 --     existing calculator input with the same validation (V5_LEAGUE_DATA_SPEC.md).
@@ -18,7 +18,7 @@
 --   2. League trades: trades + revisions + assets (Web v2.0)
 --   3. Audit records                            (Web v2.0)
 --   4. Calendar and draft-pick ownership        (Web v2.0 calendar, v3.0 picks)
---   5. Imports: snapshots, payloads, players, standings (Web v3.0)
+--   5. Imports: players, standings (Web v3.0); snapshots and payloads are real (Snallabot connection)
 --   6. Access: row-level security and RPCs      (Web v2.0)
 --   7. Pre-league history migration sketch      (Web v2.0)
 -- ============================================================================
@@ -43,48 +43,11 @@ create extension if not exists pgcrypto;
 -- 1. Leagues and teams (Web v2.0)
 -- ============================================================================
 
-create table public.leagues (
-    id uuid primary key default gen_random_uuid(),
-
-    -- Members type this name to enter the league. name_key is what is matched:
-    -- trimmed, lower-case, inner whitespace collapsed.
-    name text not null,
-    name_key text generated always as (
-        lower(regexp_replace(trim(name), '\s+', ' ', 'g'))
-    ) stored,
-
-    madden_version text not null default 'Madden 27',
-
-    -- Opaque labels from the import path (/<secret>/<platform>/<leagueId>/...).
-    -- CAPTURE: the main league's platform label is not yet known.
-    platform_label text,
-    external_league_id bigint,
-
-    -- Commissioner password (bcrypt via pgcrypto). Set only by the site owner.
-    commissioner_password_hash text not null,
-    commissioner_password_set_at timestamptz not null default now(),
-
-    -- Import receiver secret (SHA-256 hex of the URL segment). Rotatable.
-    import_secret_sha256 text,
-    import_secret_set_at timestamptz,
-
-    status text not null default 'ACTIVE',
-
-    created_at timestamptz not null default now(),
-    created_by text not null default 'site owner',
-
-    constraint leagues_name_not_blank check (length(trim(name)) > 0),
-    constraint leagues_status_allowed check (status in ('ACTIVE', 'ARCHIVED')),
-    constraint leagues_password_is_bcrypt check (commissioner_password_hash like '$2%'),
-    constraint leagues_import_secret_hex check (
-        import_secret_sha256 is null or import_secret_sha256 ~ '^[0-9a-f]{64}$'
-    )
-);
-
-create unique index leagues_name_key_idx on public.leagues (name_key);
-create unique index leagues_import_secret_idx
-    on public.leagues (import_secret_sha256)
-    where import_secret_sha256 is not null;
+-- public.leagues now exists: created by the real migration
+-- supabase/migrations/20261122060000_snallabot_import.sql (Snallabot connection),
+-- with commissioner_password_hash nullable until Web v2.0. Web v2.0 adds:
+--   alter table public.leagues alter column commissioner_password_hash set not null;
+-- once every league has a password. Its columns match the draft that was here.
 
 create table public.league_teams (
     id uuid primary key default gen_random_uuid(),
@@ -388,56 +351,12 @@ create index draft_picks_owner_idx
 -- 5. Imports (Web v3.0)
 -- ============================================================================
 
--- One snapshot per export burst (30+ roster posts within about a minute).
-create table public.import_snapshots (
-    id uuid primary key default gen_random_uuid(),
-    league_id uuid not null references public.leagues(id),
-    source text not null,
-    platform_label text,                 -- 'pc' for the main league (confirmed)
-    external_league_id bigint,
-    season integer,                      -- standings calendarYear (confirmed)
-    week integer,                        -- standings weekIndex + 1 (confirmed)
-    offseason_stage text,                -- from standings stageIndex (offseason values to confirm)
-    first_received_at timestamptz not null default now(),
-    last_received_at timestamptz not null default now(),
-    status text not null default 'RECEIVING',
-    diagnostics jsonb not null default '{}'::jsonb,
-    reviewed_at timestamptz,
-    reviewed_by text,
-
-    constraint import_snapshots_source_allowed check (
-        source in ('SNALLABOT', 'COMPANION', 'CSV')
-    ),
-    -- Auto update can deliver data; only the commissioner makes it CURRENT.
-    constraint import_snapshots_status_allowed check (
-        status in ('RECEIVING', 'RECEIVED', 'VALIDATED', 'CURRENT', 'SUPERSEDED', 'REJECTED')
-    ),
-    constraint import_snapshots_review_recorded check (
-        status not in ('CURRENT', 'REJECTED') or reviewed_by is not null
-    )
-);
-
-create unique index import_snapshots_one_current_idx
-    on public.import_snapshots (league_id)
-    where status = 'CURRENT';
-
--- Raw payloads, kept for reprocessing and debugging. Retention: keep the bodies
--- of the CURRENT snapshot and the last few; purge older bodies, keep the rows
--- and hashes. Sizes from the capture set the rule (A14, R19).
-create table public.import_payloads (
-    id uuid primary key default gen_random_uuid(),
-    snapshot_id uuid not null references public.import_snapshots(id),
-    route text not null,                 -- e.g. team/776994843/roster, standings (CAPTURE)
-    received_at timestamptz not null default now(),
-    content_length integer not null,
-    body_sha256 text not null,
-    body jsonb,                          -- null once purged
-
-    constraint import_payloads_length_nonnegative check (content_length >= 0),
-    constraint import_payloads_sha_hex check (body_sha256 ~ '^[0-9a-f]{64}$')
-);
-
-create index import_payloads_snapshot_idx on public.import_payloads (snapshot_id, route);
+-- public.import_snapshots and public.import_payloads now exist: created by
+-- supabase/migrations/20261122060000_snallabot_import.sql, with the receiver
+-- function record_snallabot_payload(), the health check and the retention rule.
+-- Differences from the draft that was here: stage_index (from standings) instead
+-- of offseason_stage, request / duplicate / byte counters, and one RECEIVING
+-- snapshot per league. See V5_SNALLABOT_CONNECTION.md.
 
 -- Normalized players per snapshot (V5_FIELD_MAPPING.md). Columns line up with
 -- the v4.4 inputs so a picker can pre-fill the calculator directly.

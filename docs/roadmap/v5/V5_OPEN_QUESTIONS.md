@@ -22,6 +22,8 @@ Last updated: 2026-11-21.
 | 22 | How do pre-league trades look after the v2.0 migration? | Active trades become **Reviewed**, v1.4.0 Admin-deleted trades **Reversed**, all marked pre-league (sample schema) |
 | 23 | Offseason stages for the league calendar | **Re-signing, Free agency, Draft**, then preseason weeks 1–3; check against an offseason export |
 | 24 | Standings `stageIndex` values | **0 = preseason, 1 = regular season** (1 confirmed); offseason values from an offseason export |
+| 29 | Snallabot connection: store raw exports only, or also normalize rosters now? | **Raw only** plus a health check per export; normalize in Web v3.0 from the stored bodies |
+| 30 | How often will the league export (manual or auto update)? | Unknown; **retention keeps full bodies for the newest 10 snapshots** (about 60 MB) |
 
 ## Answered
 
@@ -63,3 +65,4 @@ Last updated: 2026-11-21.
 | **Team editing on screen?** (Q26) | **Web v2.1**; SQL fixes until then (2026-11-21) |
 | **Commissioner login throttling?** (Q27) | **Yes:** refused for 15 minutes after 5 wrong passwords per league (2026-11-21) |
 | **Main league name and password?** (Q28) | **Name decided** (2026-11-21). It's kept out of this public repo, because knowing the name is what gives access. It's recorded in the site owner's private project notes. **The site owner sets the commissioner password** at release step 2 |
+| **Do the Snallabot connection before league mode?** | **Yes** (2026-11-21): a backend-only receiver first (`V5_SNALLABOT_CONNECTION.md`), then back to Phase 2 |

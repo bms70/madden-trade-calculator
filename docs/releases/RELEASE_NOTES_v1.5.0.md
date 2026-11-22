@@ -66,3 +66,12 @@ The full first-round table is in `docs/rules/CANONICAL_RULESET_v4.4.md`.
 - Browser smoke: COMPLETE (release-owner sign-off)
 - Member guide: `docs/rules/Madden League Trade Rules and Valuation Guide - Ruleset v4.4.docx`
 - Reference workbook: `reference/Madden League Trade Calculator v4.4.xlsx`
+
+## Maintenance: Snallabot connection (backend only, 2026-11-21)
+
+Recorded as maintenance on v1.5.0; no site change and no new Web Release number. Ruleset v4.4 is unchanged.
+
+- New migration `supabase/migrations/20261122060000_snallabot_import.sql`: `leagues` (minimal), `import_snapshots`, `import_payloads`, a health check, a retention rule (full bodies for the newest 10 snapshots) and the `import_snapshot_summary` view. No existing table or function changes.
+- New Edge Function `supabase/functions/snallabot-import` (deploy with `--no-verify-jwt`; Snallabot sends no auth header, so the secret in the URL is checked as a hash).
+- Site-owner script `docs/roadmap/v5/sql/connect-snallabot.sql`. Design and setup: `docs/roadmap/v5/V5_SNALLABOT_CONNECTION.md`.
+- Tests: `tests/snallabot-import-logic.test.mjs` (28 / 28 PASS), `tests/snallabot-import-db.test.py` (37 / 37 PASS); `node tests/ruleset-v4.4.test.js` 64 / 64 PASS.

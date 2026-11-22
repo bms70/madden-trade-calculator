@@ -48,6 +48,9 @@ The finish line is **Web v5.0 + Ruleset v5.0**. Releases before that follow thes
 - **Capture spike:** point the main league's Snallabot at a temporary receiver and run one full export. Confirm the platform label, all route paths, the free-agent payload, and whether the week or offseason stage is sent.
 - **Exit (Gate A):** passed. The main-league capture (2026-11-21) confirmed the field mapping; free agents were ruled out of scope.
 
+### Snallabot connection · backend only, no release (before Phase 2)
+- Done first (order change, 2026-11-21): a receiver at a secret URL stores every export as raw snapshots, with a health check and retention. No site change. Details: [`V5_SNALLABOT_CONNECTION.md`](V5_SNALLABOT_CONNECTION.md).
+
 ### Phase 2 — League layer and import layer · **Web v2.0**, then **v3.0**
 
 **Web v2.0 — League mode (no imports yet)** · design spec: [`V5_WEB_V2.0_SPEC.md`](V5_WEB_V2.0_SPEC.md)
@@ -59,8 +62,7 @@ The finish line is **Web v5.0 + Ruleset v5.0**. Releases before that follow thes
 - **Exit:** a real trade can be submitted, logged, reviewed, corrected and reversed in league mode, and practice mode is unchanged.
 
 **Web v3.0 — Imports**
-- A Supabase receiver at a secret URL per league, for Snallabot (with Companion as a backup).
-- Each export burst becomes one **import snapshot**. Raw payloads are kept. Teams and players are normalized using the field mapping.
+- The Supabase receiver and raw snapshots already exist (Snallabot connection). v3.0 adds normalization of teams and players from the stored payloads, using the field mapping, and Companion as a backup source.
 - Validation diagnostics. The commissioner reviews each snapshot and marks it **current**; auto update can deliver data, but nothing becomes current without review.
 - A **draft-pick ownership screen** for the commissioner, since picks aren't exported.
 - **Exit (roadmap Phase 2):** one real league snapshot loads without changing v4.4 valuation.

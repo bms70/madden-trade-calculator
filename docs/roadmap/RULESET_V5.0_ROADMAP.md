@@ -17,6 +17,7 @@ This is a working roadmap, not a frozen ruleset specification. Last updated: 202
 | [`v5/V5_LEAGUE_DATA_SPEC.md`](v5/V5_LEAGUE_DATA_SPEC.md) | League data entities |
 | [`v5/V5_SAMPLE_SCHEMA.sql`](v5/V5_SAMPLE_SCHEMA.sql) | Sample normalized schema (design draft), with tests in `V5_SAMPLE_SCHEMA_TESTS.sql` |
 | [`v5/V5_IDENTITY_AND_ACCESS.md`](v5/V5_IDENTITY_AND_ACCESS.md) | League-name access, commissioner role, trade flow |
+| [`v5/V5_SNALLABOT_CONNECTION.md`](v5/V5_SNALLABOT_CONNECTION.md) | Snallabot connection: backend-only receiver, raw snapshots, health check, retention, setup (before Phase 2) |
 | [`v5/V5_WEB_V2.0_SPEC.md`](v5/V5_WEB_V2.0_SPEC.md) | Web v2.0 (league mode) design spec: screens, API, snapshot v2, migration and release order (Phase 2) |
 | [`v5/V5_OPEN_QUESTIONS.md`](v5/V5_OPEN_QUESTIONS.md) | Open questions, assumptions, answers |
 
