@@ -3,7 +3,7 @@
 **Reference workbook:** `reference/Madden League Trade Calculator v4.4.xlsx`  
 **Web engine:** `valuation.js` (Ruleset v4.4)  
 **Scenarios:** `tests/parity-scenarios-v4.4.json`  
-**Result:** 16 / 16 PASS (LibreOffice recalculation). Desktop Excel recalculation: a pick-entry defect was found and fixed on 2026-11-22 (see the end of this report); the Excel re-check is pending release-owner sign-off.
+**Result:** 16 / 16 PASS (LibreOffice recalculation). Desktop Excel recalculation: **COMPLETE** (release-owner sign-off, 2026-11-22), after a pick-entry fix (see the end of this report).
 
 Each scenario was entered into the workbook's input cells and recalculated, then compared with the web engine on every Individual Asset Value, both Adjusted Package Values, the verdict, the Fairness Score, and the favored side. Numeric tolerance: 1e-6.
 
@@ -56,4 +56,12 @@ Display differences that are not parity issues: the workbook keeps Team A / Team
 
 **Re-verified in LibreOffice:** all 16 scenarios, entered twice (picks as text, and picks as numbers the way Excel stores them): **32 / 32 PASS** against the web engine, tolerance 1e-6. The pre-fix workbook reproduces the defect with picks as numbers: 0 value, "Add assets to both sides".
 
-**Pending:** the release owner repeats three scenarios (Elite QB for 1.01+1.12; Aging EDGE 33 for 1.24; QB vs QB age context + expensive 7yr) in desktop Excel with the fixed file, which closes R13.
+**Desktop Excel sign-off (release owner, 2026-11-22), fixed file:**
+
+| Trade | Excel (Asset Values, totals) | Verdict, value difference, Fairness | Web engine | Result |
+|---|---|---|---|---|
+| Elite QB for 1.01+1.12 | 154.56824 / 100.0 + 87.4 = 187.4 | UNFAIR, 13.5%, 43 (Team A, 11.1% outside) | Same | PASS |
+| QB vs QB age context + expensive 7yr (uses `MINIFS`) | 59.89128 / 44.917267 | LEAGUE-BREAKING, 25.0%, 0 (Team A, 31.8% outside) | Same | PASS |
+| Aging EDGE 33 for 1.24, entered with 7 years remaining instead of 2 | 38.067415 / 66 | LEAGUE-BREAKING, 42.3%, 0 (Team B, 50.1% outside) | Same for the 7-year entry (38.067415, 42.3%, 50.1%) | PASS |
+
+Picks were entered from the new drop-down. **R13 closed.**

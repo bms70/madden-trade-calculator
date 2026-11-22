@@ -66,4 +66,4 @@ Done in Chrome (headless) against the page served locally, with the Supabase cli
 2. Live smoke test (runbook step 7) on desktop and phone.
 3. Retire the v1.5.0 Admin functions and `ADMIN_PASSWORD`.
 4. About a week later: remove `v1.5.0` from `accept-trade` and record its hash in the manifest addendum.
-5. Carried over from v1.5.0: desktop Excel recalculation sign-off for the v4.4 workbook (risk R13). v2.0 doesn't change the workbook.
+5. ~~Carried over from v1.5.0: desktop Excel recalculation sign-off for the v4.4 workbook (risk R13).~~ Done 2026-11-22, after a pick-entry fix (`PARITY_REPORT_v1.5.0_RULESET_v4.4.md`).

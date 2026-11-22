@@ -411,7 +411,7 @@ Full record: `docs/validation/VALIDATION_v2.0.md`.
 - Automated Ruleset v4.4 regression (`node tests/ruleset-v4.4.test.js`): **64 / 64 PASS**
 - v4.2 → v4.4 impact comparison: `docs/validation/IMPACT_COMPARISON_v4.2_to_v4.4.md`
 - Excel/Web parity (`docs/validation/PARITY_REPORT_v1.5.0_RULESET_v4.4.md`): **16 / 16 PASS** (LibreOffice recalculation)
-- Desktop Excel recalculation: **PENDING release-owner sign-off**
+- Desktop Excel recalculation: **COMPLETE** (release-owner sign-off, 2026-11-22, after a pick-entry fix in the workbook)
 - Member guide (.docx) and Wiki: **UPDATED**
 - `accept-trade` deployment: **COMPLETE**
 - Desktop/mobile browser smoke: **COMPLETE by release-owner sign-off**
