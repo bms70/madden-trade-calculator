@@ -66,3 +66,4 @@ Last updated: 2026-11-21.
 | **Commissioner login throttling?** (Q27) | **Yes:** refused for 15 minutes after 5 wrong passwords per league (2026-11-21) |
 | **Main league name and password?** (Q28) | **Name decided** (2026-11-21). It's kept out of this public repo, because knowing the name is what gives access. It's recorded in the site owner's private project notes. **The site owner sets the commissioner password** at release step 2 |
 | **Do the Snallabot connection before league mode?** | **Yes** (2026-11-21): a backend-only receiver first (`V5_SNALLABOT_CONNECTION.md`), then back to Phase 2 |
+| **Snallabot connection live?** | **Yes** (2026-11-22): first main-league export complete, 44 requests, 7.06 MB, all 32 rosters, 2027 week 5. R21 resolved |
