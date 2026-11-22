@@ -10,12 +10,12 @@ Planning for Ruleset v5.0 / Web v5.0, drafted 2026-11-21 from the commissioner's
 | Primary data path | Manual entry plus commissioner audit. Imports only pre-fill | Decided |
 | Editable fields | Every calculator field stays editable. Edits to imported values are marked for the audit | Decided |
 | League access | **League name only, no passwords for members.** Type the league name and trades go to that league. A plain name, no code | Decided |
-| Commissioner access | A **commissioner password per league** protects Admin (audit queue, imports, picks, corrections). It replaces today's single shared Admin password | Assumed |
-| League creation | Only the site owner creates leagues and sets their commissioner password | Assumed |
+| Commissioner access | A **commissioner password per league** protects Admin (review queue, imports, picks, corrections). It replaces today's single shared Admin password | Decided |
+| League creation | Only the site owner creates leagues and sets their commissioner password | Decided |
 | Practice calculator | Stays, unchanged | Decided |
-| Trade flow | The member enters the league name, picks their team and the other team, enters assets and submits. The trade is **Pending** until the commissioner audits it and approves or rejects it. Approved trades are logged | Decided; audit before logging assumed |
-| Human-to-human trades | The commissioner approves alone, since there are no member identities to verify the other owner | Assumed |
-| Unfair verdicts | Can still be submitted; flagged in the audit queue | Decided |
+| Trade flow | The member enters the league name, picks their team and the other team, enters assets and submits. **The trade is logged immediately as Unreviewed**; the commissioner reviews it afterwards and marks it Reviewed, corrects it, or reverses it | Decided |
+| Human-to-human trades | The commissioner reviews alone, since there are no member identities to verify the other owner | Decided |
+| Unfair verdicts | Can still be submitted; flagged in the review queue | Decided |
 | Trade posture | FYI only until Ruleset v5.0. Full rule in v5.0 | Decided |
 | Posture, in season | No effect weeks 1–3, then a **squared curve** from week 4 to full effect at week 9 (the trade deadline) | Decided |
 | Posture, offseason | Last season's record counts at full strength after the season, **fading to zero by preseason week 3** | Decided |
@@ -50,12 +50,12 @@ The finish line is **Web v5.0 + Ruleset v5.0**. Releases before that follow thes
 ### Phase 2 — League layer and import layer · **Web v2.0**, then **v3.0**
 
 **Web v2.0 — League mode (no imports yet)**
-- Database: `leagues`, `teams` (32 teams seeded per league), league trades with a status (pending / approved / rejected), and audit records.
+- Database: `leagues`, `teams` (32 teams seeded per league), league trades with a review status (unreviewed / reviewed / reversed), and audit records.
 - Site: a **League / Practice switch**. League mode asks for the league name, then the member's team and the other team.
-- Members submit trades, which go to **Pending**. Nothing is logged until approved.
-- Admin becomes a **commissioner area for each league** behind the commissioner password: an audit queue with verdict flags, approve or reject with a reason, and value corrections (which re-run v4.4 and keep both snapshots).
-- Snapshot contract: adds `league_id`, team IDs, status, auditor, and the original and corrected snapshots. This needs a coordinated migration. Existing trade history moves into the current league, marked pre-league.
-- **Exit:** a real trade can be submitted, audited and logged in league mode, and practice mode is unchanged.
+- Members submit trades, which are **logged immediately as Unreviewed** and shown that way in league history.
+- Admin becomes a **commissioner area for each league** behind the commissioner password: a review queue of Unreviewed trades with verdict flags; mark Reviewed, correct values (which re-runs v4.4 and keeps both snapshots), or reverse with a reason (logical removal plus an audit record, like today's Delete Trade).
+- Snapshot contract: adds `league_id`, team IDs, review status, reviewer, and the original and corrected snapshots. This needs a coordinated migration. Existing trade history moves into the current league, marked pre-league.
+- **Exit:** a real trade can be submitted, logged, reviewed, corrected and reversed in league mode, and practice mode is unchanged.
 
 **Web v3.0 — Imports**
 - A Supabase receiver at a secret URL per league, for Snallabot (with Companion as a backup).
@@ -119,7 +119,7 @@ Guardrails: every input must be enterable by hand; nothing loosens premium-asset
 | Release | Phase | Headline |
 |---|---|---|
 | (none) | 0–1 | Baseline freeze, specs, capture spike |
-| **Web v2.0** | 2 | League mode, audit queue, per-league commissioner password |
+| **Web v2.0** | 2 | League mode, review queue, per-league commissioner password |
 | **Web v3.0** | 2 | Snallabot imports, snapshots, pick-ownership screen |
 | Web v3.1+ | 3 | Player-picker pre-fill, audit diffs, role and future-first suggestions |
 | **Web v4.0** | 4 | Transaction ledger |
@@ -128,7 +128,7 @@ Guardrails: every input must be enterable by hand; nothing loosens premium-asset
 
 ## Known risks
 
-- **Plain league names can be guessed.** Anyone who guesses one can view that league's trades and submit to its queue. The audit gate means nothing is logged without approval.
-- **There are no member identities.** Anyone can pick any team, so the audit is the only check on who submitted what.
+- **Plain league names can be guessed.** Anyone who guesses one can view that league's trades and log trades into it. Those trades show as Unreviewed until the commissioner reverses them.
+- **There are no member identities.** Anyone can pick any team, so the commissioner's review is the only check on who submitted what.
 - **Snallabot's EA link is unofficial** and could break. Manual entry and editable fields cover this.
 - **The calibration sample is small** (an assumed 10–30 trades per season).

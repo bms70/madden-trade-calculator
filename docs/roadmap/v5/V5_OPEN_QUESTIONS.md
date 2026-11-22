@@ -15,15 +15,11 @@ Last updated: 2026-11-21.
 
 | # | Question | Assumption |
 |---|---|---|
-| 2 | Fate of the shared Admin password | Replaced by a **commissioner password per league** when league mode ships (Web v2.0) |
-| 3 | Who approves human-to-human trades? | **The commissioner alone**, since there are no member identities to verify the other owner |
-| 5 | Audit before or after logging? | **Before.** Trades stay Pending until approved |
 | 8 | Trades per season | **10–30**, until known |
 | 13 | Can CPU posture lower demands? | **No, raise only**, never below v4.4 |
 | 18 | Source of the offseason stage | A **manual field, pre-filled from the import** when the export carries it |
 | — | Long snapper value in v5.0 | **0.50** (same as K/P) |
 | — | Posture strength scales with the record? | **Yes.** A lopsided record counts fully, a middling one barely |
-| — | Who can create leagues? | **Only the site owner**, who also sets each commissioner password |
 
 ## Answered
 
@@ -52,3 +48,7 @@ Last updated: 2026-11-21.
 | **Ramp shape?** | **Squared curve** from week 4 to full effect at week 9 |
 | **Long snappers?** | **Give LS a position value in Ruleset v5.0**; hidden from pickers until then |
 | **Interim web numbering?** | **Major (v2.0 / v3.0 / v4.0)** = database, snapshot-contract or new-mode change. **Minor (vX.1…)** = features on the existing structure. Fixes = maintenance. The finish line is Web v5.0 + Ruleset v5.0 |
+| **Admin password?** | **A commissioner password per league**, replacing the shared Admin password when league mode ships (Web v2.0) |
+| **Audit timing?** | **Log now, review after.** Trades are logged immediately as Unreviewed; the commissioner marks them Reviewed, corrects them, or reverses them |
+| **Who approves human-to-human trades?** | **The commissioner alone** |
+| **Who can create leagues?** | **Only the site owner**, who also sets each commissioner password |
