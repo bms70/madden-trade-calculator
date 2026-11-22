@@ -75,3 +75,4 @@ Recorded as maintenance on v1.5.0; no site change and no new Web Release number.
 - New Edge Function `supabase/functions/snallabot-import` (deploy with `--no-verify-jwt`; Snallabot sends no auth header, so the secret in the URL is checked as a hash).
 - Site-owner script `docs/roadmap/v5/sql/connect-snallabot.sql`. Design and setup: `docs/roadmap/v5/V5_SNALLABOT_CONNECTION.md`.
 - Tests: `tests/snallabot-import-logic.test.mjs` (28 / 28 PASS), `tests/snallabot-import-db.test.py` (37 / 37 PASS); `node tests/ruleset-v4.4.test.js` 64 / 64 PASS.
+- **Live 2026-11-22:** migration applied (`npx.cmd supabase db push --remote`), function deployed, league record created. First main-league export complete: 44 requests, 7.06 MB, 32 / 32 rosters, season 2027, week 5.

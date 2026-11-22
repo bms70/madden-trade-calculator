@@ -2,6 +2,8 @@
 
 The Snallabot connection: a backend-only receiver that stores every Snallabot export from the league. Drafted and built 2026-11-21, ahead of Web v2.0 (order change decided 2026-11-21; see `V5_OPEN_QUESTIONS.md`). **Ruleset v4.4 and the live site are unchanged.** It's recorded as backend maintenance on Web Release v1.5.0, with no new Web Release number.
 
+**Status: live since 2026-11-22.** Merged in #31, migration applied and function deployed. The first main-league export was complete: 44 requests, 7.06 MB, 0 duplicates, all 32 rosters, season 2027, week 5, stage 1.
+
 ## What it does
 
 - Receives Snallabot export requests at a secret URL (`snallabot-import` Edge Function).
@@ -52,17 +54,18 @@ The Snallabot connection: a backend-only receiver that stores every Snallabot ex
 Do these in order. Steps 1–3 don't affect the live site.
 
 1. **Merge the PR** into `main` (merge commit) and pull `main` in GitHub Desktop. GitHub Pages redeploys, but no site file changed.
-2. **Apply the migration** from the local repo folder, the same way as the earlier migrations:
-   `npx.cmd supabase db push`
-   It only adds new tables and functions. Nothing existing is altered.
+2. **Apply the migration** to the linked (remote) project from the local repo folder:
+   `npx.cmd supabase db push --remote`
+   Without `--remote`, the current CLI targets a local Docker database and fails to connect. Confirm only if `20261122060000_snallabot_import.sql` is the only migration listed. It only adds new tables and functions; nothing existing is altered.
 3. **Deploy the function:**
    `npx.cmd supabase functions deploy snallabot-import --no-verify-jwt`
-4. **Create the league record and secret.** Open the Supabase dashboard → SQL Editor, paste `docs/roadmap/v5/sql/connect-snallabot.sql`, replace `<LEAGUE NAME>` with the league's name, and run it. **Copy the `import_secret` it prints.** It's shown only once (only its hash is stored). Don't save the edited script anywhere public.
+   A "Docker is not running" warning is harmless; the function is built on Supabase's servers.
+4. **Create the league record and secret.** Open the Supabase dashboard → **Explorer** (the query editor; older dashboards call it SQL Editor) → a new query against the database. Paste `docs/roadmap/v5/sql/connect-snallabot.sql`, replace `<LEAGUE NAME>` with the league's name, and run it. If the dashboard warns about Row Level Security, choose **Run and enable RLS** (RLS is already on). **Copy the `import_secret` it prints.** It's shown only once (only its hash is stored). Don't save the edited query as a notebook or anywhere public.
 5. **Build the export URL:**
    `https://zcuycdgvpfotjnlltdyt.supabase.co/functions/v1/snallabot-import/<import_secret>`
    Treat it like a password: anyone with it can send data into the league's snapshots.
 6. **Point Snallabot at it.** In the Snallabot dashboard, replace the old webhook.site destination (if it's still there) with this URL. Enter only this base URL; Snallabot adds the rest.
-7. **Run one export** (current week), wait a couple of minutes, then check in the SQL Editor:
+7. **Run one export** (current week), wait a couple of minutes, then check in Explorer:
    `select * from public.import_snapshot_summary order by first_received_at desc;`
    Expect one snapshot of about 40 requests, `rosters_received` = 32 if no teams were skipped, and `missing_roster_team_ids` listing any that were.
 8. **Auto update (optional).** Once a manual export looks right, Snallabot's auto update can be turned on. Retention keeps it within storage.
@@ -82,7 +85,7 @@ Do these in order. Steps 1–3 don't affect the live site.
 
 - **Web v2.0:** `leagues` already exists (created here, with `commissioner_password_hash` nullable). The v2.0 migration adds `league_teams` and the trade tables, sets the commissioner password on this league row, and then makes the password column required. Release step 2 sets the password and seeds the teams instead of creating the league.
 - **Web v3.0:** normalizing rosters, standings and teams reads from `import_payloads`. Review and "mark current" use the reserved statuses.
-- **R21 (missing rosters):** answered by the health check on the first few real exports.
+- **R21 (missing rosters):** resolved. The first live export had all 32 rosters, so the capture's three missing rosters were a one-off. The health check keeps flagging any future gaps.
 
 ## Decisions and assumptions
 

@@ -49,7 +49,7 @@ The finish line is **Web v5.0 + Ruleset v5.0**. Releases before that follow thes
 - **Exit (Gate A):** passed. The main-league capture (2026-11-21) confirmed the field mapping; free agents were ruled out of scope.
 
 ### Snallabot connection · backend only, no release (before Phase 2)
-- Done first (order change, 2026-11-21): a receiver at a secret URL stores every export as raw snapshots, with a health check and retention. No site change. Details: [`V5_SNALLABOT_CONNECTION.md`](V5_SNALLABOT_CONNECTION.md).
+- Done first (order change, 2026-11-21): a receiver at a secret URL stores every export as raw snapshots, with a health check and retention. No site change. **Live since 2026-11-22;** the first export was complete (32 / 32 rosters). Details: [`V5_SNALLABOT_CONNECTION.md`](V5_SNALLABOT_CONNECTION.md).
 
 ### Phase 2 — League layer and import layer · **Web v2.0**, then **v3.0**
 
