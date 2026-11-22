@@ -197,6 +197,11 @@
     if (typeof render === 'function') render();
   }
 
+  // Trade History shows the entered league; reload it when that changes.
+  function historyChanged() {
+    if (typeof resetTradeHistory === 'function') resetTradeHistory();
+  }
+
   async function enterLeague(rawName, quiet) {
     let name = String(rawName ?? '').trim();
     league.message = '';
@@ -242,6 +247,7 @@
       league.teamB = '';
       storageSet(STORE_LEAGUE, found.league.name);
       fillTeamPickers();
+      historyChanged();
     } catch (error) {
       console.error('League entry failed:', error);
       league.message = 'League data is unavailable right now.';
@@ -262,6 +268,7 @@
     let input = q('#leagueInput');
     if (input) input.value = '';
     refresh();
+    historyChanged();
     if (input) input.focus();
   }
 
@@ -269,6 +276,7 @@
     league.mode = mode === 'LEAGUE' ? 'LEAGUE' : 'PRACTICE';
     storageSet(STORE_MODE, league.mode);
     refresh();
+    historyChanged();
     if (league.mode === 'LEAGUE' && !league.entered) q('#leagueInput')?.focus();
   }
 

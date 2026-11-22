@@ -973,6 +973,13 @@ main {
   margin-top: 10px;
 }
 
+/* display:grid above would otherwise override the hidden attribute */
+.history-list[hidden],
+.history-detail[hidden],
+.history-state[hidden] {
+  display: none;
+}
+
 .history-card {
   background: var(--card);
   border: 1px solid var(--line);
@@ -1021,6 +1028,79 @@ main {
 
 .history-packages span {
   font-size: 11px;
+}
+
+/* Web v2.0 review-status badges */
+
+.history-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .03em;
+  vertical-align: 1px;
+}
+
+.history-badge.unreviewed {
+  background: var(--questionable-bg);
+  color: var(--amber);
+}
+
+.history-badge.reviewed,
+.history-badge.corrected {
+  background: var(--fair-bg);
+  color: var(--green);
+}
+
+.history-badge.pre-league {
+  background: var(--secondary-bg);
+  color: var(--secondary-text);
+}
+
+.history-card-verdict {
+  display: grid;
+  justify-items: end;
+}
+
+.history-review {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.history-review .history-badge {
+  margin-left: 0;
+  margin-right: 4px;
+}
+
+.history-submitter {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text);
+}
+
+.history-submitter p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  white-space: pre-wrap;
+}
+
+.history-original {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.history-original-toggle {
+  background: var(--secondary-bg);
+  color: var(--secondary-text);
+  cursor: pointer;
+}
+
+.history-original-body {
+  margin-top: 10px;
 }
 
 .history-card-foot {

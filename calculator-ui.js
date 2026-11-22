@@ -440,6 +440,7 @@ async function logAcceptedTrade(name,note) {
     window.LeagueMode.rememberSubmitter(submission.submitter_name);
     $('#submitterNote').value='';
     $('#status').textContent= `Logged as trade #${result.trade.tradeNumber}, Unreviewed.`;
+    if(typeof resetTradeHistory==='function')resetTradeHistory();
   } catch(error) {
     console.error('Unexpected Trade logging failure:',error);
     $('#status').textContent= 'Trade could not be logged. No historical record was created.';
