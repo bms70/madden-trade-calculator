@@ -23,7 +23,7 @@ Status values: **Open** (not settled), **Assumed** (working assumption, needs co
 | A13 | Existing trade history moves into the current league in one migration, marked pre-league | Identity and access | Site owner | Phase 2 (Web v2.0) | Assumed |
 | A14 | The current Supabase project has room for league tables, raw import payloads and the ledger at league scale | — | Site owner | Phase 2 (before Web v3.0) | Assumed |
 | A15 | The deployed `accept-trade` matches the repo copy hashed in the baseline manifest (accepts v1.4.0/v4.2 and v1.5.0/v4.4) | Baseline manifest | Site owner | Phase 2 (re-deploy from repo before Web v2.0) | Assumed |
-| A16 | The v5 candidate can run as a separate engine in shadow mode, so `valuation.js` never changes before Phase 9 | Charter (branching) | Site owner | Phase 0 approval of branching; Phase 8 build | Assumed |
+| A16 | The v5 candidate can run as a separate engine in shadow mode, so `valuation.js` never changes before Phase 9 | Charter (branching, approved 2026-11-21) | Site owner | Phase 8 build | Assumed |
 | A17 | One league now; every league-owned record carries `league_id` so more can be added without a redesign | Identity and access | Site owner | Phase 2 | Assumed |
 
 ## Risks
@@ -49,4 +49,4 @@ Status values: **Open** (not settled), **Assumed** (working assumption, needs co
 | R17 | The wiki falls behind the repo (Claude can't push the wiki) | Members read outdated rules | Claude writes pages into the local wiki clone; site owner pushes with each release | Site owner | Each release | Mitigated |
 | R18 | Interim web numbers (v2.0–v4.x) are confused with Ruleset numbers | Members think valuation changed | Every release note and the in-app label show both Web Release and Ruleset (v4.4) | Claude | Each release | Mitigated |
 | R19 | Supabase capacity or plan limits are reached once raw import payloads are stored (A14) | Imports fail or the project needs a plan change | Measure payload sizes on the capture; keep raw payloads per snapshot with a retention rule | Site owner | Phase 2 | Open |
-| R20 | `release/` branches drift from `main` during long releases | Painful merges, missed fixes | Merge `main` into open `release/` branches after every `fix/` merge | Claude | Ongoing | Mitigated (if branching is approved) |
+| R20 | `release/` branches drift from `main` during long releases | Painful merges, missed fixes | Merge `main` into open `release/` branches after every `fix/` merge | Claude | Ongoing | Mitigated |

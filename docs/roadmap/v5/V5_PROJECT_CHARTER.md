@@ -42,7 +42,7 @@ All decided by the commissioner on 2026-11-21 unless marked assumed. The full lo
 
 | Area | Decision |
 |---|---|
-| Baseline | Ruleset v4.4 / Web v1.5.0 at `main` commit `a0703dd`, frozen in `V5_BASELINE_MANIFEST_v4.4.md` |
+| Baseline | Ruleset v4.4 / Web v1.5.0 at `main` commit `a0703dd` (tag `ruleset-v4.4-baseline`), frozen in `V5_BASELINE_MANIFEST_v4.4.md` |
 | Versioning | Ruleset v5.0 and Web v5.0 ship together. Two-part web numbers. Major = database, snapshot-contract or new-mode change; minor = features on the existing structure; fixes = maintenance |
 | League | Madden 27, cross-play, Discord. One league now, built for several |
 | Access | Plain league name for members, no sign-in. One commissioner password per league (replaces the shared Admin password in Web v2.0). Only the site owner creates leagues |
@@ -55,7 +55,7 @@ All decided by the commissioner on 2026-11-21 unless marked assumed. The full lo
 
 | Phase | Work | Release | Exit |
 |---|---|---|---|
-| 0 | Freeze the v4.4 baseline: this charter, assumptions and risks, baseline manifest, branching | none | v5 work can proceed without touching the live calculator |
+| 0 | Freeze the v4.4 baseline: this charter, assumptions and risks, baseline manifest, branching, baseline tag | none | v5 work can proceed without touching the live calculator |
 | 1 | League data foundation and identity: sample schema, capture spike | none (docs) | Gate A confirmed by a main-league capture |
 | 2 | League layer, then import layer | **Web v2.0**, **Web v3.0** | A real league trade is logged, reviewed, corrected and reversed; one real snapshot loads without changing v4.4 |
 | 3 | League-aware calculator | Web v3.1+ | A normal trade can be built mostly from real league assets |
@@ -101,7 +101,7 @@ When documents disagree, the higher one wins:
 
 Each release (v2.0 onward) has release notes in `docs/releases/`, a validation record in `docs/validation/` (regression result, plus parity when valuation or the workbook is touched), a GitHub tag and Release, and wiki updates. A major release also records the migration and the `accept-trade` deploy.
 
-## Branching (proposed, awaiting approval)
+## Branching (approved 2026-11-21)
 
 `main` auto-deploys to GitHub Pages and is protected by the "Protect main" ruleset (PR required, no force push or deletion). The model below keeps that and avoids a long-running branch that drifts from `main`.
 
@@ -118,5 +118,5 @@ Rules:
 1. Nothing goes straight to `main`.
 2. `release/` branches are kept current by merging `main` into them (no rebasing shared branches), and are deleted after their release PR merges.
 3. The v5 candidate model is built as a **separate engine file** (for example `valuation-v5-candidate.js`) that ships in shadow mode in Web v4.x. `valuation.js` stays at its manifest hash until the `v5/ruleset-v5.0` PR.
-4. Each release merge is tagged (`v2.0`, `v3.0`, …). A `ruleset-v4.4-baseline` tag on `a0703dd` is proposed so the baseline can be checked out by name.
+4. Each release merge is tagged (`v2.0`, `v3.0`, …). The baseline is tagged `ruleset-v4.4-baseline` on `a0703dd` so it can be checked out by name.
 5. Before a release PR merges, the baseline files are re-hashed against the manifest; any difference must be explained in the PR.

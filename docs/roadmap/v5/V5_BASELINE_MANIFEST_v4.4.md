@@ -6,6 +6,7 @@ Ruleset v5.0 roadmap, Phase 0. The frozen comparison baseline for all v5 work: *
 |---|---|
 | Release | Web Release **v1.5.0** / Ruleset **v4.4** (live since 2026-11-21) |
 | Taken from | `main` at **`a0703dda5953e35b50a4b5ec193f0c5438f4569d`** ("Record league access and review decisions in v5 docs", 2026-11-21) |
+| Tag | **`ruleset-v4.4-baseline`** (points at `a0703dd`) |
 | Code release merge | `2c18370` — Merge Ruleset v4.4 / Web v1.5.0 (#20) |
 | Reference docs merge | `82ebc60` — Merge v1.5.0 reference docs (#21) |
 | Baseline files changed since `82ebc60` | **None** apart from adding the complete reference (files 2–3, PR #24). `git diff 82ebc60 a0703dd` otherwise touches only README and roadmap docs |
@@ -65,7 +66,7 @@ sha256sum valuation.js calculator-ui.js docs/rules/CANONICAL_RULESET_v4.4.md
 git ls-files -s valuation.js calculator-ui.js docs/rules tests reference supabase/functions/accept-trade
 
 # Everything governed is unchanged since the baseline if this prints nothing
-git diff --stat a0703dda5953e35b50a4b5ec193f0c5438f4569d -- valuation.js calculator-ui.js docs/rules tests reference supabase/functions/accept-trade
+git diff --stat ruleset-v4.4-baseline -- valuation.js calculator-ui.js docs/rules tests reference supabase/functions/accept-trade
 ```
 
 Windows PowerShell (`Get-FileHash -Algorithm SHA256 .\valuation.js`) hashes the working copy. If GitHub Desktop checked text files out with CRLF line endings, text-file SHA-256 values won't match the table; use the git blob check or `git diff` above instead. Binary files (`.docx`, `.xlsx`) match either way.
