@@ -10,6 +10,12 @@ Last updated: 2026-11-22.
 |---|---|---|---|
 | — | None open | | |
 
+## Future enhancements (not scheduled)
+
+| # | Enhancement | Notes |
+|---|---|---|
+| 31 | **Site-owner screen** on the website: create, rename and archive leagues, set commissioner passwords, fix teams | Needs its own sign-in, stronger than a league password, because it controls every league. Most useful once there are several leagues. Until then: the owner toolkit's SQL commands |
+
 ## Assumed (confirm or change)
 
 | # | Question | Assumption |
@@ -65,7 +71,7 @@ Last updated: 2026-11-22.
 | **Main league name and password?** (Q28) | **Name decided** (2026-11-21). It's kept out of this public repo, because knowing the name is what gives access. It's recorded in the site owner's private project notes. **The site owner sets the commissioner password** at release step 2 |
 | **Do the Snallabot connection before league mode?** | **Yes** (2026-11-21): a backend-only receiver first (`V5_SNALLABOT_CONNECTION.md`), then back to Phase 2 |
 | **Snallabot connection live?** | **Yes** (2026-11-22): first main-league export complete, 44 requests, 7.06 MB, all 32 rosters, 2027 week 5. R21 resolved |
-| **Site-owner screen?** (Q31) | **No, the SQL commands are fine for now** (2026-11-22). Leagues stay managed with the owner toolkit (`V5_OWNER_TOOLKIT.md`); revisit only if there are several leagues |
+| **Site-owner screen?** (Q31) | **Not now; kept as a future enhancement** (2026-11-22). The SQL commands are fine for now (`V5_OWNER_TOOLKIT.md`). See Future enhancements |
 | **Offseason fade shape?** (Q19) | **Stage by stage** (re-signing → free agency → draft → preseason weeks 1, 2, 3), along the **in-season squared curve in reverse**: it holds strong early and drops faster near the end (2026-11-22) |
 | **Posture effect sizes?** (Q20) | **No starting values: set in Phase 6 calibration** from league history. Human teams stay a very small protective effect; CPU teams raise-only (2026-11-22) |
 | **Retention and auto update?** (Q30) | **Keep full bodies for the newest 5 snapshots** (decided 2026-11-22; a per-league setting, `import_keep_full_snapshots`, changeable without a migration). Snallabot auto update turned on 2026-11-22; its frequency is still unknown and will be read from the snapshot rows. Revisit (for example, also keep one snapshot per week in full) only if exports turn out to be very frequent |

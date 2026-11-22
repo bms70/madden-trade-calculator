@@ -1,6 +1,6 @@
 # V5_OWNER_TOOLKIT
 
-How the site owner manages leagues in Web v2.0. There is no owner screen on the website, by decision (Q31 in `V5_OPEN_QUESTIONS.md`: the SQL commands are fine for now). Everything runs as one-line SQL in the Supabase dashboard.
+How the site owner manages leagues in Web v2.0. There is no owner screen on the website yet; one is kept as a future enhancement (Q31 in `V5_OPEN_QUESTIONS.md`). Everything runs as one-line SQL in the Supabase dashboard.
 
 The functions come from `supabase/migrations/20261122170000_owner_toolkit.sql`. Only the dashboard can run them: the website and the Edge Functions are refused.
 
