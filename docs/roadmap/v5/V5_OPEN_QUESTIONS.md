@@ -8,7 +8,7 @@ Last updated: 2026-11-22.
 
 | # | Question | Blocks | Doc |
 |---|---|---|---|
-| 31 | A site-owner screen on the website (manage every league: create, rename, archive, passwords, teams)? v2.0 uses one-line SQL in the dashboard instead (`V5_OWNER_TOOLKIT.md`). A screen would need its own sign-in, stronger than a league password. Worth it once there are several leagues | v2.1 or later | V5_OWNER_TOOLKIT |
+| — | None open | | |
 
 ## Assumed (confirm or change)
 
@@ -65,6 +65,7 @@ Last updated: 2026-11-22.
 | **Main league name and password?** (Q28) | **Name decided** (2026-11-21). It's kept out of this public repo, because knowing the name is what gives access. It's recorded in the site owner's private project notes. **The site owner sets the commissioner password** at release step 2 |
 | **Do the Snallabot connection before league mode?** | **Yes** (2026-11-21): a backend-only receiver first (`V5_SNALLABOT_CONNECTION.md`), then back to Phase 2 |
 | **Snallabot connection live?** | **Yes** (2026-11-22): first main-league export complete, 44 requests, 7.06 MB, all 32 rosters, 2027 week 5. R21 resolved |
+| **Site-owner screen?** (Q31) | **No, the SQL commands are fine for now** (2026-11-22). Leagues stay managed with the owner toolkit (`V5_OWNER_TOOLKIT.md`); revisit only if there are several leagues |
 | **Offseason fade shape?** (Q19) | **Stage by stage** (re-signing → free agency → draft → preseason weeks 1, 2, 3), along the **in-season squared curve in reverse**: it holds strong early and drops faster near the end (2026-11-22) |
 | **Posture effect sizes?** (Q20) | **No starting values: set in Phase 6 calibration** from league history. Human teams stay a very small protective effect; CPU teams raise-only (2026-11-22) |
 | **Retention and auto update?** (Q30) | **Keep full bodies for the newest 5 snapshots** (decided 2026-11-22; a per-league setting, `import_keep_full_snapshots`, changeable without a migration). Snallabot auto update turned on 2026-11-22; its frequency is still unknown and will be read from the snapshot rows. Revisit (for example, also keep one snapshot per week in full) only if exports turn out to be very frequent |
