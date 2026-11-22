@@ -310,8 +310,9 @@ Future development planning.
 
 Current roadmap material includes:
 
-- `Madden League Trade Calculator - Ruleset v5.0 Development Roadmap.docx`
-- `Madden_League_v5_Roadmap_Graphic.png`
+- `RULESET_V5.0_ROADMAP.md`: the current roadmap
+- `v5/`: v5.0 Phase 1 planning documents (`V5_PHASE_PLAN.md`, `V5_DATA_SOURCE_FEASIBILITY.md`, `V5_FIELD_MAPPING.md`, `V5_LEAGUE_DATA_SPEC.md`, `V5_IDENTITY_AND_ACCESS.md`, `V5_OPEN_QUESTIONS.md`)
+- `Madden League Trade Calculator - Ruleset v5.0 Development Roadmap.docx` and `Madden_League_v5_Roadmap_Graphic.png`: earlier roadmap material, kept for reference and superseded by the markdown roadmap
 
 ### `reference/`
 
