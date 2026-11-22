@@ -1,6 +1,7 @@
 // Web v2.0 league mode in the browser scripts: snapshot contract, display-only
 // team names, practice mode, league entry and submission.
 // Run from the repo root: node tests/web-v2.0-league-mode.test.js
+// Also covers league Trade History (trade-history.js, build step 4).
 //
 // Loads valuation.js, league-mode.js and calculator-ui.js unchanged into a vm
 // with a small fake DOM, and compares every parity scenario's snapshot with
@@ -32,7 +33,7 @@ function fakeElement(selector) {
     textContent: '',
     innerHTML: '',
     value: '',
-    hidden: selector === '#acceptConfirm',
+    hidden: selector === '#acceptConfirm' || selector === '#history',
     disabled: false,
     className: '',
     dataset: {},
@@ -45,6 +46,7 @@ function fakeElement(selector) {
     },
     setAttribute(k, v) { this.attributes[k] = v; },
     focus() {},
+    scrollIntoView() {},
     querySelector(s) { if (!children.has(s)) children.set(s, fakeElement(s)); return children.get(s); },
     closest() { return null; },
   };
@@ -76,9 +78,11 @@ function load(win, files) {
 const valuationSrc = read('valuation.js');
 const leagueSrc = read('league-mode.js');
 const uiSrc = read('calculator-ui.js');
+const historySrc = read('trade-history.js');
 const baselineUiSrc = execFileSync('git', ['show', 'ruleset-v4.4-baseline:calculator-ui.js'], { cwd: root, encoding: 'utf8' });
 
-const current = () => { const w = makeWindow(); load(w, [['valuation.js', valuationSrc], ['league-mode.js', leagueSrc], ['calculator-ui.js', uiSrc]]); return w; };
+const PAGE = [['valuation.js', valuationSrc], ['league-mode.js', leagueSrc], ['calculator-ui.js', uiSrc], ['trade-history.js', historySrc]];
+const current = () => { const w = makeWindow(); load(w, PAGE); return w; };
 const baseline = () => { const w = makeWindow(); load(w, [['valuation.js', valuationSrc], ['calculator-ui.js', baselineUiSrc]]); return w; };
 const run = (w, code) => vm.runInContext(code, w.ctx);
 
@@ -240,7 +244,7 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
     submitLeagueTrade: async s => { calls.push(['submit', s]); return { ok: true, trade: { tradeNumber: 42, leagueName: 'Sample League' } }; },
   };
   const w = makeWindow({ storage });
-  load(w, [['valuation.js', valuationSrc], ['league-mode.js', leagueSrc], ['calculator-ui.js', uiSrc]]);
+  load(w, PAGE);
   const el = s => w.document.querySelector(s);
   const LM = run(w, 'LeagueMode');
 
@@ -289,7 +293,7 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   // A returning member in league mode comes back to their league.
   const store = new Map([['maddenTrade.mode', 'LEAGUE'], ['maddenTrade.leagueName', 'Sample League']]);
   const w2 = makeWindow({ storage, localStore: store });
-  load(w2, [['valuation.js', valuationSrc], ['league-mode.js', leagueSrc], ['calculator-ui.js', uiSrc]]);
+  load(w2, PAGE);
   await new Promise(r => setTimeout(r, 0));
   const LM2 = vm.runInContext('LeagueMode', w2.ctx);
   check('remembered league re-entered on load', LM2.state.mode === 'LEAGUE' && LM2.state.entered && LM2.state.entered.name === 'Sample League');
@@ -297,9 +301,76 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   // A remembered league that no longer exists is forgotten.
   const gone = new Map([['maddenTrade.mode', 'LEAGUE'], ['maddenTrade.leagueName', 'Old League']]);
   const w3 = makeWindow({ storage, localStore: gone });
-  load(w3, [['valuation.js', valuationSrc], ['league-mode.js', leagueSrc], ['calculator-ui.js', uiSrc]]);
+  load(w3, PAGE);
   await new Promise(r => setTimeout(r, 0));
   check('unknown remembered league forgotten', !gone.has('maddenTrade.leagueName'));
+
+  // -------------------------------------------------------------------------
+  // 7. League Trade History (step 4)
+  // -------------------------------------------------------------------------
+  const snapA = run(current(), '(() => { state = JSON.parse(JSON.stringify(__t)); return buildTradeSnapshot(); })'.replace('__t', JSON.stringify((() => { let id = 0; return { A: scenarios[0].A.map(a => toAsset(a, ++id)), B: scenarios[0].B.map(a => toAsset(a, ++id)) }; })())))();
+  const row = (o) => Object.assign({ trade_id: o.id, id: o.id, accepted_at: '2026-11-22T12:00:00Z', ruleset_version: 'v4.4', current_revision: 0, submitter_name: null, submitter_note: null, reviewed_at: null, submitting_team: 'Dallas Cowboys', other_team: '<Omaha> & Co' }, snapA, o);
+  const historyRows = [
+    row({ id: 't-unrev', trade_number: 60, web_release: 'v2.0', review_status: 'UNREVIEWED', is_pre_league: false, submitter_name: 'Sam <b>', submitter_note: 'Deadline deal' }),
+    row({ id: 't-corr', trade_number: 59, web_release: 'v2.0', review_status: 'REVIEWED', is_pre_league: false, current_revision: 1, reviewed_at: '2026-11-22T13:00:00Z', verdict: 'FAIR' }),
+    row({ id: 't-rev', trade_number: 58, web_release: 'v2.0', review_status: 'REVIEWED', is_pre_league: false }),
+    row({ id: 't-pre', trade_number: 12, web_release: 'v1.5.0', review_status: 'UNREVIEWED', is_pre_league: true, submitting_team: null, other_team: null }),
+  ];
+  const revisions = [
+    { revision: 0, created_at: '2026-11-22T12:00:00Z', created_by_role: 'MEMBER', created_by_name: 'Sam', reason: null, verdict: snapA.verdict, snapshot: snapA },
+    { revision: 1, created_at: '2026-11-22T13:00:00Z', created_by_role: 'COMMISSIONER', created_by_name: 'Commish', reason: 'Wrong pick entered', verdict: 'FAIR', snapshot: { ...snapA, verdict: 'FAIR' } },
+  ];
+  const hcalls = [];
+  const hstorage = Object.assign({}, storage, {
+    leagueHistory: async name => { hcalls.push(['history', name]); return { ok: true, data: historyRows }; },
+    leagueTradeRevisions: async (name, id) => { hcalls.push(['revisions', name, id]); return { ok: true, revisions }; },
+  });
+  const h = makeWindow({ storage: hstorage });
+  load(h, PAGE);
+  const hel = s => h.document.querySelector(s);
+  hel('#history').hidden = true;
+
+  await vm.runInContext('loadTradeHistory()', h.ctx);
+  check('history: practice mode asks for a league', hel('#historyState').textContent === 'Enter a league to see its trade history.' && hcalls.length === 0);
+
+  vm.runInContext("LeagueMode.state.mode = 'LEAGUE';", h.ctx);
+  hel('#leagueInput').value = 'Sample League';
+  await hel('#leagueEntry').onsubmit({ preventDefault() {} });
+  await vm.runInContext('loadTradeHistory()', h.ctx);
+  const list = hel('#historyList').innerHTML;
+  check('history: reads the entered league by name', hcalls[0] && hcalls[0][1] === 'Sample League');
+  check('history: four badges', ['unreviewed">Unreviewed', 'corrected">Corrected', 'reviewed">Reviewed', 'pre-league">Pre-league'].every(b => list.includes(b)));
+  check('history: team headings, escaped', list.includes('DALLAS COWBOYS RECEIVES') && list.includes('&lt;OMAHA&gt; &amp; CO RECEIVES') && !list.includes('<OMAHA>'));
+  check('history: pre-league keeps side names', list.includes('USER TEAM RECEIVES') && list.includes('CPU TEAM RECEIVES'));
+  check('history: submitter escaped on the card', list.includes('Submitted by Sam &lt;b&gt;'));
+  check('history: Fairness on v4.4 cards', /Fairness \d+ \/ 100/.test(list));
+
+  vm.runInContext("showHistoryTrade('t-unrev')", h.ctx);
+  let detail = hel('#historyDetail').innerHTML;
+  check('detail: note and status line', detail.includes('Deadline deal') && detail.includes('Waiting for the commissioner'));
+  check('detail: team names in reads, escaped; stored rows untouched', !/User Team|CPU Team/.test(detail.split('Trade Intelligence')[1]) && detail.includes('&lt;Omaha&gt; &amp; Co') && JSON.stringify(historyRows[0].trade_intelligence).includes('Team'));
+  check('detail: no original-submission button for an uncorrected trade', !detail.includes('history-original-toggle'));
+
+  vm.runInContext("showHistoryTrade('t-pre')", h.ctx);
+  detail = hel('#historyDetail').innerHTML;
+  check('detail: pre-league keeps engine names', detail.includes('Logged before league mode') && /User Team|CPU Team/.test(detail));
+
+  vm.runInContext("showHistoryTrade('t-corr')", h.ctx);
+  detail = hel('#historyDetail').innerHTML;
+  check('detail: corrected trade', detail.includes('Corrected Evaluation') && detail.includes('history-original-toggle'));
+  const toggle = hel('#historyDetail').querySelector('.history-original-toggle');
+  const body = hel('#historyDetail').querySelector('.history-original-body');
+  body.hidden = true;
+  await toggle.onclick();
+  check('original submission loaded on request', hcalls.some(c => c[0] === 'revisions' && c[2] === 't-corr') && body.innerHTML.includes('Original verdict: ' + snapA.verdict) && body.innerHTML.includes('Wrong pick entered') && body.innerHTML.includes('Commish'));
+  const before = hcalls.length;
+  await toggle.onclick(); await toggle.onclick();
+  check('original submission fetched once', hcalls.length === before && body.hidden === false);
+
+  hel('#history').hidden = false;
+  hel('#leagueLeave').onclick();
+  await new Promise(r => setTimeout(r, 0));
+  check('leaving the league clears history on screen', hel('#historyState').textContent === 'Enter a league to see its trade history.' && vm.runInContext('historyRecords.length', h.ctx) === 0);
 
   console.log(`\n${pass} / ${pass + fail} ${fail ? 'FAIL' : 'PASS'}`);
   process.exit(fail ? 1 : 0);

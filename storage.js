@@ -72,6 +72,22 @@
           trade: null,
           error: message
         };
+      },
+
+      leagueHistory: async function () {
+        return {
+          ok: false,
+          data: [],
+          error: message
+        };
+      },
+
+      leagueTradeRevisions: async function () {
+        return {
+          ok: false,
+          revisions: [],
+          error: message
+        };
       }
     });
 
@@ -594,6 +610,53 @@ async function getAdminAuditLog(token){
     return acceptTrade(submission);
   }
 
+  // Active trades of one league, newest first. Rows keep the trades column
+  // names (as getActiveTrades does), with id = trade_id, plus review status,
+  // submitter and the two team names.
+  async function leagueHistory(name) {
+    try {
+      const { data, error } = await client.rpc('league_trade_history', {
+        p_name: String(name || '').trim()
+      });
+
+      if (error) {
+        console.error('League history retrieval failed:', error);
+        return { ok: false, data: [], error: 'Trade History could not be loaded.' };
+      }
+
+      const rows = Array.isArray(data) ? data : [];
+
+      return {
+        ok: true,
+        data: rows.map(row => Object.assign({ id: row.trade_id }, row)),
+        error: null
+      };
+    } catch (error) {
+      console.error('League history connection failed:', error);
+      return { ok: false, data: [], error: 'Trade History could not be loaded.' };
+    }
+  }
+
+  // Every revision of one trade (revision 0 = the original submission).
+  async function leagueTradeRevisions(name, tradeId) {
+    try {
+      const { data, error } = await client.rpc('league_trade_revisions', {
+        p_name: String(name || '').trim(),
+        p_trade_id: tradeId
+      });
+
+      if (error) {
+        console.error('Trade revision retrieval failed:', error);
+        return { ok: false, revisions: [], error: 'The original submission could not be loaded.' };
+      }
+
+      return { ok: true, revisions: Array.isArray(data) ? data : [], error: null };
+    } catch (error) {
+      console.error('Trade revision connection failed:', error);
+      return { ok: false, revisions: [], error: 'The original submission could not be loaded.' };
+    }
+  }
+
   window.MaddenStorage = Object.freeze({
     isConfigured: true,
     getActiveTrades,
@@ -603,6 +666,8 @@ async function getAdminAuditLog(token){
     getAdminAuditLog,
     leagueLookup,
     leagueTeams,
-    submitLeagueTrade
+    submitLeagueTrade,
+    leagueHistory,
+    leagueTradeRevisions
   });
 })();
