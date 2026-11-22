@@ -91,4 +91,5 @@ Do these in order. Steps 1–3 don't affect the live site.
 
 - **Order:** connection first, then Phase 2 (decided 2026-11-21).
 - **Raw payloads only for now**, plus the health check; normalizing comes later (assumed, as recommended; Q29).
-- **Retention: full bodies for the newest 10 snapshots** (assumed; Q30 asks how often the league exports).
+- **Retention: full bodies for the newest 10 snapshots** (decided 2026-11-22, Q30).
+- **Auto update** turned on 2026-11-22; how often it sends is read from the snapshot rows (`select date_trunc('day', first_received_at), count(*) from public.import_snapshot_summary group by 1 order by 1 desc;`).
