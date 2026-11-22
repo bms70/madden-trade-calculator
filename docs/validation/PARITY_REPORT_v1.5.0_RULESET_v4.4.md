@@ -3,7 +3,7 @@
 **Reference workbook:** `reference/Madden League Trade Calculator v4.4.xlsx`  
 **Web engine:** `valuation.js` (Ruleset v4.4)  
 **Scenarios:** `tests/parity-scenarios-v4.4.json`  
-**Result:** 16 / 16 PASS (LibreOffice recalculation). Desktop Excel recalculation: pending release-owner sign-off.
+**Result:** 16 / 16 PASS (LibreOffice recalculation). Desktop Excel recalculation: a pick-entry defect was found and fixed on 2026-11-22 (see the end of this report); the Excel re-check is pending release-owner sign-off.
 
 Each scenario was entered into the workbook's input cells and recalculated, then compared with the web engine on every Individual Asset Value, both Adjusted Package Values, the verdict, the Fairness Score, and the favored side. Numeric tolerance: 1e-6.
 
@@ -38,3 +38,22 @@ Elite QB and Franchise Cornerstone protection, Standard protection, quantity-for
 - Version History and Version History Details: v4.4 entries.
 
 Display differences that are not parity issues: the workbook keeps Team A / Team B wording and its existing Reduce-correction wording.
+
+## Desktop Excel check and pick-entry fix (2026-11-22)
+
+**Found in desktop Excel (risk R13):** a Draft Pick typed into **Player / Pick** (for example `1.32`) showed an Asset Value of **0**, and the verdict stayed "Add assets to both sides".
+
+**Cause:** Excel stores a typed `1.32` as the **number** 1.32, and `1.10` as 1.1. The formulas look picks up as **text** (`1.32`, `1.10`) in Logic Tables column K, so a number found nothing. The LibreOffice parity run had entered picks as text, so it didn't show the problem.
+
+**Fix (valuation unchanged):**
+
+- Player / Pick cells (`B6:B11`, `B19:B24`) are formatted as **Text**, so a typed pick keeps its exact form.
+- The 15 formulas that read those cells convert a number back to text first (`IF(ISNUMBER(B6),TEXT(B6,"0.00"),B6)`):
+  - the 12 Asset Value cells (`N6:N11`, `N19:N24`)
+  - the best-pick lookup for draft-only protection (`AN30`)
+  - the two best-asset labels (`Z15`, `Z28`)
+- A **pick drop-down** on the same cells lists every valid pick (`'Logic Tables'!K2:K47`). Its error alert is off, so player names can still be typed.
+
+**Re-verified in LibreOffice:** all 16 scenarios, entered twice (picks as text, and picks as numbers the way Excel stores them): **32 / 32 PASS** against the web engine, tolerance 1e-6. The pre-fix workbook reproduces the defect with picks as numbers: 0 value, "Add assets to both sides".
+
+**Pending:** the release owner repeats three scenarios (Elite QB for 1.01+1.12; Aging EDGE 33 for 1.24; QB vs QB age context + expensive 7yr) in desktop Excel with the fixed file, which closes R13.
