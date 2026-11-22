@@ -109,3 +109,19 @@ for(const s of sc){api.state.A=s.A.map(conv);api.state.B=s.B.map(conv);
   console.log((ok?'PASS':'FAIL')+' '+s.n+' | '+A.adj.toFixed(4)+' / '+B.adj.toFixed(4)+' | '+v.v+' | '+v.score.toFixed(2));}
 console.log(`\n${pass} / ${sc.length} PASS`);process.exit(fail?1:0);
 ```
+
+## Addendum: Web Release v2.0 (2026-11-22)
+
+Web v2.0 changes the snapshot contract. It does **not** change valuation. Ten of the twelve baseline files are byte-identical to the tag `ruleset-v4.4-baseline` (`git diff --quiet ruleset-v4.4-baseline -- <file>`): files 1–4, 6–9, 11 and 12, including `valuation.js`.
+
+The two changed baseline files and the new files that carry `accept-trade` logic are recorded here. Hashes are for the files on `release/web-v2.0` when the release PR opened.
+
+| # | File | Change | Bytes | SHA-256 | Git blob |
+|---|---|---|---|---|---|
+| 5 | `calculator-ui.js` | `web_release` `v2.0` (all other snapshot fields identical to v1.5.0; checked for all 16 parity scenarios); display-only team names; Submit to league; correction mode hooks | 21137 | `bcfeec35f823b9197b8c1360dc0efcf9d77c983b72e68e9e4a6f8bdbd3efb2b3` | `d1a23968ded52a54880c3311d4a29c934ed652e8` |
+| 10 | `supabase/functions/accept-trade/index.ts` | Thin wiring; logic moved to the two files below. Accepts v2.0/v4.4 (league) and v1.5.0/v4.4 (switchover); refuses v1.4.0/v4.2 | 722 | `68125ba2a28d76f27adb8fd157ea1f68a48876cfcb05e9613354301505441cb0` | `6da1f4c4fc1eb678a594e226cb430d93ddc0879b` |
+| 10a | `supabase/functions/accept-trade/handler.ts` | New: request handling | 3559 | `23265f20c80b7e60d31dc68226f716eedadd550d8eff7ba853a317c2c64598ba` | `6653c3ca026f27420fcc6892bba3bf99f490811a` |
+| 10b | `supabase/functions/_shared/trade-validation.ts` | New: the v1.5.0 trade checks, unchanged, plus league fields and the accepted pairs | 7226 | `0479889d4227f582ef7878b19bde5c77053cc723ddfc685af55304b6c21375dc` | `f1dbf4602277b8be8d190ae11f17a7546d2b8c32` |
+| 10c | `supabase/functions/_shared/http.ts` | New: shared HTTP helpers | 2212 | `3a5fcebdfad9ffb7c3ad06d17eb0b8958ffd44c2d6a5f82ebedf67b7ed140f77` | `0738172e9f441c9f4cabb1ee301a993cf52ad480` |
+
+About a week after launch, a maintenance update removes `v1.5.0` from `trade-validation.ts` (runbook step 8). Record its new hash here when that update lands.
