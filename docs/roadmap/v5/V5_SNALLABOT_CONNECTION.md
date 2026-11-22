@@ -14,7 +14,7 @@ The Snallabot connection: a backend-only receiver that stores every Snallabot ex
   - the weekly routes received, plus any unknown routes
   - the season, current week and stage from standings
   - a `complete` flag
-- **Retention:** full bodies are kept for the newest 10 snapshots per league. Older payloads keep their row, route, size and hash, but the body is cleared.
+- **Retention:** full bodies are kept for each league's newest **5** snapshots (the league's `import_keep_full_snapshots` setting). Older payloads keep their row, route, size and hash, but the body is cleared.
 - **Nothing reads the data yet.** No site change, no pickers, nothing in the calculator. You view it in the Supabase dashboard. Normalizing rosters into a player list comes later (Web v3.0), from the stored raw bodies, so nothing is lost by waiting.
 
 ## What it doesn't do
@@ -29,6 +29,7 @@ The Snallabot connection: a backend-only receiver that stores every Snallabot ex
 | Piece | File |
 |---|---|
 | Migration: `leagues` (minimal), `import_snapshots`, `import_payloads`, health check, retention, receiver function, summary view | `supabase/migrations/20261122060000_snallabot_import.sql` |
+| Migration: retention setting per league (`leagues.import_keep_full_snapshots`, default 5) | `supabase/migrations/20261122070000_snallabot_retention_setting.sql` |
 | Edge Function (path parsing, size and JSON checks, hashing) | `supabase/functions/snallabot-import/index.ts`, `logic.ts` |
 | Function config (`verify_jwt = false`, since Snallabot sends no auth header) | `supabase/config.toml` |
 | Site-owner script: create the league record and its secret, rotate the secret | `docs/roadmap/v5/sql/connect-snallabot.sql` |
@@ -47,7 +48,11 @@ The Snallabot connection: a backend-only receiver that stores every Snallabot ex
 
 **Access:** browser roles can't read or write any of these tables or call the function. Only the service role (the Edge Function and the dashboard) can.
 
-**Storage:** one current-week export is about 40 requests and 6 MB. With 10 snapshots kept in full, that's about 60 MB of bodies. Older snapshots keep only their rows.
+**Storage:** one current-week export is about 44 requests and 7 MB. With 5 snapshots kept in full, that's about 35 MB of bodies. Older snapshots keep only their rows.
+
+**Changing retention** needs no migration. In Explorer:
+`update public.leagues set import_keep_full_snapshots = <N> where name_key = lower('<league name>');`
+(1–100). The next new snapshot trims to the new number.
 
 ## Setup (site owner)
 
@@ -68,7 +73,8 @@ Do these in order. Steps 1–3 don't affect the live site.
 7. **Run one export** (current week), wait a couple of minutes, then check in Explorer:
    `select * from public.import_snapshot_summary order by first_received_at desc;`
    Expect one snapshot of about 40 requests, `rosters_received` = 32 if no teams were skipped, and `missing_roster_team_ids` listing any that were.
-8. **Auto update (optional).** Once a manual export looks right, Snallabot's auto update can be turned on. Retention keeps it within storage.
+8. **Auto update (optional).** Once a manual export looks right, Snallabot's auto update can be turned on (done 2026-11-22). Retention keeps it within storage.
+9. **Apply the retention migration** (added 2026-11-22): `npx.cmd supabase db push --remote`, confirming only `20261122070000_snallabot_retention_setting.sql`. It adds the setting (default 5) and trims what's already stored.
 
 **If the secret leaks or is lost:** run the "Rotate the secret" block at the bottom of the connect script, then paste the new URL into Snallabot. The old URL stops working at once.
 
@@ -77,7 +83,7 @@ Do these in order. Steps 1–3 don't affect the live site.
 | Test | Result (2026-11-21) |
 |---|---|
 | `node --experimental-strip-types tests/snallabot-import-logic.test.mjs`: path parsing with all 40 captured paths, body checks, hashing, error mapping | 28 / 28 PASS |
-| `tests/snallabot-import-db.test.py` on a scratch Postgres 16 database: all migrations, the connect script, a replay of the 40 captured requests, health check (29 rosters, TEN / HOU / MIN missing, 2027 week 5), duplicates, rejects, burst splitting, a complete 32-roster export, retention, access, an archived league, v1.4.0 delete still working | 37 / 37 PASS |
+| `tests/snallabot-import-db.test.py` on a scratch Postgres 16 database: all migrations, the connect script, a replay of the 40 captured requests, health check (29 rosters, TEN / HOU / MIN missing, 2027 week 5), duplicates, rejects, burst splitting, a complete 32-roster export, retention (default 5, changed to 3, below 1 rejected), access, an archived league, v1.4.0 delete still working | 40 / 40 PASS |
 | `V5_SAMPLE_SCHEMA_TESTS.sql` over all migrations, including this one | 33 / 33 PASS |
 | `node tests/ruleset-v4.4.test.js` | 64 / 64 PASS |
 
@@ -91,5 +97,5 @@ Do these in order. Steps 1–3 don't affect the live site.
 
 - **Order:** connection first, then Phase 2 (decided 2026-11-21).
 - **Raw payloads only for now**, plus the health check; normalizing comes later (assumed, as recommended; Q29).
-- **Retention: full bodies for the newest 10 snapshots** (decided 2026-11-22, Q30).
+- **Retention: full bodies for the newest 5 snapshots** (decided 2026-11-22, Q30; first set at 10, then lowered to 5). Stored per league as `import_keep_full_snapshots`.
 - **Auto update** turned on 2026-11-22; how often it sends is read from the snapshot rows (`select date_trunc('day', first_received_at), count(*) from public.import_snapshot_summary group by 1 order by 1 desc;`).

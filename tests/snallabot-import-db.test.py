@@ -80,7 +80,7 @@ migrations = sorted(os.listdir(os.path.join(ROOT, "supabase", "migrations")))
 for m in migrations:
     with open(os.path.join(ROOT, "supabase", "migrations", m), encoding="utf-8") as f:
         psql(f.read())
-check("all migrations apply in order", "20261122060000_snallabot_import.sql" in migrations)
+check("all migrations apply in order", "20261122060000_snallabot_import.sql" in migrations and "20261122070000_snallabot_retention_setting.sql" in migrations)
 
 # Connect script. Supabase keeps pgcrypto in the "extensions" schema; a plain
 # Postgres test server has it in public, so the prefix is dropped here only.
@@ -167,9 +167,19 @@ for i in range(11):
 total = int(psql("select count(*) from import_snapshots;"))
 with_bodies = int(psql("select count(distinct snapshot_id) from import_payloads where body is not null;"))
 check("13 snapshots kept as rows", total == 13, total)
-check("bodies kept for the newest 10 snapshots only", with_bodies == 10, with_bodies)
+check("default retention setting is 5", psql(f"select import_keep_full_snapshots from leagues where id = '{league_id}';") == "5")
+check("bodies kept for the newest 5 snapshots only", with_bodies == 5, with_bodies)
 check("the first snapshot's payload rows survive without bodies",
       psql(f"select count(*) || ',' || count(body) from import_payloads where snapshot_id = '{snap}';") == "40,0")
+
+# Changing the setting needs no migration: the next new snapshot trims to it.
+psql(f"update leagues set import_keep_full_snapshots = 3 where id = '{league_id}';")
+psql("update import_snapshots set last_received_at = now() - interval '11 minutes' where status = 'RECEIVING';")
+record(secret, "standings", bodies["standings"])
+check("setting changed to 3: bodies kept for the newest 3 snapshots",
+      psql("select count(distinct snapshot_id) from import_payloads where body is not null;") == "3")
+failed, err = psql(f"update leagues set import_keep_full_snapshots = 0 where id = '{league_id}';", expect_error=True)
+check("setting below 1 rejected", failed and "23514" in err, err)
 
 # ---------------------------------------------------------------- access
 failed, err = psql(f"select * from public.record_snallabot_payload('{sha(secret)}', 'pc', 5481323, 'standings', '{{}}'::jsonb, '{sha('{}')}', 2);", role="anon", expect_error=True)
@@ -177,7 +187,7 @@ check("anon can't call the receiver function", failed and "42501" in err, err)
 for t in ["leagues", "import_snapshots", "import_payloads", "import_snapshot_summary"]:
     failed, err = psql(f"select count(*) from public.{t};", role="anon", expect_error=True)
     check(f"anon can't read {t}", failed and "42501" in err, err)
-check("service role can read the summary", psql("select count(*) from public.import_snapshot_summary;", role="service_role") == "13")
+check("service role can read the summary", psql("select count(*) from public.import_snapshot_summary;", role="service_role") == "14")
 
 # ---------------------------------------------------------------- archived league and v1.4.0 tables
 psql(f"update leagues set status = 'ARCHIVED' where id = '{league_id}';")
