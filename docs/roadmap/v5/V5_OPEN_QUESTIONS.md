@@ -23,7 +23,6 @@ Last updated: 2026-11-21.
 | 23 | Offseason stages for the league calendar | **Re-signing, Free agency, Draft**, then preseason weeks 1–3; check against an offseason export |
 | 24 | Standings `stageIndex` values | **0 = preseason, 1 = regular season** (1 confirmed); offseason values from an offseason export |
 | 29 | Snallabot connection: store raw exports only, or also normalize rosters now? | **Raw only** plus a health check per export; normalize in Web v3.0 from the stored bodies |
-| 30 | How often will the league export (manual or auto update)? | Unknown; **retention keeps full bodies for the newest 10 snapshots** (about 60 MB) |
 
 ## Answered
 
@@ -67,3 +66,4 @@ Last updated: 2026-11-21.
 | **Main league name and password?** (Q28) | **Name decided** (2026-11-21). It's kept out of this public repo, because knowing the name is what gives access. It's recorded in the site owner's private project notes. **The site owner sets the commissioner password** at release step 2 |
 | **Do the Snallabot connection before league mode?** | **Yes** (2026-11-21): a backend-only receiver first (`V5_SNALLABOT_CONNECTION.md`), then back to Phase 2 |
 | **Snallabot connection live?** | **Yes** (2026-11-22): first main-league export complete, 44 requests, 7.06 MB, all 32 rosters, 2027 week 5. R21 resolved |
+| **Retention and auto update?** (Q30) | **Keep full bodies for the newest 5 snapshots** (decided 2026-11-22; a per-league setting, `import_keep_full_snapshots`, changeable without a migration). Snallabot auto update turned on 2026-11-22; its frequency is still unknown and will be read from the snapshot rows. Revisit (for example, also keep one snapshot per week in full) only if exports turn out to be very frequent |
