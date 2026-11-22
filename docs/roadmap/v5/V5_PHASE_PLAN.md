@@ -22,7 +22,8 @@ Planning for Ruleset v5.0 / Web v5.0, drafted 2026-11-21 from the commissioner's
 | Posture strength | Scales with how lopsided the record is | Assumed |
 | Posture, CPU teams | Can only **raise** what the CPU team demands, never below v4.4 | Assumed |
 | Posture, human teams | A warning plus a very small protective effect | Decided |
-| Week / offseason stage | Manual fields, pre-filled from the import when it carries them | Assumed |
+| Week / offseason stage | Manual fields, pre-filled from standings (season, stage, current week = `weekIndex + 1`) | Decided (capture confirmed) |
+| Free agents | Out of scope: not traded, not mapped. The receiver keeps the raw body | Decided |
 | Long snappers | Get a position value in v5.0 (0.50 assumed, same as K/P) | Decided / value assumed |
 | Trade volume | Assumed **10–30 trades per season** until known | Assumed |
 
@@ -50,7 +51,7 @@ The finish line is **Web v5.0 + Ruleset v5.0**. Releases before that follow thes
 ### Phase 2 — League layer and import layer · **Web v2.0**, then **v3.0**
 
 **Web v2.0 — League mode (no imports yet)**
-- Database: `leagues`, `teams` (32 teams seeded per league), league trades with a review status (unreviewed / reviewed / reversed), and audit records.
+- Database: `leagues`, `teams` (32 per league, seeded from the league's `leagueteams` payload), league trades with a review status (unreviewed / reviewed / reversed), and audit records.
 - Site: a **League / Practice switch**. League mode asks for the league name, then the member's team and the other team.
 - Members submit trades, which are **logged immediately as Unreviewed** and shown that way in league history.
 - Admin becomes a **commissioner area for each league** behind the commissioner password: a review queue of Unreviewed trades with verdict flags; mark Reviewed, correct values (which re-runs v4.4 and keeps both snapshots), or reverse with a reason (logical removal plus an audit record, like today's Delete Trade).
