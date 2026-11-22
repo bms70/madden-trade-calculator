@@ -286,6 +286,7 @@ Current governed Ruleset files include:
 
 - `CANONICAL_RULESET_v4.4.md`
 - `RULESET_v4.4_COMPLETE_REFERENCE.md`: every v4.4 rule, constant and formula in one place (the pre-v5.0 baseline record; it adds no new rules)
+- `Madden League Trade Calculator - Ruleset v4.4 Complete Reference.docx`: Word version of the complete reference, for easier reading
 - `Madden League Trade Rules and Valuation Guide - Ruleset v4.4.docx`
 
 ### `docs/releases/`

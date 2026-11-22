@@ -188,7 +188,7 @@ Non-QBs always get 1.00.
 
 A WR, OVR 85, age 25, Star, $8M, 3 years left, 4 years in league, Starter → Starter:
 
-`26.825 (OVR) × 1.20 (WR) × 1.25 (Star, 24–26) × 1.08 (Good) × 1.00 × 1.00 × 1.00 × 1.00 (aging) × 1.187 (control) = **51.58**`
+`26.825 (OVR) × 1.20 (WR) × 1.25 (Star, 24–26) × 1.08 (Good) × 1.00 × 1.00 × 1.00 × 1.00 (aging) × 1.187 (control)` = **51.58**
 
 ---
 
