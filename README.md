@@ -1,8 +1,8 @@
 # Madden League Trade Calculator
 
-A responsive web calculator for evaluating Player and Draft Pick trades in a Madden league, with persistent accepted-Trade history and protected administrative maintenance.
+A responsive web calculator for evaluating Player and Draft Pick trades in a Madden league. League mode logs each league's trades for commissioner review, and a practice mode is available for trying trades freely.
 
-**Current Web Release:** v1.5.0  
+**Current Web Release:** v2.0  
 **Current Ruleset:** v4.4
 
 ---
@@ -11,11 +11,18 @@ A responsive web calculator for evaluating Player and Draft Pick trades in a Mad
 
 The current production mapping is:
 
-**Web Release v1.5.0 | Ruleset v4.4**
+**Web Release v2.0 | Ruleset v4.4**
 
 Web Releases and Rulesets are versioned independently.
 
-Web Release v1.5.0 introduces Ruleset v4.4: revalued Draft Picks, continuous value curves (OVR, aging, contract control, draft timing), a tighter FAIR window, severity measured from the FAIR window, and a Fairness Score that names the favored side. The v1.4.0 application features are unchanged.
+Web Release v2.0 adds **League mode**:
+
+- Members enter their league by name, pick both teams, and submit trades.
+- Trades are logged as Unreviewed. Each league's commissioner reviews, corrects or reverses them behind the league's own password.
+- **Practice mode** keeps the calculator for trying trades and no longer logs them.
+- The shared Admin password is retired, and earlier history moves into the main league as **Pre-league**.
+
+Valuation is unchanged: every verdict and value is Ruleset v4.4, as in Web Release v1.5.0.
 
 ---
 
@@ -23,30 +30,32 @@ Web Release v1.5.0 introduces Ruleset v4.4: revalued Draft Picks, continuous val
 
 The current web application is provided through:
 
-- `index.html` - Page structure and ordered stylesheet/script loading.
-- `styles.css` - Application styling, responsive layouts, Light/Dark appearance palettes, Trade History styling, and Admin styling.
-- `theme.js` - Browser-local Light/Dark preference restoration and theme application.
-- `valuation.js` - Governed Ruleset v4.4 Web valuation engine.
-- `calculator-ui.js` - Calculator state, calculator rendering, Trade Intelligence presentation, accepted-Trade snapshot construction, duplicate-state protection, and calculator event wiring.
-- `trade-history.js` - Public read-only Trade History retrieval/presentation and frozen historical detail rendering.
-- `admin.js` - Browser administrative-session UI, Active Trades presentation, deletion confirmation, and protected Audit Log presentation.
-- `storage.js` - Browser-to-backend integration.
-- `supabase-config.js` - Public Supabase browser configuration.
-- `supabase/` - Protected backend functions and database migrations.
+- `index.html`: page structure and ordered stylesheet/script loading.
+- `styles.css`: application styling, responsive layouts, Light/Dark palettes, league bar, history badges and Commissioner styling.
+- `theme.js`: browser-local Light/Dark preference restoration and theme application.
+- `valuation.js`: governed Ruleset v4.4 Web valuation engine.
+- `league-mode.js`: the Practice / League switch, league bar, team pickers, display-only team names, and the league submission.
+- `calculator-ui.js`: calculator state, rendering, Trade Intelligence presentation, the accepted-Trade snapshot, duplicate protection and Submit to league.
+- `trade-history.js`: the entered league's read-only Trade History, with review-status badges and the original submission of corrected trades.
+- `commissioner.js`: the Commissioner area (sign-in, review queue, Mark reviewed / Correct / Reverse, audit log) and correction mode.
+- `storage.js`: browser-to-backend integration.
+- `supabase-config.js`: public Supabase browser configuration.
+- `supabase/`: backend functions and database migrations.
 
 The application includes:
 
+- Practice / League switch
 - Calculator
 - How to Use
 - Rules
 - Trade History
-- Admin
+- Commissioner
 - Light and Dark appearance modes
 - Links to the wiki's **Using the Calculator** guide (page footer and How to Use tab)
 
 The Calculator supports:
 
-- User Team / CPU Team trade construction
+- Your team / other team trade construction (User Team / CPU Team in practice mode)
 - Player and Draft Pick assets
 - Up to six assets per side
 - Individual Asset Values
@@ -57,33 +66,36 @@ The Calculator supports:
 - Trade verdicts with a Fairness Score and favored side
 - Suggested Correction
 - Eight Trade Intelligence reads
-- Accept & Log Trade
+- Submit to league (League mode)
 
 Calculations use full internal precision. Display rounding does not determine the verdict.
 
 ---
 
+## Practice and League Modes
+
+**Practice** (default) is the calculator for trying trades freely. Nothing is logged.
+
+**League:**
+
+1. Type the league's name and select **Enter**. The name is the access: there are no member accounts. Case and spacing don't matter, and the browser remembers the league.
+2. Choose **Your team** and the **Other team**. The teams come from the league's Snallabot export, and human teams are marked.
+3. Build the trade. Headings and Trade Analysis show the chosen team names.
+4. Select **Submit to league**, enter your name and an optional note, and select **Submit**.
+
+Submitted trades are logged immediately as **Unreviewed**. A trade that isn't FAIR can still be submitted, and it's flagged for the commissioner.
+
+Team names appear **on screen only**. The stored evaluation keeps the engine's User Team / CPU Team wording, so every record is exactly what Ruleset v4.4 produced.
+
+---
+
 ## Accepted Trades
 
-Web Release v1.4.0 adds persistent accepted-Trade history.
+Each league trade preserves a frozen evaluation snapshot. It includes:
 
-After a Trade has actually been accepted:
-
-1. Build and evaluate the Trade normally.
-2. Review the Verdict, Adjusted Values, Trade Analysis, and Suggested Correction.
-3. Select **Accept & Log Trade**.
-4. Confirm the logging action.
-5. Open **Trade History** to view accepted Trades.
-
-Accepted Trade Records preserve a frozen evaluation snapshot including:
-
-- Web Release
-- Ruleset version
-- User Team assets
-- CPU Team assets
-- Individual Asset Values
-- Raw Package Values
-- Adjusted Package Values
+- Web Release and Ruleset version
+- Both teams' assets
+- Individual, Raw and Adjusted Values
 - Adjusted Gap
 - Verdict
 - Evaluation path
@@ -91,98 +103,63 @@ Accepted Trade Records preserve a frozen evaluation snapshot including:
 - Suggested Correction
 - Trade Intelligence reads (seven for v4.2 trades, eight for v4.4 trades)
 
-Historical Trade detail is read-only and represents the evaluation stored when the Trade was accepted.
+Each trade also records its league, both teams, and the submitter's name and note.
+
+Every evaluation is kept as a **revision**. Revision 0 is the member's submission, and each commissioner correction adds one, so the original is never overwritten.
 
 ---
 
 ## Trade History
 
-**Trade History** provides the public historical view of active accepted Trades.
+**Trade History** shows the entered league's active trades, newest first. Practice mode shows no history.
 
-Historical records include:
+Each trade carries a review-status badge:
 
-- Stable Trade Number
-- Acceptance timestamp
-- Verdict
-- User Team package
-- CPU Team package
-- Web Release
-- Ruleset version
-- Frozen Trade detail
+- **Unreviewed**: logged, waiting for the commissioner.
+- **Reviewed**: checked by the commissioner.
+- **Corrected**: the commissioner corrected the values. **Show original submission** displays revision 0 and the reason.
+- **Pre-league**: logged before league mode.
 
-Selecting **View Trade** opens the stored historical evaluation rather than recalculating the Trade.
+Reversed trades are not listed. Selecting **View Trade** opens the stored evaluation rather than recalculating the trade.
 
-Logically deleted Trade Records are excluded from normal public Trade History.
+Since v2.0, trades can only be read through a league name: the public read access to all trades was removed.
 
 ---
 
-## Admin
+## Commissioner
 
-Web Release v1.4.0 includes a protected administrative area for Trade History maintenance.
+Each league has its own commissioner password. The Commissioner tab requires League mode and that league's password. A session lasts 30 minutes, is held in memory only, and works only for that league. After 5 wrong passwords in 15 minutes, sign-in is refused for 15 minutes.
 
-Admin functionality includes:
+The Commissioner area includes:
 
-- Shared administrator-password verification
-- Temporary signed administrative authorization
-- Session expiration
-- Lock Admin
-- Active Trades
-- Delete Trade
-- Protected Audit Log
+- **Review queue:** Unreviewed trades, oldest first, flagged when the verdict isn't FAIR, when the trade is between two human teams, or when it looks like a duplicate (same teams and assets within 24 hours).
+- **All trades:** every active trade. Reviewed trades can still be corrected or reversed.
+- **Mark reviewed:** with an optional comment.
+- **Correct:** opens the trade in the calculator. The commissioner edits it, v4.4 re-runs, and **Save correction** (with a required reason) adds a revision.
+- **Reverse:** with a required reason. The trade leaves Trade History but nothing is erased.
+- **Audit log:** the league's actions, newest first.
 
-Administrative authorization is temporary and held in memory by the active application session.
-
-Reloading the application returns Admin to the locked state.
+The commissioner's name is self-reported audit metadata, not a verified identity. Every action is authorized server-side for the token's league.
 
 ---
 
-## Trade Deletion
+## Site Owner
 
-Administrative **Delete Trade** performs logical deletion.
+Only the site owner creates and manages leagues. There's no owner screen on the website. The owner runs one-line SQL functions in the Supabase dashboard:
 
-Deleting a Trade:
+- Load teams from the latest Snallabot export.
+- Set or reset a commissioner password.
+- Create, rename or archive a league.
+- Rotate the Snallabot import secret.
+- Move pre-league history.
 
-- Removes the Trade from normal public Trade History
-- Preserves the original accepted Trade Record
-- Preserves the original Trade UUID
-- Preserves the stable Trade Number
-- Preserves the frozen evaluation
-- Creates a `TRADE_DELETED` Audit Event
-
-Deletion requires:
-
-- Valid administrative authorization
-- A second confirmation
-- Required self-reported Administrator Name
-- Optional Deletion Reason
-
-Administrator Name is audit metadata supplied by the administrator. It is not verified personal identity.
-
-Logical Trade deletion and required Audit Event creation are performed atomically through protected backend functionality.
-
----
-
-## Audit Log
-
-The protected Admin area includes a read-only **Audit Log**.
-
-Deletion Audit Events retain:
-
-- Audit Event UUID
-- Original Trade UUID
-- Original Trade Number
-- `TRADE_DELETED` action
-- Timestamp
-- Self-reported Administrator Name
-- Deletion Reason when supplied
-
-Audit Events are not exposed through normal public Trade History.
+Guide: `docs/roadmap/v5/V5_OWNER_TOOLKIT.md`. Every owner change is written to the league's audit log.
 
 ---
 
 ## Light and Dark Mode
 
-Web Release v1.4.0 supports:
+The application supports:
 
 - Light mode
 - Dark mode
@@ -198,7 +175,7 @@ Changing appearance does not change:
 - Verdict
 - Trade Intelligence
 - Trade History records
-- Admin authorization
+- Commissioner sessions
 - Audit Events
 
 ---
@@ -267,6 +244,7 @@ Wiki documentation includes topics such as:
 - Releases
 - Development
 - Web Release v1.5.0
+- Web Release v2.0
 - Architecture
 - Ruleset v5.0 Roadmap
 - Glossary
@@ -293,6 +271,7 @@ Current governed Ruleset files include:
 
 Release notes and governed release records.
 
+- `RELEASE_NOTES_v2.0.md`
 - `RELEASE_NOTES_v1.5.0.md`
 - `RELEASE_NOTES_v1.4.0.md`
 
@@ -304,7 +283,7 @@ Regression and release-validation evidence.
 
 v1.4.0 closeout includes release-specific validation and final cross-file audit records. Earlier v1.3.0 validation artifacts are preserved under `archive/v1.3.0/`, not in this directory.
 
-This directory also holds the post-release structural refactor audit, `REFACTOR_AUDIT_v1.4.0.md`.
+This directory also holds the post-release structural refactor audit, `REFACTOR_AUDIT_v1.4.0.md`, and the Web v2.0 validation record, `VALIDATION_v2.0.md`.
 
 ### `docs/roadmap/`
 
@@ -313,7 +292,7 @@ Future development planning.
 Current roadmap material includes:
 
 - `RULESET_V5.0_ROADMAP.md`: the current roadmap
-- `v5/`: v5.0 Phase 1 planning documents (`V5_PHASE_PLAN.md`, `V5_DATA_SOURCE_FEASIBILITY.md`, `V5_FIELD_MAPPING.md`, `V5_LEAGUE_DATA_SPEC.md`, `V5_IDENTITY_AND_ACCESS.md`, `V5_OPEN_QUESTIONS.md`)
+- `v5/`: v5.0 planning and Web v2.0 documents. Planning: charter, phase plan, baseline manifest, data sources, field mapping, league data spec, identity and access, Snallabot connection, open questions. Web v2.0: `V5_WEB_V2.0_SPEC.md`, `V5_WEB_V2.0_FUNCTIONS.md`, `V5_OWNER_TOOLKIT.md`, `V5_WEB_V2.0_RUNBOOK.md`
 - `Madden League Trade Calculator - Ruleset v5.0 Development Roadmap.docx` and `Madden_League_v5_Roadmap_Graphic.png`: earlier roadmap material, kept for reference and superseded by the markdown roadmap
 
 ### `reference/`
@@ -328,17 +307,15 @@ The workbook is the Ruleset v4.4 reference implementation. The v4.2 workbook and
 
 ### `supabase/`
 
-Version-controlled persistence and protected backend infrastructure for Web Release v1.4.0.
+Version-controlled persistence and backend functions.
 
 This includes:
 
-- Database migrations
-- Accepted-Trade storage
-- Public active-history access controls
-- Admin authentication functions
-- Signed Admin-session verification
-- Protected Trade deletion
-- Protected Audit Log retrieval
+- Database migrations: trade storage, leagues and the Snallabot import receiver, league mode (teams, revisions, assets, review, commissioner login) and the owner toolkit
+- `accept-trade`: logs league trades (v2.0) after validation
+- `commissioner-login`, `commissioner-session-check`, `review-trade`, `commissioner-audit-log`: the Commissioner area, with league-bound signed sessions
+- `snallabot-import`: receives Snallabot exports
+- Shared validation and session modules in `functions/_shared/`, tested in Node
 
 ### `archive/`
 
@@ -351,12 +328,13 @@ Historical v1.3.0 release records are preserved under `archive/v1.3.0/`.
 ### Repository Root
 
 - `index.html` — page structure and ordered stylesheet/script loading
-- `styles.css` — application styling, responsive layouts, Light/Dark appearance palettes, Trade History styling, and Admin styling
+- `styles.css` — application styling, responsive layouts, Light/Dark appearance palettes, league, history and Commissioner styling
 - `theme.js` — browser-local Light/Dark preference restoration and theme application
 - `valuation.js` — governed Ruleset v4.4 Web valuation engine
-- `calculator-ui.js` — calculator state, rendering, Trade Intelligence presentation, accepted-Trade snapshot construction, duplicate-state protection, and calculator event wiring
-- `trade-history.js` — public read-only Trade History retrieval/presentation and frozen historical detail rendering
-- `admin.js` — browser administrative-session UI, Active Trades presentation, deletion confirmation, and protected Audit Log presentation
+- `calculator-ui.js` — calculator state, rendering, Trade Intelligence presentation, accepted-Trade snapshot construction, duplicate-state protection, Submit to league, and calculator event wiring
+- `league-mode.js` — Practice / League switch, league bar, team pickers, display-only team names and the league submission
+- `trade-history.js` — the entered league's read-only Trade History, review badges and original submissions
+- `commissioner.js` — Commissioner area and correction mode
 - `storage.js` — browser-to-backend integration
 - `supabase-config.js` — public Supabase browser configuration
 - `README.md` — repository overview and navigation
@@ -373,7 +351,9 @@ Different repository artifacts serve different purposes.
 - **Governed Web valuation implementation:** `valuation.js`
 - **Calculator and accepted-Trade snapshot implementation:** `calculator-ui.js`
 - **Trade History implementation:** `trade-history.js`
-- **Administrative browser interface:** `admin.js`
+- **League mode and submission:** `league-mode.js`
+- **Commissioner interface:** `commissioner.js`
+- **Site-owner league management:** `docs/roadmap/v5/V5_OWNER_TOOLKIT.md`
 - **Theme implementation:** `theme.js`
 - **Persistence/browser integration:** `storage.js` and `supabase-config.js`
 - **Protected backend implementation:** `supabase/`
@@ -394,7 +374,9 @@ Web Releases and Rulesets are versioned independently.
 
 Current production mapping:
 
-**Web Release v1.5.0 | Ruleset v4.4**
+**Web Release v2.0 | Ruleset v4.4**
+
+From v2.0, web numbers have two parts. A **major** number (v2.0, v3.0) marks a database, snapshot-contract or new-mode change, and a **minor** number (v2.1) marks features on the existing structure. Ruleset v5.0 and Web v5.0 are planned to ship together.
 
 A Web Release may introduce:
 
@@ -412,6 +394,17 @@ A Ruleset version identifies the governed trade-valuation framework.
 ---
 
 ## Release Validation
+
+### Web Release v2.0 / Ruleset v4.4
+
+Full record: `docs/validation/VALIDATION_v2.0.md`.
+
+- Ruleset v4.4 regression (`node tests/ruleset-v4.4.test.js`): **64 / 64 PASS**. `valuation.js` matches its baseline hash.
+- Browser scripts (`node tests/web-v2.0-league-mode.test.js`): **85 / 85 PASS**, including all 16 parity scenarios producing the v1.5.0 snapshot apart from `web_release`.
+- Edge Function logic (`tests/web-v2.0-functions.test.mjs`): **83 / 83 PASS**
+- League-mode database (`tests/web-v2.0-db.test.py`): **67 / 67 PASS**
+- Owner toolkit and launch sequence (`tests/web-v2.0-owner-toolkit.test.py`): **54 / 54 PASS**
+- Launch and live smoke test (`docs/roadmap/v5/V5_WEB_V2.0_RUNBOOK.md`): **PENDING release-owner sign-off**
 
 ### Web Release v1.5.0 / Ruleset v4.4
 
@@ -488,7 +481,7 @@ The **Years left** input accepts only whole numbers of 1 or more. Typing or past
 
 ## Future Development
 
-Web Release v1.4.0 Trade History provides an early foundation for richer future transaction-history functionality.
+Web Release v2.0 league history is a step toward the future League Transaction Ledger (planned for Web v4.0).
 
 It is **not** the completed future League Transaction Ledger.
 
@@ -510,5 +503,5 @@ The Wiki is the human-readable project handbook.
 
 Canonical Ruleset specifications, application source, backend/persistence source, validation records, release records, reference implementations, roadmaps, and historical archives remain maintained in the repository.
 
-**Current release:** Web Release v1.5.0  
+**Current release:** Web Release v2.0  
 **Current valuation authority:** Ruleset v4.4

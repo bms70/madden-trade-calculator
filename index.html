@@ -12,7 +12,7 @@
         <div class="brandrow">
           <div>
             <div class="brand">MADDEN LEAGUE TRADE CALCULATOR</div>
-            <div class="ver">Web Release v1.5.0 · Ruleset v4.4</div>
+            <div class="ver">Web Release v2.0 · Ruleset v4.4</div>
           </div>
           <div class="brand-actions">
             <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false">Dark mode</button>
@@ -24,31 +24,68 @@
           <button type="button" class="tab" data-tab="howto">How to Use</button>
           <button type="button" class="tab" data-tab="rules">Rules</button>
           <button type="button" class="tab" data-tab="history">Trade History</button>
-          <button type="button" class="tab" data-tab="admin">Admin</button>
+          <button type="button" class="tab" data-tab="commissioner">Commissioner</button>
         </nav>
       </div>
     </header>
     <main>
+      <section class="leaguebar" aria-label="League">
+        <div class="mode-switch" role="group" aria-label="Mode">
+          <button type="button" class="mode-option active" data-mode="PRACTICE" aria-pressed="true">Practice</button>
+          <button type="button" class="mode-option" data-mode="LEAGUE" aria-pressed="false">League</button>
+        </div>
+        <form class="league-entry" id="leagueEntry" hidden>
+          <label for="leagueInput">League name</label>
+          <input type="text" id="leagueInput" maxlength="100" autocomplete="off" spellcheck="false">
+          <button type="submit" class="btn league-enter" id="leagueEnter">Enter</button>
+        </form>
+        <div class="league-current" id="leagueCurrent" hidden>
+          <span class="league-label">League</span>
+          <strong id="leagueName"></strong>
+          <button type="button" class="btn league-leave" id="leagueLeave">Leave league</button>
+        </div>
+        <div class="league-status" id="leagueStatus" aria-live="polite">Practice mode: try trades freely. Nothing is logged.</div>
+      </section>
       <section id="calc" class="panel">
+        <section class="correction-bar" id="correctionBar" aria-live="polite" hidden>
+          <div class="correction-text">
+            <strong id="correctionTitle">Correcting a trade</strong>
+            <span>Edit the assets below; the verdict re-runs as usual. Saving keeps the original
+              submission and needs a reason.</span>
+          </div>
+          <label for="correctionReason">Reason</label>
+          <input type="text" id="correctionReason" maxlength="500" placeholder="For example: wrong pick entered">
+          <div class="correction-actions">
+            <button type="button" class="btn" id="cancelCorrection">Cancel</button>
+            <button type="button" class="btn accept-confirm-button" id="saveCorrection">Save correction</button>
+          </div>
+          <div class="correction-status" id="correctionStatus"></div>
+        </section>
         <section class="result">
-          <div class="score"><small>USER TEAM ADJUSTED</small><strong id="atotal">0.0</strong></div>
+          <div class="score"><small id="alabel">USER TEAM ADJUSTED</small><strong id="atotal">0.0</strong></div>
           <div class="verdict" id="vbox"><strong id="verdict">ADD ASSETS</strong><small id="gap"></small></div>
-          <div class="score"><small>CPU TEAM ADJUSTED</small><strong id="btotal">0.0</strong></div>
+          <div class="score"><small id="blabel">CPU TEAM ADJUSTED</small><strong id="btotal">0.0</strong></div>
         </section>
         <div class="trade">
           <section class="side" data-side="A">
             <div class="sidehead">
-              <h2>USER TEAM RECEIVES</h2>
+              <h2 id="aheading">USER TEAM RECEIVES</h2>
               <span class="count">0 / 6</span>
             </div>
+            <label class="team-pick" hidden>Your team
+              <select id="teamA"></select>
+            </label>
             <div class="assets"></div>
             <button type="button" class="add">+ Add asset</button>
           </section>
           <section class="side" data-side="B">
             <div class="sidehead">
-              <h2>CPU TEAM RECEIVES</h2>
+              <h2 id="bheading">CPU TEAM RECEIVES</h2>
               <span class="count">0 / 6</span>
             </div>
+            <label class="team-pick" hidden>Other team
+              <select id="teamB"></select>
+            </label>
             <div class="assets"></div>
             <button type="button" class="add">+ Add asset</button>
           </section>
@@ -59,16 +96,23 @@
           <div class="details" id="reads"></div>
         </section>
         <div class="trade-actions">
-          <button type="button" class="accept-trade" id="acceptTrade" disabled>Accept &amp; Log Trade</button>
+          <button type="button" class="accept-trade" id="acceptTrade" disabled hidden>Submit to league</button>
+          <p class="practice-note" id="practiceNote">Practice mode doesn't log trades. Switch to League to submit one.</p>
         </div>
-        <div class="accept-confirm" id="acceptConfirm" role="dialog" aria-labelledby="acceptConfirmTitle" aria-describedby="acceptConfirmDescription" hidden>
-          <h2 id="acceptConfirmTitle">Log this trade as accepted?</h2>
-          <p id="acceptConfirmDescription">The current trade details, calculator result, and Ruleset v4.4 evaluation will be saved to Trade History.</p>
+        <form class="accept-confirm" id="acceptConfirm" role="dialog" aria-labelledby="acceptConfirmTitle" aria-describedby="acceptConfirmDescription" hidden>
+          <h2 id="acceptConfirmTitle">Submit this trade to the league?</h2>
+          <p id="acceptConfirmDescription">This trade is logged now as <b>Unreviewed</b>. The commissioner reviews it afterwards.</p>
+          <p class="accept-warning" id="acceptWarning" hidden></p>
+          <label for="submitterName">Your name</label>
+          <input type="text" id="submitterName" maxlength="60" autocomplete="nickname" required>
+          <label for="submitterNote">Note <span class="admin-optional">Optional</span></label>
+          <textarea id="submitterNote" maxlength="500" rows="2" placeholder="For example: deadline deal agreed in Discord"></textarea>
+          <div class="accept-confirm-error" id="acceptConfirmError" aria-live="polite"></div>
           <div class="accept-confirm-actions">
             <button type="button" class="btn" id="cancelAcceptTrade">Cancel</button>
-            <button type="button" class="btn accept-confirm-button" id="confirmAcceptTrade">Accept &amp; Log</button>
+            <button type="submit" class="btn accept-confirm-button" id="confirmAcceptTrade">Submit</button>
           </div>
-        </div>
+        </form>
         <div class="status" id="status" aria-live="polite">Up to six assets per side. Select an asset to edit it.</div>
       </section>
       <section id="howto" class="panel" hidden>
@@ -85,7 +129,25 @@
               <li>Complete the fields for that asset.</li>
               <li>Review the adjusted values and verdict.</li>
               <li>Expand Trade Analysis when you want the explanation.</li>
+              <li>In League mode, select <b>Submit to league</b> once the trade is agreed.</li>
             </ol>
+          </div>
+          <div class="rulecard">
+            <h2>Practice or League</h2>
+            <p><b>Practice</b> is for trying trades. Nothing is saved.</p>
+            <p><b>League</b> is for real trades. Type your league's name and select <b>Enter</b>, then
+              choose <b>Your team</b> and the <b>Other team</b>. The headings and Trade Analysis then show the
+              team names. Your browser remembers the league; <b>Leave league</b> forgets it.</p>
+          </div>
+          <div class="rulecard">
+            <h2>Submitting a Trade</h2>
+            <ol>
+              <li>Build the trade with your team on the left and the other team on the right.</li>
+              <li>Select <b>Submit to league</b>.</li>
+              <li>Enter your name (and a note if you like), then select <b>Submit</b>.</li>
+            </ol>
+            <p>The trade is logged as <b>Unreviewed</b> until the commissioner checks it. A trade that isn't
+              FAIR can still be submitted; it's flagged for the commissioner.</p>
           </div>
           <div class="rulecard">
             <h2>Build the Trade</h2>
@@ -156,6 +218,7 @@
               <li>Assuming more low-value assets automatically fix a trade.</li>
               <li>Assuming equal draft points automatically mean FAIR.</li>
               <li>Ignoring Trade Analysis and Suggested Correction.</li>
+              <li>Submitting from the wrong side: your team is always on the left.</li>
             </ul>
           </div>
           <div class="rulecard">
@@ -246,6 +309,20 @@
               outside it a trade lands, with the side the trade favors.</p>
           </div>
           <div class="rulecard">
+            <h2>League Trades and Review</h2>
+            <p>League trades are logged when submitted and reviewed afterwards by the league's commissioner.
+              Trade History shows each trade's status:</p>
+            <ul>
+              <li><b>Unreviewed:</b> waiting for the commissioner.</li>
+              <li><b>Reviewed:</b> checked by the commissioner.</li>
+              <li><b>Corrected:</b> the commissioner fixed the values; the original submission is kept.</li>
+              <li><b>Pre-league:</b> logged before league mode.</li>
+            </ul>
+            <p>The commissioner can also reverse a trade, with a reason. It leaves Trade History but stays in
+              the audit log. Verdicts are always calculated with the current Ruleset; a review never changes
+              how a trade is valued.</p>
+          </div>
+          <div class="rulecard">
             <h2>About the Calculator</h2>
             <p>The calculator uses full internal precision. Display rounding is presentation only. Trade
               Intelligence includes Primary Read, Best Asset, Raw Value, Adjusted Value, Draft Capital,
@@ -256,69 +333,84 @@
           complete calculation engine.</p>
       </section>
       <section id="history" class="panel" hidden>
-        <div class="rulesintro"><strong>Trade History</strong> Accepted trades are shown using the evaluation
-          frozen when each trade was logged.</div>
+        <div class="rulesintro"><strong>Trade History</strong> Your league's trades, newest first, with each
+          one's review status: <b>Unreviewed</b> until the commissioner checks it, then <b>Reviewed</b> or
+          <b>Corrected</b>. <b>Pre-league</b> trades were logged before league mode.</div>
         <div id="historyState" class="history-state" aria-live="polite">Trade History has not been loaded yet.</div>
         <div id="historyList" class="history-list"></div>
         <div id="historyDetail" class="history-detail" hidden></div>
       </section>
-      <section id="admin" class="panel" hidden>
-        <div class="rulesintro"><strong>Admin</strong> Administrative maintenance requires password
-          verification.</div>
-        <div class="admin-login-card" id="adminLocked">
-          <h2>Administrator Access</h2>
-          <p>Enter the shared administrator password to begin a temporary administrative session.</p>
-          <form id="adminLoginForm">
-            <label for="adminPassword">Administrator password</label>
-            <input type="password" id="adminPassword" autocomplete="current-password" maxlength="512" required>
-            <button type="submit" class="btn admin-login-button">Unlock Admin</button>
+      <section id="commissioner" class="panel" hidden>
+        <div class="rulesintro"><strong>Commissioner</strong> Review your league's trades: mark them
+          reviewed, correct them, or reverse them. Every action is recorded in the audit log.</div>
+        <div class="history-state" id="commNoLeague">Switch to League and enter your league to use the
+          Commissioner area.</div>
+        <div class="admin-login-card" id="commLocked" hidden>
+          <h2>Commissioner sign-in</h2>
+          <p>Enter the commissioner password for <b id="commLeagueName"></b>. The session lasts 30
+            minutes.</p>
+          <form id="commLoginForm" class="comm-form">
+            <label for="commPassword">Commissioner password</label>
+            <input type="password" id="commPassword" autocomplete="current-password" maxlength="512" required>
+            <button type="submit" class="btn admin-login-button" id="commLoginButton">Sign in</button>
           </form>
-          <div class="admin-status" id="adminStatus" aria-live="polite"></div>
+          <div class="admin-status" id="commStatus" aria-live="polite"></div>
         </div>
-        <div id="adminUnlocked" hidden>
+        <div id="commUnlocked" hidden>
           <div class="admin-unlocked-head">
             <div>
-              <h2>Administrative Session</h2>
-              <p id="adminSessionStatus">Administrative access is active.</p>
+              <h2>Commissioner session</h2>
+              <p id="commSessionStatus"></p>
             </div>
-            <button type="button" class="btn" id="lockAdmin">Lock Admin</button>
+            <div class="comm-head-actions">
+              <label for="commName">Your name <span class="admin-optional">shown in the audit log</span></label>
+              <input type="text" id="commName" maxlength="60" autocomplete="nickname">
+              <button type="button" class="btn comm-signout" id="commSignOut">Sign out</button>
+            </div>
           </div>
+          <form class="admin-delete-confirm comm-action" id="commAction" hidden>
+            <h2 id="commActionTitle"></h2>
+            <p id="commActionDescription"></p>
+            <label for="commReason">Reason <span class="admin-optional" id="commReasonHint"></span></label>
+            <textarea id="commReason" maxlength="500" rows="3"></textarea>
+            <div class="admin-status" id="commActionStatus" aria-live="polite"></div>
+            <div class="admin-delete-actions">
+              <button type="button" class="btn" id="commActionCancel">Cancel</button>
+              <button type="submit" class="btn admin-confirm-delete" id="commActionConfirm">Confirm</button>
+            </div>
+          </form>
+          <section class="admin-section comm-queue">
+            <div class="admin-section-head">
+              <div>
+                <h2>Review queue</h2>
+                <p>Unreviewed trades, oldest first. Flags point out what to check.</p>
+              </div>
+            </div>
+            <div class="admin-status" id="commQueueStatus" aria-live="polite"></div>
+            <div class="comm-list" id="commQueue"></div>
+          </section>
           <div class="admin-tools">
             <section class="admin-section">
               <div class="admin-section-head">
                 <div>
-                  <h2>Active Trades</h2>
-                  <p>Manage accepted trades currently visible in public Trade History.</p>
+                  <h2>All trades</h2>
+                  <p>Every active trade in the league, newest first. Reviewed trades can still be
+                    corrected or reversed.</p>
                 </div>
               </div>
-              <div id="adminTradesStatus" class="admin-status" aria-live="polite">Unlock Admin to load active trades.</div>
-              <div id="adminTradesList"></div>
+              <div class="admin-status" id="commAllStatus" aria-live="polite"></div>
+              <div class="comm-list" id="commAll"></div>
             </section>
             <section class="admin-section">
               <div class="admin-section-head">
                 <div>
-                  <h2>Audit Log</h2>
-                  <p>Administrative Trade History actions appear here.</p>
+                  <h2>Audit log</h2>
+                  <p>This league's commissioner actions and submissions, newest first.</p>
                 </div>
               </div>
-              <div id="adminAuditStatus" class="admin-status" aria-live="polite">Unlock Admin to load the Audit Log.</div>
-              <div id="adminAuditList"></div>
+              <div class="admin-status" id="commAuditStatus" aria-live="polite"></div>
+              <div class="comm-list" id="commAudit"></div>
             </section>
-          </div>
-          <div class="admin-delete-confirm" id="adminDeleteConfirm" hidden>
-            <h2 id="adminDeleteTitle">Confirm Trade Deletion</h2>
-            <p id="adminDeleteDescription">Confirm which Trade should be removed from public Trade History.</p>
-            <form id="adminDeleteForm">
-              <label for="adminDeleteName"> Administrator Name </label>
-              <input type="text" id="adminDeleteName" maxlength="200" autocomplete="off" required>
-              <label for="adminDeleteReason"> Deletion Reason <span class="admin-optional">Optional</span> </label>
-              <textarea id="adminDeleteReason" maxlength="1000" rows="3" placeholder="For example: Duplicate trade or logged in error"></textarea>
-              <div class="admin-delete-actions">
-                <button type="button" class="btn" id="cancelDeleteTrade">Cancel</button>
-                <button type="submit" class="btn admin-confirm-delete">Confirm Delete</button>
-              </div>
-            </form>
-            <div id="adminDeleteStatus" class="admin-status" aria-live="polite"></div>
           </div>
         </div>
       </section>
@@ -332,8 +424,9 @@
     <script src="./storage.js"></script>
     <script src="./theme.js"></script>
     <script src="./valuation.js"></script>
+    <script src="./league-mode.js"></script>
     <script src="./calculator-ui.js"></script>
     <script src="./trade-history.js"></script>
-    <script src="./admin.js"></script>
+    <script src="./commissioner.js"></script>
   </body>
 </html>

@@ -507,6 +507,336 @@ main {
   font-weight: 850;
 }
 
+/* Web v2.0 league mode: mode switch, league bar, team pickers, submit form */
+
+.leaguebar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.mode-switch {
+  display: inline-flex;
+  background: var(--secondary-bg);
+  border-radius: 9px;
+  padding: 3px;
+}
+
+.mode-option {
+  border: 0;
+  background: transparent;
+  color: var(--secondary-text);
+  border-radius: 7px;
+  padding: 6px 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mode-option.active {
+  background: var(--navy);
+  color: var(--bg);
+}
+
+.league-entry,
+.league-current {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.league-entry[hidden],
+.league-current[hidden] {
+  display: none;
+}
+
+.league-entry label,
+.league-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.league-entry input {
+  width: 220px;
+  max-width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text);
+}
+
+.league-enter {
+  background: var(--navy);
+  color: var(--bg);
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.league-enter:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.league-current strong {
+  color: var(--navy);
+  font-size: 13px;
+}
+
+.league-leave {
+  background: var(--secondary-bg);
+  color: var(--secondary-text);
+  cursor: pointer;
+}
+
+.league-status {
+  flex-basis: 100%;
+  font-size: 10px;
+  color: var(--muted);
+  min-height: 0;
+}
+
+.league-status:empty {
+  display: none;
+}
+
+.team-pick {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 9px;
+  font-weight: 750;
+  color: var(--muted);
+}
+
+.team-pick[hidden] {
+  display: none;
+}
+
+.team-pick select {
+  width: 100%;
+  margin-top: 3px;
+  padding: 7px;
+  border: 1px solid var(--input-border);
+  border-radius: 7px;
+  background: var(--input-bg);
+  color: var(--text);
+}
+
+.practice-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.practice-note[hidden],
+.accept-trade[hidden] {
+  display: none;
+}
+
+.accept-confirm label {
+  display: block;
+  margin-top: 10px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.accept-confirm input,
+.accept-confirm textarea {
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+
+.accept-confirm .accept-warning {
+  margin-top: 8px;
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: var(--questionable-bg);
+  color: var(--amber);
+  font-weight: 750;
+}
+
+.accept-confirm-error {
+  min-height: 14px;
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--red);
+}
+
+.comm-head-actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 8px;
+  align-items: end;
+  min-width: 240px;
+}
+
+.comm-head-actions label {
+  grid-column: 1 / -1;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.comm-head-actions input {
+  padding: 7px 9px;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text);
+}
+
+.comm-signout {
+  cursor: pointer;
+}
+
+.comm-queue {
+  margin-top: 12px;
+}
+
+.comm-action {
+  display: grid;
+  gap: 8px;
+}
+
+.comm-action[hidden],
+#commUnlocked[hidden],
+#commLocked[hidden],
+#commNoLeague[hidden] {
+  display: none;
+}
+
+.comm-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 7px;
+}
+
+.comm-flag {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--unfair-bg);
+  color: var(--orange);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.comm-note {
+  margin: 7px 0 0;
+  font-size: 10px;
+  color: var(--muted);
+  white-space: pre-wrap;
+}
+
+.comm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.comm-actions .btn {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.comm-review {
+  background: var(--fair-bg);
+  color: var(--green);
+}
+
+.comm-correct {
+  background: var(--secondary-bg);
+  color: var(--secondary-text);
+}
+
+.admin-audit-action.comm-audit-trade_reviewed,
+.admin-audit-action.comm-audit-trade_corrected {
+  color: var(--green);
+}
+
+.admin-audit-action.comm-audit-pre_league_migration,
+.admin-audit-action.comm-audit-league_created {
+  color: var(--navy);
+}
+
+.correction-bar {
+  display: grid;
+  grid-template-columns: 1fr minmax(180px, 280px) auto;
+  gap: 6px 10px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  background: var(--questionable-bg);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.correction-bar[hidden] {
+  display: none;
+}
+
+.correction-text strong {
+  display: block;
+  color: var(--amber);
+  font-size: 13px;
+}
+
+.correction-text span {
+  font-size: 10px;
+  color: var(--text);
+}
+
+.correction-bar label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.correction-bar input {
+  padding: 8px 9px;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text);
+}
+
+.correction-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.correction-actions .btn {
+  cursor: pointer;
+}
+
+.correction-status {
+  grid-column: 1 / -1;
+  font-size: 10px;
+  color: var(--red);
+}
+
+.correction-status:empty {
+  display: none;
+}
+
 .admin-login-card {
   max-width: 520px;
   margin: 0 auto;
@@ -531,19 +861,19 @@ main {
   line-height: 1.45;
 }
 
-#adminLoginForm {
+.comm-form {
   display: grid;
   gap: 8px;
   margin-top: 16px;
 }
 
-#adminLoginForm label {
+.comm-form label {
   font-size: 10px;
   font-weight: 800;
   color: var(--muted);
 }
 
-#adminPassword {
+.comm-form input {
   width: 100%;
   padding: 10px;
   border: 1px solid var(--input-border);
@@ -582,7 +912,7 @@ main {
   padding: 14px;
 }
 
-#lockAdmin {
+.comm-signout {
   background: var(--secondary-bg);
   color: var(--secondary-text);
   font-weight: 800;
@@ -622,8 +952,7 @@ main {
   line-height: 1.45;
 }
 
-#adminTradesList,
-#adminAuditList {
+.comm-list {
   display: grid;
   gap: 8px;
   margin-top: 10px;
@@ -744,20 +1073,19 @@ main {
   line-height: 1.45;
 }
 
-#adminDeleteForm {
+.comm-action {
   display: grid;
   gap: 8px;
   margin-top: 14px;
 }
 
-#adminDeleteForm label {
+.comm-action label {
   font-size: 9px;
   font-weight: 800;
   color: var(--muted);
 }
 
-#adminDeleteName,
-#adminDeleteReason {
+.comm-action textarea {
   width: 100%;
   border: 1px solid var(--input-border);
   border-radius: 8px;
@@ -766,7 +1094,7 @@ main {
   font: inherit;
 }
 
-#adminDeleteReason {
+.comm-action textarea {
   resize: vertical;
 }
 
@@ -801,6 +1129,13 @@ main {
   display: grid;
   gap: 10px;
   margin-top: 10px;
+}
+
+/* display:grid above would otherwise override the hidden attribute */
+.history-list[hidden],
+.history-detail[hidden],
+.history-state[hidden] {
+  display: none;
 }
 
 .history-card {
@@ -851,6 +1186,79 @@ main {
 
 .history-packages span {
   font-size: 11px;
+}
+
+/* Web v2.0 review-status badges */
+
+.history-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .03em;
+  vertical-align: 1px;
+}
+
+.history-badge.unreviewed {
+  background: var(--questionable-bg);
+  color: var(--amber);
+}
+
+.history-badge.reviewed,
+.history-badge.corrected {
+  background: var(--fair-bg);
+  color: var(--green);
+}
+
+.history-badge.pre-league {
+  background: var(--secondary-bg);
+  color: var(--secondary-text);
+}
+
+.history-card-verdict {
+  display: grid;
+  justify-items: end;
+}
+
+.history-review {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.history-review .history-badge {
+  margin-left: 0;
+  margin-right: 4px;
+}
+
+.history-submitter {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text);
+}
+
+.history-submitter p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  white-space: pre-wrap;
+}
+
+.history-original {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.history-original-toggle {
+  background: var(--secondary-bg);
+  color: var(--secondary-text);
+  cursor: pointer;
+}
+
+.history-original-body {
+  margin-top: 10px;
 }
 
 .history-card-foot {
@@ -1142,6 +1550,14 @@ textarea:focus-visible {
   }
   .admin-trade-packages {
     grid-template-columns: 1fr;
+  }
+  .tab {
+    padding: 8px 6px;
+  }
+  .correction-bar,
+  .admin-unlocked-head {
+    grid-template-columns: 1fr;
+    display: grid;
   }
 }
 

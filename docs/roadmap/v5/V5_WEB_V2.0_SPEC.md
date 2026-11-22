@@ -79,7 +79,7 @@ Decisions taken on this spec are logged in `V5_OPEN_QUESTIONS.md` (Q25–Q28, al
 | Mark reviewed | Queue → Mark reviewed → `review-trade` (`REVIEW`) | Status REVIEWED, audit `TRADE_REVIEWED` |
 | Correct | Queue → Correct → edit → Save correction + reason → `review-trade` (`CORRECT`) | New revision, trade row shows corrected values, status REVIEWED, audit `TRADE_CORRECTED` |
 | Reverse | Queue or All trades → Reverse + reason → `review-trade` (`REVERSE`) | Status REVERSED, `deleted_at` set, audit `TRADE_REVERSED` |
-| Create league (site owner) | Run `docs/roadmap/v5/sql/create-league.sql` in the Supabase SQL editor with the name, password and team list | League + 32 teams, audit `LEAGUE_CREATED` |
+| Create league (site owner) | In the Supabase dashboard (Explorer): `owner_create_league`, a Snallabot export, `owner_load_teams`, `owner_set_commissioner_password` ([V5_OWNER_TOOLKIT.md](V5_OWNER_TOOLKIT.md)) | League + 32 teams, audit `LEAGUE_CREATED`, `TEAM_UPDATED`, `COMMISSIONER_PASSWORD_SET` |
 
 ## 5. API
 
@@ -99,22 +99,27 @@ All writes go through Edge Functions using the service role. Multi-row writes ru
 | Function | Status | Auth | Body | Does |
 |---|---|---|---|---|
 | `accept-trade` | Changed | publishable | v2.0 snapshot (§7) | Validates as today, plus the league fields; calls `submit_league_trade()` |
-| `commissioner-login` | New (replaces `admin-login`) | publishable | `league_name`, `password` | Checks `verify_commissioner_password`; returns a token `{version: 2, leagueId, role: "COMMISSIONER", issuedAt, expiresAt}` signed with `ADMIN_SESSION_SECRET` |
+| `commissioner-login` | New (replaces `admin-login`) | publishable | `league_name`, `password` | Calls `commissioner_login()` (OK / BAD / LOCKED / NOT_SET / UNKNOWN); on OK returns a token `{version: 2, leagueId, role: "COMMISSIONER", issuedAt, expiresAt}` signed with `ADMIN_SESSION_SECRET` |
 | `commissioner-session-check` | New (replaces `admin-session-check`) | token | — | Valid / expired, plus league |
 | `review-trade` | New (replaces `delete-trade`) | token | `trade_id`, `action` (`REVIEW` / `CORRECT` / `REVERSE`), `commissioner_name`, `reason`, and for CORRECT a v2.0 snapshot | Checks that the trade belongs to the token's league; calls `review_league_trade()` |
 | `commissioner-audit-log` | New (replaces `admin-audit-log`) | token | — | This league's audit events |
 
 - **Retired at launch:** `admin-login`, `admin-session-check`, `delete-trade`, `admin-audit-log`, and the `ADMIN_PASSWORD` secret. `ADMIN_SESSION_SECRET` stays as the signing key. v1 tokens (no `leagueId`) are rejected.
-- **Login throttling (Decided, Q27):** after 5 wrong passwords for a league within 15 minutes, `commissioner-login` refuses for 15 minutes (counted in a small `login_attempts` table). Today's admin login has no throttle; a per-league password guessed by brute force would expose corrections and reversals.
+- **Login throttling (Decided, Q27):** after 5 wrong passwords for a league within 15 minutes, `commissioner-login` refuses for 15 minutes, even for the right password (counted in `commissioner_login_attempts`; a success resets the count; the lockout is per league). Today's admin login has no throttle; a per-league password guessed by brute force would expose corrections and reversals.
 
 ### 5.3 Database functions (service role only)
 
-- `submit_league_trade(p_league_id, p_snapshot jsonb, p_submitter_name, p_submitter_note) returns (trade_id, trade_number, accepted_at)`. Inserts the `trades` row (UNREVIEWED) with league and team fields, revision 0, and `trade_assets` rows. It checks that both teams belong to the league; the foreign keys enforce it too.
-- `review_league_trade(p_league_id, p_trade_id, p_action, p_commissioner_name, p_reason, p_snapshot jsonb) returns (...)`.
+Built in `20261122160000_league_mode.sql`:
+
+- `submit_league_trade(p_league_id, p_submitting_team_id, p_other_team_id, p_submitter_name, p_submitter_note, p_trade jsonb) returns (trade_id, trade_number, accepted_at)`. Inserts the `trades` row (UNREVIEWED) with league and team fields, revision 0, and `trade_assets` rows. It checks that both teams belong to the league (the foreign keys enforce it too), the name (1–60) and the note (up to 500). `p_trade` is the object `accept-trade` has already validated. Asset rows are a lenient copy: values that don't parse are stored as null, never blocking a trade; the full values stay in the revision snapshot.
+- `review_league_trade(p_league_id, p_trade_id, p_action, p_commissioner_name, p_reason, p_trade jsonb) returns (trade_id, trade_number, review_status, current_revision)`. A trade outside the token's league is "not found"; a reversed trade can't be acted on again.
   - **REVIEW:** sets REVIEWED.
   - **CORRECT:** inserts the next revision and its assets, copies the corrected values onto the `trades` row, and sets REVIEWED and `current_revision`.
   - **REVERSE:** sets REVERSED, `deleted_at` and `reversal_reason`.
   - Every action writes the audit event.
+- `commissioner_login(p_league_name, p_password)` returns a status (OK / BAD / LOCKED / NOT_SET / UNKNOWN), the league ID on OK, and seconds to wait when locked.
+- `league_audit_log(p_league_id, p_limit)`: the league's audit events, newest first.
+- Error codes for the Edge Functions: `P0002` → 404, `22023` → 400.
 
 ## 6. Data access change
 
@@ -154,10 +159,10 @@ The baseline rule: deploy backend first, merge the site last, and keep every ste
 |---|---|---|
 | 0 | **Backup:** export `trades` and `audit_events` (CSV) to `backups/`; record row counts | — |
 | 1 | Apply migration `…_league_mode.sql`: `league_teams`, `trade_revisions`, `trade_assets`, additive columns on `trades` and `audit_events`, read functions, write functions (`leagues` already exists). The public read policy on `trades` **stays for now** | A down migration that drops the new objects (no existing data touched) |
-| 2 | The site owner sets the main league's commissioner password and seeds its 32 teams (from the latest `leagueteams` import, or the captured payload), entering the password at run time (never committed). The league row already exists from the Snallabot connection. Then `commissioner_password_hash` becomes required | Clear the password; delete the team rows |
+| 2 | The site owner runs `owner_load_teams` and `owner_set_commissioner_password` (runbook: [V5_WEB_V2.0_RUNBOOK.md](V5_WEB_V2.0_RUNBOOK.md)): sets the main league's commissioner password and seeds its 32 teams (from the latest `leagueteams` import, or the captured payload), entering the password at run time (never committed). The league row already exists from the Snallabot connection. Then `commissioner_password_hash` becomes required | Clear the password; delete the team rows |
 | 3 | Deploy `accept-trade` (accepts v2.0 and v1.5.0) and the four commissioner functions | Redeploy the v1.5.0 `accept-trade` |
-| 4 | Migrate history (schema §7): every existing trade → main league, pre-league; revision 0 for each; one `PRE_LEAGUE_MIGRATION` audit event. Check counts against step 0 | Clear the league fields on pre-league trades; delete revisions |
-| 5 | **Merge the v2.0 site** (`release/web-v2.0` → `main`); GitHub Pages deploys. Then apply migration `…_drop_public_trade_read.sql` | Revert the merge; re-create the policy |
+| 4 | `owner_move_pre_league_history`: every existing trade → main league, pre-league (active → Reviewed, deleted → Reversed, Q22); revision 0 for each; one `PRE_LEAGUE_MIGRATION` audit event. Check counts against step 0 | Clear the league fields on pre-league trades; delete revisions |
+| 5 | **Merge the v2.0 site** (`release/web-v2.0` → `main`); GitHub Pages deploys. Then a one-file PR adds `…_drop_public_trade_read.sql` to `main` and it's pushed (it isn't in the release branch, so step 1's push can't apply it early) | Revert the merge; re-create the policy |
 | 6 | Re-run the step 4 sweep for any v1.5.0 trades logged during the window | — |
 | 7 | Smoke test on the live site (§10). Retire the old Admin functions and the `ADMIN_PASSWORD` secret | Redeploy the old functions |
 | 8 | About a week later: maintenance update removing `v1.5.0` from `accept-trade` | — |
@@ -167,14 +172,15 @@ The baseline rule: deploy backend first, merge the site last, and keep every ste
 | File | Change |
 |---|---|
 | `index.html` | Mode switch, league bar, team pickers, submit dialog fields, Commissioner tab (replaces Admin), history badges |
-| `calculator-ui.js` | League state, team pickers, display-name substitution, v2.0 snapshot fields, correction mode. **Baseline file:** manifest addendum |
-| `trade-history.js` | Read via `league_trade_history`; status badges; Original submission view |
-| `admin.js` → `commissioner.js` | League sign-in, review queue, Mark reviewed / Correct / Reverse, audit log |
-| `storage.js` | `leagueLookup`, `leagueTeams`, `leagueHistory`, `submitLeagueTrade`, `commissionerLogin`, `reviewTrade`, `commissionerAuditLog` |
+| `league-mode.js` (new) | Built (step 3): Practice / League switch, league bar, team pickers, display-only team names, the v2.0 submission and its duplicate guard. Remembers the mode, league name and submitter name in this browser |
+| `calculator-ui.js` | Built (step 3): snapshot `web_release` `v2.0` (every other field identical to v1.5.0), team names in the displayed text, Submit to league with name and note, practice mode without logging. Correction mode comes in step 5. **Baseline file:** manifest addendum |
+| `trade-history.js` | Built (step 4): reads `league_trade_history` for the entered league; Unreviewed / Reviewed / Corrected / Pre-league badges; teams, submitter and note; team names in displayed text only; Corrected trades load the Original submission (`league_trade_revisions`) on request; practice mode shows "Enter a league to see its trade history." Reloads when the league or mode changes and after a submit. Also fixes the v1.5.0 bug where the list stayed visible under an open trade |
+| `admin.js` → `commissioner.js` | Built (step 5): `admin.js` removed. League sign-in (token in memory only, tied to the entered league; lockout message in minutes), review queue (unreviewed league trades oldest first; flags: not FAIR, human to human, possible duplicate within 24 hours), All trades, Mark reviewed (optional comment) / Reverse (reason required), correction mode (loads the trade and its teams into the calculator; Save correction needs a reason and sends the re-run v2.0 snapshot), audit log. Commissioner name remembered in this browser. Signs out on a 401 or when the league changes. Note: the load-order comment in `valuation.js` still names `admin.js`; it stays until Phase 9 because the file is frozen |
+| `storage.js` | `leagueLookup`, `leagueTeams`, `submitLeagueTrade` (built, step 3); `leagueHistory`, `leagueTradeRevisions` (built, step 4); `commissionerLogin`, `commissionerSessionCheck`, `reviewTrade`, `commissionerAuditLog` (built, step 5). The v1.5.0 Admin calls (`getActiveTrades`, `adminLogin`, `deleteTrade`, `getAdminAuditLog`) are removed |
 | `styles.css` | Switch, badges, queue |
-| `supabase/migrations/` | `league_mode`, `drop_public_trade_read`, `login_attempts` |
-| `supabase/functions/` | `accept-trade` changed; four new commissioner functions; four old ones removed after launch |
-| `docs/roadmap/v5/sql/create-league.sql` | Site-owner script: set the commissioner password and seed teams on the existing league row (or create a new league) |
+| `supabase/migrations/` | `20261122160000_league_mode.sql` (built: teams, trade revisions and assets, review fields, audit actions, login lockout, read functions, submit / review / login / audit-log functions). The policy drop is staged in `docs/roadmap/v5/sql/web-v2.0-drop-public-trade-read.sql` and only copied into migrations at release step 5 |
+| `supabase/functions/` | Built: `accept-trade` changed; four new commissioner functions; shared validation, session and handler modules in `_shared/`. Contracts in [V5_WEB_V2.0_FUNCTIONS.md](V5_WEB_V2.0_FUNCTIONS.md). The four old Admin functions are removed after launch |
+| `supabase/migrations/20261122170000_owner_toolkit.sql` | Built (step 6): site-owner functions run in Explorer: `owner_leagues`, `owner_teams`, `owner_load_teams` (from the newest Snallabot export), `owner_set_team`, `owner_set_commissioner_password` (also clears lockouts), `owner_create_league`, `owner_rename_league`, `owner_set_league_status`, `owner_rotate_import_secret`, `owner_move_pre_league_history`. Dashboard only; audited as SITE_OWNER. Guide: `V5_OWNER_TOOLKIT.md`; launch: `V5_WEB_V2.0_RUNBOOK.md`; tests `tests/web-v2.0-owner-toolkit.test.py` |
 | `valuation.js` | **No change** |
 
 ## 10. Tests and acceptance
@@ -182,8 +188,9 @@ The baseline rule: deploy backend first, merge the site last, and keep every ste
 **Automated**
 
 - `node tests/ruleset-v4.4.test.js`: 64 / 64 (v4.4 unchanged); `valuation.js` hash equals the baseline.
-- `tests/web-v2.0-snapshot.test.js` (new): the v2.0 snapshot has every v1.5.0 field unchanged plus the league fields; display-name substitution never changes stored text.
-- Database tests extending `V5_SAMPLE_SCHEMA_TESTS.sql` for `submit_league_trade` and `review_league_trade`: wrong league, teams from another league, correction without reason, reverse twice, a token for league X acting on league Y, history hides reversed trades.
+- `tests/web-v2.0-league-mode.test.js` (built, 85 / 85; 15 cover league Trade History and 29 the Commissioner area and correction mode): loads the real page scripts in a fake DOM. For all 16 parity scenarios the v2.0 snapshot equals the v1.5.0 snapshot from the `ruleset-v4.4-baseline` tag apart from `web_release`, with league mode on and teams chosen. Team names appear only on screen (HTML-escaped) and never in stored text. Practice mode can't submit. League entry (unknown name, remembered league), team pickers, the submit form, the submission fields and the duplicate guard. `valuation.js` matches its manifest hash.
+- `tests/web-v2.0-functions.test.mjs` (built, 83 / 83): trade and league-field validation; accepted release pairs; commissioner tokens (expiry, tampering, league binding, v1 and v2 tokens kept apart); `accept-trade` league and switchover paths; login OK / BAD / LOCKED / NOT_SET / UNKNOWN; review, correct and reverse inputs; audit log scoped to the token's league.
+- `tests/web-v2.0-db.test.py` (built, 67 / 67): v1.5.0 insert and v1.4.0 delete unaffected; lookup, teams (32, OMH, AZ, 6 human); submit and its rejects; history and revisions; review, correct (both revisions kept), reverse; another league can't act; login OK / BAD / LOCKED / NOT_SET / UNKNOWN with the 15-minute lockout; browser access limits; the staged step-5 migration.
 
 **Smoke test (live, after step 5)**
 
@@ -211,7 +218,7 @@ Branch `release/web-v2.0`, one `feature/web-v2.0-<topic>` branch per item, in th
 3. `league-switch`: mode switch, league bar, team pickers, display names, submit.
 4. `history`: league history and badges.
 5. `commissioner`: sign-in, queue, review actions, audit log.
-6. `migration-script`: `create-league.sql`, history migration, runbook.
+6. `migration-script`: owner toolkit (league setup, teams, password, history move), runbook.
 7. `release`: docs, manifest addendum, smoke test, then the release PR.
 
 ## 13. Risks specific to v2.0

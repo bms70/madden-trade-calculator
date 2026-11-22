@@ -489,3 +489,31 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/snallabot-import/deno.json"
 entrypoint = "./functions/snallabot-import/index.ts"
+
+[functions.commissioner-login]
+enabled = true
+# Web v2.0. The browser sends the publishable key; the commissioner token is checked by the function.
+verify_jwt = false
+import_map = "./functions/commissioner-login/deno.json"
+entrypoint = "./functions/commissioner-login/index.ts"
+
+[functions.commissioner-session-check]
+enabled = true
+# Web v2.0. The browser sends the publishable key; the commissioner token is checked by the function.
+verify_jwt = false
+import_map = "./functions/commissioner-session-check/deno.json"
+entrypoint = "./functions/commissioner-session-check/index.ts"
+
+[functions.review-trade]
+enabled = true
+# Web v2.0. The browser sends the publishable key; the commissioner token is checked by the function.
+verify_jwt = false
+import_map = "./functions/review-trade/deno.json"
+entrypoint = "./functions/review-trade/index.ts"
+
+[functions.commissioner-audit-log]
+enabled = true
+# Web v2.0. The browser sends the publishable key; the commissioner token is checked by the function.
+verify_jwt = false
+import_map = "./functions/commissioner-audit-log/deno.json"
+entrypoint = "./functions/commissioner-audit-log/index.ts"
