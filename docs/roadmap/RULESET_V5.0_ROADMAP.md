@@ -4,7 +4,7 @@ This is a working roadmap, not a frozen ruleset specification. Last updated: 202
 
 **Principle:** Ruleset v4.4 stays the production baseline. League integration gets built first. A change becomes Ruleset v5.0 only once league-data-driven valuation changes are backed by evidence, regression-tested, and validated in shadow mode.
 
-## Phase 0 and 1 documents
+## Phase 0–2 documents
 
 | Document | Purpose |
 |---|---|
@@ -17,6 +17,7 @@ This is a working roadmap, not a frozen ruleset specification. Last updated: 202
 | [`v5/V5_LEAGUE_DATA_SPEC.md`](v5/V5_LEAGUE_DATA_SPEC.md) | League data entities |
 | [`v5/V5_SAMPLE_SCHEMA.sql`](v5/V5_SAMPLE_SCHEMA.sql) | Sample normalized schema (design draft), with tests in `V5_SAMPLE_SCHEMA_TESTS.sql` |
 | [`v5/V5_IDENTITY_AND_ACCESS.md`](v5/V5_IDENTITY_AND_ACCESS.md) | League-name access, commissioner role, trade flow |
+| [`v5/V5_WEB_V2.0_SPEC.md`](v5/V5_WEB_V2.0_SPEC.md) | Web v2.0 (league mode) design spec: screens, API, snapshot v2, migration and release order (Phase 2) |
 | [`v5/V5_OPEN_QUESTIONS.md`](v5/V5_OPEN_QUESTIONS.md) | Open questions, assumptions, answers |
 
 ## Versioning (decided 2026-11-21)

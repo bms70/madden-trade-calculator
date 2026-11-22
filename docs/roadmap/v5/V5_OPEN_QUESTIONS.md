@@ -10,6 +10,10 @@ Last updated: 2026-11-21.
 |---|---|---|---|
 | 19 | Offseason fade shape. Posture is at full strength after the season and fades to zero by preseason week 3. Should it fade stage by stage (re-signing → free agency → draft → preseason weeks 1–3), and along which curve: the squared in-season ramp in reverse, or a straight line? | Phase 7 posture spec | V5_PHASE_PLAN |
 | 20 | Posture effect sizes. The human-team placeholder is a very small protective effect, and the CPU-team effect is larger. Final values get set in Phase 6–7 calibration. Any starting preference? | Phase 7 | V5_PHASE_PLAN |
+| 25 | Should practice mode **stop logging trades** in v2.0? Today anyone can Accept & Log from the calculator; in v2.0 only league trades would be logged, and existing history moves into the main league. Recommended: yes | Web v2.0 build | V5_WEB_V2.0_SPEC §3.3 |
+| 26 | Team editing on screen (human / CPU, owner label): in **v2.0**, or **v2.1** with SQL fixes until then? Recommended: v2.1 | Web v2.0 scope | V5_WEB_V2.0_SPEC §1 |
+| 27 | **Login throttling** for commissioner passwords: refuse for 15 minutes after 5 wrong tries per league? Recommended: yes | Web v2.0 build | V5_WEB_V2.0_SPEC §5.2 |
+| 28 | The main league's **name** (what members will type) and who sets its commissioner password | Web v2.0 release step 2 | V5_WEB_V2.0_SPEC §8 |
 
 ## Assumed (confirm or change)
 

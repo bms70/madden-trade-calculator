@@ -50,7 +50,7 @@ The finish line is **Web v5.0 + Ruleset v5.0**. Releases before that follow thes
 
 ### Phase 2 — League layer and import layer · **Web v2.0**, then **v3.0**
 
-**Web v2.0 — League mode (no imports yet)**
+**Web v2.0 — League mode (no imports yet)** · design spec: [`V5_WEB_V2.0_SPEC.md`](V5_WEB_V2.0_SPEC.md)
 - Database: `leagues`, `teams` (32 per league, seeded from the league's `leagueteams` payload), league trades with a review status (unreviewed / reviewed / reversed), and audit records.
 - Site: a **League / Practice switch**. League mode asks for the league name, then the member's team and the other team.
 - Members submit trades, which are **logged immediately as Unreviewed** and shown that way in league history.
