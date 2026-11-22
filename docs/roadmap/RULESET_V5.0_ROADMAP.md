@@ -15,6 +15,7 @@ This is a working roadmap, not a frozen ruleset specification. Last updated: 202
 | [`v5/V5_DATA_SOURCE_FEASIBILITY.md`](v5/V5_DATA_SOURCE_FEASIBILITY.md) | Companion App status, relay comparison, Snallabot adoption |
 | [`v5/V5_FIELD_MAPPING.md`](v5/V5_FIELD_MAPPING.md) | Madden 27 export fields mapped to v4.4 inputs |
 | [`v5/V5_LEAGUE_DATA_SPEC.md`](v5/V5_LEAGUE_DATA_SPEC.md) | League data entities |
+| [`v5/V5_SAMPLE_SCHEMA.sql`](v5/V5_SAMPLE_SCHEMA.sql) | Sample normalized schema (design draft), with tests in `V5_SAMPLE_SCHEMA_TESTS.sql` |
 | [`v5/V5_IDENTITY_AND_ACCESS.md`](v5/V5_IDENTITY_AND_ACCESS.md) | League-name access, commissioner role, trade flow |
 | [`v5/V5_OPEN_QUESTIONS.md`](v5/V5_OPEN_QUESTIONS.md) | Open questions, assumptions, answers |
 
