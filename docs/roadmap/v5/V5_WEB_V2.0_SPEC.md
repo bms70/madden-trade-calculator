@@ -99,22 +99,27 @@ All writes go through Edge Functions using the service role. Multi-row writes ru
 | Function | Status | Auth | Body | Does |
 |---|---|---|---|---|
 | `accept-trade` | Changed | publishable | v2.0 snapshot (§7) | Validates as today, plus the league fields; calls `submit_league_trade()` |
-| `commissioner-login` | New (replaces `admin-login`) | publishable | `league_name`, `password` | Checks `verify_commissioner_password`; returns a token `{version: 2, leagueId, role: "COMMISSIONER", issuedAt, expiresAt}` signed with `ADMIN_SESSION_SECRET` |
+| `commissioner-login` | New (replaces `admin-login`) | publishable | `league_name`, `password` | Calls `commissioner_login()` (OK / BAD / LOCKED / NOT_SET / UNKNOWN); on OK returns a token `{version: 2, leagueId, role: "COMMISSIONER", issuedAt, expiresAt}` signed with `ADMIN_SESSION_SECRET` |
 | `commissioner-session-check` | New (replaces `admin-session-check`) | token | — | Valid / expired, plus league |
 | `review-trade` | New (replaces `delete-trade`) | token | `trade_id`, `action` (`REVIEW` / `CORRECT` / `REVERSE`), `commissioner_name`, `reason`, and for CORRECT a v2.0 snapshot | Checks that the trade belongs to the token's league; calls `review_league_trade()` |
 | `commissioner-audit-log` | New (replaces `admin-audit-log`) | token | — | This league's audit events |
 
 - **Retired at launch:** `admin-login`, `admin-session-check`, `delete-trade`, `admin-audit-log`, and the `ADMIN_PASSWORD` secret. `ADMIN_SESSION_SECRET` stays as the signing key. v1 tokens (no `leagueId`) are rejected.
-- **Login throttling (Decided, Q27):** after 5 wrong passwords for a league within 15 minutes, `commissioner-login` refuses for 15 minutes (counted in a small `login_attempts` table). Today's admin login has no throttle; a per-league password guessed by brute force would expose corrections and reversals.
+- **Login throttling (Decided, Q27):** after 5 wrong passwords for a league within 15 minutes, `commissioner-login` refuses for 15 minutes, even for the right password (counted in `commissioner_login_attempts`; a success resets the count; the lockout is per league). Today's admin login has no throttle; a per-league password guessed by brute force would expose corrections and reversals.
 
 ### 5.3 Database functions (service role only)
 
-- `submit_league_trade(p_league_id, p_snapshot jsonb, p_submitter_name, p_submitter_note) returns (trade_id, trade_number, accepted_at)`. Inserts the `trades` row (UNREVIEWED) with league and team fields, revision 0, and `trade_assets` rows. It checks that both teams belong to the league; the foreign keys enforce it too.
-- `review_league_trade(p_league_id, p_trade_id, p_action, p_commissioner_name, p_reason, p_snapshot jsonb) returns (...)`.
+Built in `20261122160000_league_mode.sql`:
+
+- `submit_league_trade(p_league_id, p_submitting_team_id, p_other_team_id, p_submitter_name, p_submitter_note, p_trade jsonb) returns (trade_id, trade_number, accepted_at)`. Inserts the `trades` row (UNREVIEWED) with league and team fields, revision 0, and `trade_assets` rows. It checks that both teams belong to the league (the foreign keys enforce it too), the name (1–60) and the note (up to 500). `p_trade` is the object `accept-trade` has already validated. Asset rows are a lenient copy: values that don't parse are stored as null, never blocking a trade; the full values stay in the revision snapshot.
+- `review_league_trade(p_league_id, p_trade_id, p_action, p_commissioner_name, p_reason, p_trade jsonb) returns (trade_id, trade_number, review_status, current_revision)`. A trade outside the token's league is "not found"; a reversed trade can't be acted on again.
   - **REVIEW:** sets REVIEWED.
   - **CORRECT:** inserts the next revision and its assets, copies the corrected values onto the `trades` row, and sets REVIEWED and `current_revision`.
   - **REVERSE:** sets REVERSED, `deleted_at` and `reversal_reason`.
   - Every action writes the audit event.
+- `commissioner_login(p_league_name, p_password)` returns a status (OK / BAD / LOCKED / NOT_SET / UNKNOWN), the league ID on OK, and seconds to wait when locked.
+- `league_audit_log(p_league_id, p_limit)`: the league's audit events, newest first.
+- Error codes for the Edge Functions: `P0002` → 404, `22023` → 400.
 
 ## 6. Data access change
 
@@ -172,7 +177,7 @@ The baseline rule: deploy backend first, merge the site last, and keep every ste
 | `admin.js` → `commissioner.js` | League sign-in, review queue, Mark reviewed / Correct / Reverse, audit log |
 | `storage.js` | `leagueLookup`, `leagueTeams`, `leagueHistory`, `submitLeagueTrade`, `commissionerLogin`, `reviewTrade`, `commissionerAuditLog` |
 | `styles.css` | Switch, badges, queue |
-| `supabase/migrations/` | `league_mode`, `drop_public_trade_read`, `login_attempts` |
+| `supabase/migrations/` | `20261122160000_league_mode.sql` (built: teams, trade revisions and assets, review fields, audit actions, login lockout, read functions, submit / review / login / audit-log functions). The policy drop is staged in `docs/roadmap/v5/sql/web-v2.0-drop-public-trade-read.sql` and only copied into migrations at release step 5 |
 | `supabase/functions/` | `accept-trade` changed; four new commissioner functions; four old ones removed after launch |
 | `docs/roadmap/v5/sql/create-league.sql` | Site-owner script: set the commissioner password and seed teams on the existing league row (or create a new league) |
 | `valuation.js` | **No change** |
@@ -183,7 +188,7 @@ The baseline rule: deploy backend first, merge the site last, and keep every ste
 
 - `node tests/ruleset-v4.4.test.js`: 64 / 64 (v4.4 unchanged); `valuation.js` hash equals the baseline.
 - `tests/web-v2.0-snapshot.test.js` (new): the v2.0 snapshot has every v1.5.0 field unchanged plus the league fields; display-name substitution never changes stored text.
-- Database tests extending `V5_SAMPLE_SCHEMA_TESTS.sql` for `submit_league_trade` and `review_league_trade`: wrong league, teams from another league, correction without reason, reverse twice, a token for league X acting on league Y, history hides reversed trades.
+- `tests/web-v2.0-db.test.py` (built, 67 / 67): v1.5.0 insert and v1.4.0 delete unaffected; lookup, teams (32, OMH, AZ, 6 human); submit and its rejects; history and revisions; review, correct (both revisions kept), reverse; another league can't act; login OK / BAD / LOCKED / NOT_SET / UNKNOWN with the 15-minute lockout; browser access limits; the staged step-5 migration.
 
 **Smoke test (live, after step 5)**
 

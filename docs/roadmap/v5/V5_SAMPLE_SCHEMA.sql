@@ -3,6 +3,14 @@
 -- Madden League Trade Calculator - Ruleset v5.0 roadmap, Phase 1
 --
 -- SAMPLE NORMALIZED SCHEMA. A design draft, NOT a migration.
+--
+-- STATUS (2026-11-22): sections 1-3 and 6 (leagues, teams, league trades,
+-- revisions, assets, audit, access) are now REAL, in
+-- supabase/migrations/20261122060000_snallabot_import.sql and
+-- 20261122160000_league_mode.sql. Use those, not this file, for Web v2.0.
+-- This draft stays as the design reference for the Web v3.0+ tables
+-- (league_calendar, draft_picks, league_players, team_standings). It no
+-- longer applies on top of all migrations (its tables now exist).
 --   - Do not copy into supabase/migrations/ as is. Web v2.0 and v3.0 turn the
 --     relevant parts into real, reviewed migrations (V5_PHASE_PLAN.md).
 --   - Written to run on top of the existing migrations (v1.4.0 plus the

@@ -8,6 +8,10 @@
 --   3. apply docs/roadmap/v5/V5_SAMPLE_SCHEMA.sql
 --   4. psql -f docs/roadmap/v5/V5_SAMPLE_SCHEMA_TESTS.sql
 -- Expected last line: 33 / 33 PASS
+--
+-- STATUS (2026-11-22): retired. These checks passed (33 / 33) against the
+-- migrations up to 20261122070000. The Web v2.0 migration (20261122160000)
+-- now creates these tables for real, and tests/web-v2.0-db.test.py covers them.
 -- ============================================================================
 \set ON_ERROR_STOP 1
 \pset tuples_only on
