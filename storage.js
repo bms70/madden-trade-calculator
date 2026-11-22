@@ -48,6 +48,30 @@
           deletedTrades: [],
           error: message
         };
+      },
+
+      leagueLookup: async function () {
+        return {
+          ok: false,
+          league: null,
+          error: message
+        };
+      },
+
+      leagueTeams: async function () {
+        return {
+          ok: false,
+          teams: [],
+          error: message
+        };
+      },
+
+      submitLeagueTrade: async function () {
+        return {
+          ok: false,
+          trade: null,
+          error: message
+        };
       }
     });
 
@@ -489,12 +513,96 @@ async function getAdminAuditLog(token){
   }
 }
 
+  // --------------------------------------------------------------------------
+  // Web v2.0 league mode. Knowing the league name is the access: the read
+  // functions take the name, never an id (V5_WEB_V2.0_FUNCTIONS.md).
+  // --------------------------------------------------------------------------
+
+  const LEAGUE_UNAVAILABLE = 'League data is unavailable right now.';
+
+  // { ok, league: { id, name, maddenVersion } | null }. null = no such league.
+  async function leagueLookup(name) {
+    if (typeof name !== 'string' || name.trim().length === 0) {
+      return { ok: true, league: null, error: null };
+    }
+
+    try {
+      const { data, error } = await client.rpc('league_lookup', {
+        p_name: name.trim()
+      });
+
+      if (error) {
+        console.error('League lookup failed:', error);
+        return { ok: false, league: null, error: LEAGUE_UNAVAILABLE };
+      }
+
+      const row = Array.isArray(data) ? data[0] : null;
+
+      if (!row) {
+        return { ok: true, league: null, error: null };
+      }
+
+      return {
+        ok: true,
+        league: {
+          id: row.league_id,
+          name: row.league_name,
+          maddenVersion: row.madden_version
+        },
+        error: null
+      };
+    } catch (error) {
+      console.error('League lookup connection failed:', error);
+      return { ok: false, league: null, error: LEAGUE_UNAVAILABLE };
+    }
+  }
+
+  // { ok, teams: [{ team_id, abbreviation, city_name, nickname, division, controlled_by }] }
+  async function leagueTeams(name) {
+    try {
+      const { data, error } = await client.rpc('league_team_list', {
+        p_name: String(name || '').trim()
+      });
+
+      if (error) {
+        console.error('League team list failed:', error);
+        return {
+          ok: false,
+          teams: [],
+          error: 'The team list could not be loaded.'
+        };
+      }
+
+      return {
+        ok: true,
+        teams: Array.isArray(data) ? data : [],
+        error: null
+      };
+    } catch (error) {
+      console.error('League team list connection failed:', error);
+      return {
+        ok: false,
+        teams: [],
+        error: 'The team list could not be loaded.'
+      };
+    }
+  }
+
+  // The v2.0 submission goes to accept-trade; the response shape is the same
+  // as acceptTrade (plus trade.leagueName).
+  async function submitLeagueTrade(submission) {
+    return acceptTrade(submission);
+  }
+
   window.MaddenStorage = Object.freeze({
     isConfigured: true,
     getActiveTrades,
     acceptTrade,
     adminLogin,
     deleteTrade,
-    getAdminAuditLog
+    getAdminAuditLog,
+    leagueLookup,
+    leagueTeams,
+    submitLeagueTrade
   });
 })();

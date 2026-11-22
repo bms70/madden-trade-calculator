@@ -507,6 +507,176 @@ main {
   font-weight: 850;
 }
 
+/* Web v2.0 league mode: mode switch, league bar, team pickers, submit form */
+
+.leaguebar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.mode-switch {
+  display: inline-flex;
+  background: var(--secondary-bg);
+  border-radius: 9px;
+  padding: 3px;
+}
+
+.mode-option {
+  border: 0;
+  background: transparent;
+  color: var(--secondary-text);
+  border-radius: 7px;
+  padding: 6px 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mode-option.active {
+  background: var(--navy);
+  color: var(--bg);
+}
+
+.league-entry,
+.league-current {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.league-entry[hidden],
+.league-current[hidden] {
+  display: none;
+}
+
+.league-entry label,
+.league-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.league-entry input {
+  width: 220px;
+  max-width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text);
+}
+
+.league-enter {
+  background: var(--navy);
+  color: var(--bg);
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.league-enter:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.league-current strong {
+  color: var(--navy);
+  font-size: 13px;
+}
+
+.league-leave {
+  background: var(--secondary-bg);
+  color: var(--secondary-text);
+  cursor: pointer;
+}
+
+.league-status {
+  flex-basis: 100%;
+  font-size: 10px;
+  color: var(--muted);
+  min-height: 0;
+}
+
+.league-status:empty {
+  display: none;
+}
+
+.team-pick {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 9px;
+  font-weight: 750;
+  color: var(--muted);
+}
+
+.team-pick[hidden] {
+  display: none;
+}
+
+.team-pick select {
+  width: 100%;
+  margin-top: 3px;
+  padding: 7px;
+  border: 1px solid var(--input-border);
+  border-radius: 7px;
+  background: var(--input-bg);
+  color: var(--text);
+}
+
+.practice-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.practice-note[hidden],
+.accept-trade[hidden] {
+  display: none;
+}
+
+.accept-confirm label {
+  display: block;
+  margin-top: 10px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.accept-confirm input,
+.accept-confirm textarea {
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+
+.accept-confirm .accept-warning {
+  margin-top: 8px;
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: var(--questionable-bg);
+  color: var(--amber);
+  font-weight: 750;
+}
+
+.accept-confirm-error {
+  min-height: 14px;
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--red);
+}
+
 .admin-login-card {
   max-width: 520px;
   margin: 0 auto;
