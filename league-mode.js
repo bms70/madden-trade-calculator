@@ -54,8 +54,9 @@
     return [team.city_name, team.nickname].filter(Boolean).join(' ') || team.abbreviation || 'Team';
   }
 
+  // league_teams.controlled_by is 'USER' (human) or 'CPU'.
   function teamOptionLabel(team) {
-    let control = team.controlled_by === 'HUMAN' ? 'Human' : 'CPU';
+    let control = team.controlled_by === 'USER' ? 'Human' : 'CPU';
     return `${teamFullName(team)} (${team.abbreviation}) · ${control}`;
   }
 

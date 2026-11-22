@@ -117,7 +117,7 @@ function setTrade(w, scenario) {
 }
 
 const TEAMS = [
-  { team_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', abbreviation: 'DAL', city_name: 'Dallas', nickname: 'Cowboys', division: 'NFC East', controlled_by: 'HUMAN' },
+  { team_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', abbreviation: 'DAL', city_name: 'Dallas', nickname: 'Cowboys', division: 'NFC East', controlled_by: 'USER' },
   { team_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', abbreviation: 'OMH', city_name: 'Omaha', nickname: '<Steaks> & Co', division: 'AFC West', controlled_by: 'CPU' },
 ];
 const LEAGUE = { id: '11111111-1111-4111-8111-111111111111', name: 'Sample League' };
@@ -391,7 +391,7 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   // -------------------------------------------------------------------------
   // 8. Commissioner area and correction mode (step 5)
   // -------------------------------------------------------------------------
-  const TEAMS3 = TEAMS.concat([{ team_id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', abbreviation: 'AZ', city_name: 'Arizona', nickname: 'Cardinals', division: 'NFC West', controlled_by: 'HUMAN' }]);
+  const TEAMS3 = TEAMS.concat([{ team_id: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', abbreviation: 'AZ', city_name: 'Arizona', nickname: 'Cardinals', division: 'NFC West', controlled_by: 'USER' }]);
   const NOW = Date.now();
   const iso = ms => new Date(ms).toISOString();
   const tradeRow = o => Object.assign({ trade_id: o.id, accepted_at: iso(NOW - 3600e3), ruleset_version: 'v4.4', web_release: 'v2.0', review_status: 'UNREVIEWED', is_pre_league: false, current_revision: 0, submitter_name: 'Sam', submitter_note: null, reviewed_at: null, submitting_team: 'Dallas Cowboys', other_team: '<Omaha> & Co' }, snapA, o);

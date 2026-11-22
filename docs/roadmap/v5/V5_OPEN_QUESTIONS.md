@@ -2,13 +2,14 @@
 
 Running log of v5.0 planning questions. Questions the commissioner skipped get a stated assumption under "Assumed" until they're confirmed. Answered questions keep their answer and date.
 
-Last updated: 2026-11-21.
+Last updated: 2026-11-22.
 
 ## Open
 
 | # | Question | Blocks | Doc |
 |---|---|---|---|
 | 19 | Offseason fade shape. Posture is at full strength after the season and fades to zero by preseason week 3. Should it fade stage by stage (re-signing → free agency → draft → preseason weeks 1–3), and along which curve: the squared in-season ramp in reverse, or a straight line? | Phase 7 posture spec | V5_PHASE_PLAN |
+| 31 | A site-owner screen on the website (manage every league: create, rename, archive, passwords, teams)? v2.0 uses one-line SQL in the dashboard instead (`V5_OWNER_TOOLKIT.md`). A screen would need its own sign-in, stronger than a league password. Worth it once there are several leagues | v2.1 or later | V5_OWNER_TOOLKIT |
 | 20 | Posture effect sizes. The human-team placeholder is a very small protective effect, and the CPU-team effect is larger. Final values get set in Phase 6–7 calibration. Any starting preference? | Phase 7 | V5_PHASE_PLAN |
 
 ## Assumed (confirm or change)
@@ -19,7 +20,7 @@ Last updated: 2026-11-21.
 | 13 | Can CPU posture lower demands? | **No, raise only**, never below v4.4 |
 | — | Long snapper value in v5.0 | **0.50** (same as K/P) |
 | — | Posture strength scales with the record? | **Yes.** A lopsided record counts fully, a middling one barely |
-| 22 | How do pre-league trades look after the v2.0 migration? | Active trades become **Reviewed**, v1.4.0 Admin-deleted trades **Reversed**, all marked pre-league (sample schema) |
+| 22 | How do pre-league trades look after the v2.0 migration? | Active trades become **Reviewed**, v1.4.0 Admin-deleted trades **Reversed** (keeping the deletion reason), all marked pre-league. Built this way in `owner_move_pre_league_history` |
 | 23 | Offseason stages for the league calendar | **Re-signing, Free agency, Draft**, then preseason weeks 1–3; check against an offseason export |
 | 24 | Standings `stageIndex` values | **0 = preseason, 1 = regular season** (1 confirmed); offseason values from an offseason export |
 | 29 | Snallabot connection: store raw exports only, or also normalize rosters now? | **Raw only** plus a health check per export; normalize in Web v3.0 from the stored bodies |
