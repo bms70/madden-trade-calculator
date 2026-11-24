@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Madden League Trade Calculator</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=2.1">
   </head>
   <body>
     <header class="top">
@@ -430,14 +430,16 @@
       Full guide &amp; rules:
       <a class="wiki-link" href="https://github.com/bms70/madden-trade-calculator/wiki/Using-the-Calculator" target="_blank" rel="noopener">Madden League Trade Calculator Wiki</a>
     </footer>
+    <!-- ?v= on local files: bump it with every Web Release so browsers fetch the
+         new files instead of mixing cached old scripts with the new page. -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./supabase-config.js"></script>
-    <script src="./storage.js"></script>
-    <script src="./theme.js"></script>
-    <script src="./valuation.js"></script>
-    <script src="./league-mode.js"></script>
-    <script src="./calculator-ui.js"></script>
-    <script src="./trade-history.js"></script>
-    <script src="./commissioner.js"></script>
+    <script src="./supabase-config.js?v=2.1"></script>
+    <script src="./storage.js?v=2.1"></script>
+    <script src="./theme.js?v=2.1"></script>
+    <script src="./valuation.js?v=2.1"></script>
+    <script src="./league-mode.js?v=2.1"></script>
+    <script src="./calculator-ui.js?v=2.1"></script>
+    <script src="./trade-history.js?v=2.1"></script>
+    <script src="./commissioner.js?v=2.1"></script>
   </body>
 </html>
