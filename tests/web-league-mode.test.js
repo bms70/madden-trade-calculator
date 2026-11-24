@@ -61,16 +61,15 @@ function makeWindow({ storage, localStore = new Map() } = {}) {
     elements,
     querySelector(s) { if (!elements.has(s)) elements.set(s, fakeElement(s)); return elements.get(s); },
     querySelectorAll(sel) {
-      if (sel === '#commTeams [data-team-save]') {
+      if (sel === '#commTeams [data-team]') {
         const html = (elements.get('#commTeams') || { innerHTML: '' }).innerHTML;
-        return [...html.matchAll(/data-team-save="([^"]+)"/g)].map(m => {
-          const key = 'team|' + m[1];
-          if (!buttons.has(key)) {
-            const button = fakeElement('button');
-            button.dataset = { teamSave: m[1] };
-            buttons.set(key, button);
-          }
-          return buttons.get(key);
+        return [...html.matchAll(/<(select|input)[^>]*id="(teamCtl|teamLabel)-([^"]+)"[^>]*data-team="([^"]+)"/g)].map(m => {
+          const el = document.querySelector('#' + m[2] + '-' + m[3]);
+          el.tagName = m[1].toUpperCase();
+          el.dataset = { team: m[4] };
+          const v = m[0].match(/value="([^"]*)"/);
+          if (m[1] === 'input' && v && el.value === '') el.value = v[1];
+          return el;
         });
       }
       if (sel !== '#commissioner [data-action]') return [];
@@ -527,28 +526,39 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   cel('#commPassword').value = 'right';
   await cel('#commLoginForm').onsubmit({ preventDefault() {} });
   const teamsHtml = cel('#commTeams').innerHTML;
-  check('teams: listed after sign-in with the token and league', ccalls.some(c => c[0] === 'teams' && c[1] === 'tok-123' && c[2] === LEAGUE.id) && (teamsHtml.match(/comm-team-row/g) || []).length === 3);
-  check('teams: status counts teams and humans', cel('#commTeamsStatus').textContent === '3 teams, 2 human.');
+  check('teams: listed after sign-in with the token and league', ccalls.some(c => c[0] === 'teams' && c[1] === 'tok-123' && c[2] === LEAGUE.id) && (teamsHtml.match(/comm-team-line/g) || []).length === 3);
+  check('teams: grouped by division', (teamsHtml.match(/comm-team-group/g) || []).length === 3 && teamsHtml.includes('<h3>NFC East</h3>'));
+  check('teams: summary counts teams and humans', cel('#commTeamsSummary').textContent === '3 teams, 2 human' && cel('#commTeamsStatus').textContent === '');
   check('teams: control preselected, label escaped', /value="USER" selected>Human/.test(teamsHtml) && /value="CPU" selected>CPU/.test(teamsHtml) && teamsHtml.includes('Owner &quot;Q&quot; &lt;x&gt;') && !teamsHtml.includes('<x>'));
-  const saveButton = cw.document.querySelectorAll('#commTeams [data-team-save]').find(b => b.dataset.teamSave === TEAMS3[1].team_id);
-  cel('#teamCtl-' + TEAMS3[1].team_id).value = 'USER';
-  cel('#teamLabel-' + TEAMS3[1].team_id).value = '  New  ';
+  const fields = cw.document.querySelectorAll('#commTeams [data-team]');
+  check('teams: a control and a label field per team, all auto-saving', fields.length === 6 && fields.every(f => typeof f.onchange === 'function'));
+  const omhId = TEAMS3[1].team_id;
+  const omhCtl = fields.find(f => f.tagName === 'SELECT' && f.dataset.team === omhId);
+  const omhLabel = fields.find(f => f.tagName === 'INPUT' && f.dataset.team === omhId);
   cel('#commName').value = '';
-  await saveButton.onclick();
-  check('teams: save needs the commissioner name', !ccalls.some(c => c[0] === 'updateTeam') && cel('#commTeamsStatus').textContent.startsWith('Add your name'));
+  omhCtl.value = 'USER';
+  await omhCtl.onchange();
+  check('teams: no name -> nothing saved, field restored', !ccalls.some(c => c[0] === 'updateTeam') && cel('#commTeamsStatus').textContent.startsWith('Add your name') && omhCtl.value === 'CPU');
   cel('#commName').value = 'Commish';
+  omhCtl.value = 'USER';
+  omhLabel.value = '  New  ';
   const pickerLoadsBefore = ccalls.filter(c => c[0] === 'leagueTeams').length;
-  await saveButton.onclick();
+  const listLoadsBefore = ccalls.filter(c => c[0] === 'teams').length;
+  await omhCtl.onchange();
   const upd = ccalls.find(c => c[0] === 'updateTeam');
-  check('teams: save sends token, league, team, control, trimmed label, name', upd && upd[1].token === 'tok-123' && upd[1].leagueId === LEAGUE.id && upd[1].teamId === TEAMS3[1].team_id && upd[1].controlledBy === 'USER' && upd[1].ownerLabel === 'New' && upd[1].commissionerName === 'Commish');
-  check('teams: pickers reloaded after a change', ccalls.filter(c => c[0] === 'leagueTeams').length === pickerLoadsBefore + 1);
-  check('teams: saved notice kept after the reload', cel('#commTeamsStatus').textContent.startsWith('OMH saved.'));
-  updateReply = { ok: true, data: { ok: true, team: { teamId: TEAMS3[1].team_id, abbreviation: 'OMH', controlledBy: 'USER', ownerLabel: 'New', changed: false } }, error: null, status: 200 };
+  check('teams: change saves token, league, team, control, trimmed label, name', upd && upd[1].token === 'tok-123' && upd[1].leagueId === LEAGUE.id && upd[1].teamId === omhId && upd[1].controlledBy === 'USER' && upd[1].ownerLabel === 'New' && upd[1].commissionerName === 'Commish');
+  check('teams: pickers reloaded, team list not redrawn', ccalls.filter(c => c[0] === 'leagueTeams').length === pickerLoadsBefore + 1 && ccalls.filter(c => c[0] === 'teams').length === listLoadsBefore);
+  check('teams: saved notice and updated summary', cel('#commTeamsStatus').textContent === 'OMH saved.' && cel('#commTeamsSummary').textContent === '3 teams, 3 human');
+  updateReply = { ok: true, data: { ok: true, team: { teamId: omhId, abbreviation: 'OMH', controlledBy: 'USER', ownerLabel: 'New', changed: false } }, error: null, status: 200 };
   const loadsBefore2 = ccalls.filter(c => c[0] === 'leagueTeams').length;
-  await saveButton.onclick();
-  check('teams: unchanged save says so, no picker reload', cel('#commTeamsStatus').textContent.startsWith('OMH: nothing changed.') && ccalls.filter(c => c[0] === 'leagueTeams').length === loadsBefore2);
+  await omhLabel.onchange();
+  check('teams: unchanged save says so, no reload', cel('#commTeamsStatus').textContent === 'OMH: nothing changed.' && ccalls.filter(c => c[0] === 'leagueTeams').length === loadsBefore2);
+  updateReply = { ok: false, data: { ok: false, error: 'The owner label must be 60 characters or fewer.' }, error: 'The owner label must be 60 characters or fewer.', status: 400 };
+  omhLabel.value = 'x'.repeat(61);
+  await omhLabel.onchange();
+  check('teams: failed save shows the error and restores the field', cel('#commTeamsStatus').textContent.includes('60 characters') && omhLabel.value === 'New');
   updateReply = { ok: false, data: { ok: false, error: 'Commissioner sign-in required.', reason: 'expired' }, error: 'Commissioner sign-in required.', status: 401 };
-  await saveButton.onclick();
+  await omhCtl.onchange();
   check('teams: 401 signs out and clears the team list', cel('#commUnlocked').hidden === true && cel('#commTeams').innerHTML === '');
 
   // League change signs out
