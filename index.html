@@ -379,6 +379,17 @@
               <button type="submit" class="btn admin-confirm-delete" id="commActionConfirm">Confirm</button>
             </div>
           </form>
+          <section class="admin-section comm-teams">
+            <div class="admin-section-head">
+              <div>
+                <h2>Teams</h2>
+                <p>Set each team to Human or CPU and give it an owner label (only commissioners see labels).
+                  Changes show in the team pickers right away and go in the audit log.</p>
+              </div>
+            </div>
+            <div class="admin-status" id="commTeamsStatus" aria-live="polite"></div>
+            <div class="comm-team-list" id="commTeams"></div>
+          </section>
           <section class="admin-section comm-queue">
             <div class="admin-section-head">
               <div>
@@ -412,17 +423,6 @@
               <div class="comm-list" id="commAudit"></div>
             </section>
           </div>
-          <section class="admin-section comm-teams">
-            <div class="admin-section-head">
-              <div>
-                <h2>Teams</h2>
-                <p>Set each team to Human or CPU and give it an owner label (only commissioners see labels).
-                  Changes show in the team pickers right away and go in the audit log.</p>
-              </div>
-            </div>
-            <div class="admin-status" id="commTeamsStatus" aria-live="polite"></div>
-            <div class="comm-team-list" id="commTeams"></div>
-          </section>
         </div>
       </section>
     </main>
