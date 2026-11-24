@@ -7,8 +7,8 @@
  * PERSISTENCE BOUNDARY: buildTradeSnapshot() defines the frozen accepted-Trade
  * snapshot. Its field names are a contract with storage.js and the database;
  * do not rename, add or remove fields here without a coordinated backend and
- * migration change. Web v2.0: the snapshot is the v1.5.0 snapshot with
- * web_release "v2.0"; league-mode.js adds the league fields on submission and
+ * migration change. Web v2.0/v2.1: the snapshot is the v1.5.0 snapshot with
+ * web_release "v2.1" ("v2.0" before v2.1); league-mode.js adds the league fields on submission and
  * swaps team names into the displayed text only (never the stored text).
  * Practice mode doesn't log trades.
  *
@@ -173,7 +173,7 @@ function buildTradeSnapshot() {
   let requiredTarget= typeof v.requiredTarget==='number' ? v.requiredTarget : null;
   let fairMaximum= typeof v.fairMaximum==='number' ? v.fairMaximum : null;
   return {
-    web_release:'v2.0',
+    web_release:'v2.1',
     ruleset_version:'v4.4',
     user_team_assets:A.arr.map(snapshotAsset),
     cpu_team_assets:B.arr.map(snapshotAsset),

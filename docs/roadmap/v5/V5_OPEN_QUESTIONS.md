@@ -14,6 +14,7 @@ Last updated: 2026-11-22.
 
 | # | Enhancement | Notes |
 |---|---|---|
+| 32 | **"Gives" layout:** each box shows what that team **gives**, with headings **USER TEAM** (left) and **CPU TEAM** (right), or the team names in League mode. The league found "receives" confusing | **Planned for Web v5.0** (decided 2026-11-23). Display only: the page maps each box to the engine's opposite side, so valuation, the snapshot and stored trades are unchanged. Update How to Use, the wiki and the Excel workbook to match |
 | 31 | **Site-owner screen** on the website: create, rename and archive leagues, set commissioner passwords, fix teams | Needs its own sign-in, stronger than a league password, because it controls every league. Most useful once there are several leagues. Until then: the owner toolkit's SQL commands |
 
 ## Assumed (confirm or change)
@@ -66,7 +67,7 @@ Last updated: 2026-11-22.
 | **Do free agents matter?** | **No.** Free agents can't be traded; they're out of v5 scope. The receiver keeps the raw body but doesn't map it (2026-11-21) |
 | **Main-league capture?** | Done 2026-11-21: platform `pc`, league `5481323`, all routes confirmed, 40 requests for a current-week export |
 | **Should practice mode stop logging trades?** (Q25) | **Yes** (2026-11-21). Only league trades are logged from Web v2.0; existing history moves into the main league as pre-league |
-| **Team editing on screen?** (Q26) | **Web v2.1**; SQL fixes until then (2026-11-21) |
+| **Team editing on screen?** (Q26) | **Web v2.1** (2026-11-21). **Built in v2.1:** Commissioner → Teams (human / CPU, owner label) |
 | **Commissioner login throttling?** (Q27) | **Yes:** refused for 15 minutes after 5 wrong passwords per league (2026-11-21) |
 | **Main league name and password?** (Q28) | **Name decided** (2026-11-21). It's kept out of this public repo, because knowing the name is what gives access. It's recorded in the site owner's private project notes. **The site owner sets the commissioner password** at release step 2 |
 | **Do the Snallabot connection before league mode?** | **Yes** (2026-11-21): a backend-only receiver first (`V5_SNALLABOT_CONNECTION.md`), then back to Phase 2 |

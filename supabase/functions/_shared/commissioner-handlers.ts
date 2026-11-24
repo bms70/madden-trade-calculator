@@ -1,6 +1,6 @@
 // Request handling for the Web v2.0 commissioner functions:
 //   commissioner-login, commissioner-session-check, review-trade,
-//   commissioner-audit-log
+//   commissioner-audit-log, commissioner-teams (v2.1)
 // Each function's index.ts wires in Supabase and the secret; this file has no
 // Deno or Supabase APIs, so it is tested in Node.
 
@@ -19,7 +19,6 @@ import {
   verifyCommissionerSession,
 } from "./commissioner-session.ts";
 import {
-  LEAGUE_RELEASE,
   SUPPORTED_RELEASES,
   tradeForStorage,
   validateTradePayload,
@@ -170,10 +169,8 @@ export async function handleCommissionerSessionCheck(request: Request, deps: Com
 // ---------------------------------------------------------------------------
 const reviewActions = new Set(["REVIEW", "CORRECT", "REVERSE"]);
 
-// Corrections are made in the v2.0 calculator, so only v2.0 snapshots.
-const correctionReleases: Record<string, string> = {
-  [LEAGUE_RELEASE]: SUPPORTED_RELEASES[LEAGUE_RELEASE],
-};
+// Corrections are made in the calculator, so the same releases it submits.
+const correctionReleases: Record<string, string> = SUPPORTED_RELEASES;
 
 export async function handleReviewTrade(request: Request, deps: CommissionerDeps): Promise<Response> {
   const start = await begin(request, deps);
@@ -286,5 +283,98 @@ export async function handleCommissionerAuditLog(request: Request, deps: Commiss
       reason: row.reason,
       details: row.details,
     })),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// commissioner-teams (Web v2.1):
+//   { token, league_id?, action: "LIST" }  -> the league's teams with owner labels
+//   { token, league_id?, action: "UPDATE", team_id, controlled_by: "USER"|"CPU",
+//     owner_label?, commissioner_name }   -> one team updated (audited)
+// ---------------------------------------------------------------------------
+export async function handleCommissionerTeams(request: Request, deps: CommissionerDeps): Promise<Response> {
+  const start = await begin(request, deps);
+  if ("response" in start) return start.response;
+  const { body, secret } = start;
+
+  const session = await requireSession(body, secret, deps);
+  if ("response" in session) return session.response;
+
+  const action = typeof body.action === "string" ? body.action.trim().toUpperCase() : "LIST";
+
+  if (action === "LIST") {
+    const { data, error } = await deps.rpc("commissioner_league_teams", { p_league_id: session.leagueId });
+
+    if (error) {
+      logger(deps)("Team list failed:", error);
+      return failure("The team list could not be loaded.", 500);
+    }
+
+    const rows = Array.isArray(data) ? data : [];
+
+    return jsonResponse({
+      ok: true,
+      teams: rows.map((row: Record<string, unknown>) => ({
+        teamId: row.team_id,
+        abbreviation: row.abbreviation,
+        cityName: row.city_name,
+        nickname: row.nickname,
+        division: row.division,
+        controlledBy: row.controlled_by,
+        ownerLabel: row.owner_label,
+        updatedAt: row.updated_at,
+      })),
+    });
+  }
+
+  if (action !== "UPDATE") return failure("Unknown team action.", 400);
+
+  const teamId = typeof body.team_id === "string" ? body.team_id.trim() : "";
+  if (!uuidPattern.test(teamId)) return failure("A valid team is required.", 400);
+
+  let control = typeof body.controlled_by === "string" ? body.controlled_by.trim().toUpperCase() : "";
+  if (control === "HUMAN") control = "USER";
+  if (control !== "USER" && control !== "CPU") return failure("Choose Human or CPU.", 400);
+
+  let ownerLabel: string | null = null;
+  if (body.owner_label !== undefined && body.owner_label !== null) {
+    if (typeof body.owner_label !== "string") return failure("The owner label must be text.", 400);
+    const trimmed = body.owner_label.trim();
+    if (trimmed.length > 60) return failure("The owner label must be 60 characters or fewer.", 400);
+    ownerLabel = trimmed.length > 0 ? trimmed : null;
+  }
+
+  const commissionerName = trimmedString(body.commissioner_name, 60);
+  if (!commissionerName) return failure("Commissioner name must be 1 to 60 characters.", 400);
+
+  const { data, error } = await deps.rpc("commissioner_update_team", {
+    p_league_id: session.leagueId,
+    p_team_id: teamId,
+    p_controlled_by: control,
+    p_owner_label: ownerLabel,
+    p_commissioner_name: commissionerName,
+  });
+
+  if (error) {
+    const status = statusForDatabaseError(error.code);
+    logger(deps)("Team update failed:", error);
+    return failure(status === 500 ? "The team could not be updated." : error.message, status);
+  }
+
+  const row = firstRow(data);
+  if (!row) {
+    logger(deps)("Team update returned no row.", data);
+    return failure("The team could not be updated.", 500);
+  }
+
+  return jsonResponse({
+    ok: true,
+    team: {
+      teamId: row.team_id,
+      abbreviation: row.abbreviation,
+      controlledBy: row.controlled_by,
+      ownerLabel: row.owner_label,
+      changed: row.changed === true,
+    },
   });
 }

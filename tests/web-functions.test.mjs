@@ -1,7 +1,7 @@
-// Web v2.0 functions: trade validation, commissioner sessions and the five
+// Web v2.0 / v2.1 functions: trade validation, commissioner sessions and the five
 // request handlers (accept-trade, commissioner-login, commissioner-session-check,
 // review-trade, commissioner-audit-log), with a fake database RPC.
-// Run from the repo root: node --experimental-strip-types tests/web-v2.0-functions.test.mjs
+// Run from the repo root: node --experimental-strip-types tests/web-functions.test.mjs
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -94,7 +94,9 @@ async function json(response) { return { status: response.status, body: await re
 {
   const v = validation.validateTradePayload;
   check('v2.0/v4.4 accepted', v(snapshot()).valid);
-  check('v1.5.0/v4.4 accepted (switchover)', v(snapshot({ web_release: 'v1.5.0' })).valid);
+  check('v2.1/v4.4 accepted', v(snapshot({ web_release: 'v2.1' })).valid);
+  check('v1.5.0/v4.4 refused from v2.1 (switchover over)', !v(snapshot({ web_release: 'v1.5.0' })).valid);
+  check('v2.1 with v4.2 refused', !v(snapshot({ web_release: 'v2.1', ruleset_version: 'v4.2' })).valid);
   check('v1.4.0/v4.2 rejected', !v(snapshot({ web_release: 'v1.4.0', ruleset_version: 'v4.2' })).valid);
   check('v2.0 with v4.2 rejected', v(snapshot({ ruleset_version: 'v4.2' })).message === 'Unsupported Ruleset version.');
   check('7 assets rejected', !v(snapshot({ user_team_assets: Array(7).fill({}) })).valid);
@@ -171,8 +173,7 @@ async function json(response) { return { status: response.status, body: await re
     league_lookup: { data: [leagueRow], error: null },
     submit_league_trade: { data: [submitted], error: null },
   });
-  let inserted = null;
-  const deps = { rpc: db.rpc, insertTrade: async (row) => { inserted = row; return { data: { id: 'x', trade_number: 7, accepted_at: 't' }, error: null }; }, log: quiet };
+  const deps = { rpc: db.rpc, log: quiet };
 
   let r = await json(await accept.handleAcceptTrade(post(leagueBody()), deps));
   check('league trade logged', r.status === 200 && r.body.trade.tradeNumber === 41 && r.body.trade.leagueName === 'Sample League');
@@ -181,11 +182,12 @@ async function json(response) { return { status: response.status, body: await re
   check('submit got league and teams', submit.args.p_league_id === LEAGUE && submit.args.p_submitting_team_id === TEAM_A && submit.args.p_other_team_id === TEAM_B);
   check('submit got name and note', submit.args.p_submitter_name === 'Sam' && submit.args.p_submitter_note === 'Deadline deal');
   check('submitted snapshot has no league fields', !('league_name' in submit.args.p_trade) && Object.keys(submit.args.p_trade).length === 16);
-  check('league path does not plain-insert', inserted === null);
 
   r = await json(await accept.handleAcceptTrade(post(snapshot({ web_release: 'v1.5.0' })), deps));
-  check('v1.5.0 switchover uses plain insert', r.status === 200 && r.body.trade.tradeNumber === 7 && inserted.web_release === 'v1.5.0');
-  check('v1.5.0 does not touch league functions', db.calls.length === 2);
+  check('v1.5.0 refused, no database call', r.status === 400 && db.calls.length === 2);
+
+  r = await json(await accept.handleAcceptTrade(post(leagueBody({ web_release: 'v2.1' })), deps));
+  check('v2.1 league trade logged', r.status === 200 && db.calls[3].args.p_trade.web_release === 'v2.1');
 
   r = await json(await accept.handleAcceptTrade(post(snapshot()), deps));
   check('v2.0 without league fields rejected', r.status === 400 && r.body.error === 'Only league trades can be logged.');
@@ -296,14 +298,18 @@ async function json(response) { return { status: response.status, body: await re
   check('CORRECT without trade 400', r.status === 400 && db.calls.length === 0);
   r = await json(await review({ action: 'CORRECT', reason: 'Wrong pick', trade: snapshot({ web_release: 'v1.5.0' }) }));
   check('CORRECT with v1.5.0 snapshot 400', r.status === 400 && db.calls.length === 0);
+  db = fakeRpc({ review_league_trade: { data: [reviewed], error: null } });
+  r = await json(await review({ action: 'CORRECT', reason: 'Fix', trade: snapshot({ web_release: 'v2.1' }) }));
+  check('CORRECT with v2.1 snapshot accepted', r.status === 200 && db.calls[0].args.p_trade.web_release === 'v2.1');
   r = await json(await review({ action: 'DELETE' }));
   check('unknown action 400', r.status === 400);
   r = await json(await review({ action: 'REVIEW', trade_id: '41' }));
   check('non-uuid trade 400', r.status === 400);
   r = await json(await review({ action: 'REVIEW', commissioner_name: '' }));
   check('missing commissioner name 400', r.status === 400);
+  const callsBefore = db.calls.length;
   r = await json(await review({ action: 'REVERSE', reason: 'x'.repeat(501) }));
-  check('reason over 500 400', r.status === 400 && db.calls.length === 0);
+  check('reason over 500 400', r.status === 400 && db.calls.length === callsBefore);
 
   db = fakeRpc({ review_league_trade: { data: [{ ...reviewed, current_revision: 1 }], error: null } });
   r = await json(await review({ action: 'CORRECT', reason: 'Wrong pick', trade: { ...snapshot({ verdict: 'UNFAIR' }), league_name: 'leak' } }));
@@ -330,6 +336,53 @@ async function json(response) { return { status: response.status, body: await re
   check('audit limit 0 rejected', r.status === 400);
   r = await json(await handlers.handleCommissionerAuditLog(post({ token: 'bad' }), { ...base, rpc: db.rpc }));
   check('audit log bad token 401', r.status === 401);
+}
+
+// ---------------------------------------------------------------------------
+// 6. commissioner-teams (v2.1)
+// ---------------------------------------------------------------------------
+{
+  const { token } = await sessions.createCommissionerSession(SECRET, LEAGUE, NOW);
+  const base = { secret: SECRET, nowSeconds: () => NOW + 10, log: quiet };
+  const teamRows = [{ team_id: TEAM_A, abbreviation: 'DAL', city_name: 'Dallas', nickname: 'Cowboys', division: 'NFC East', controlled_by: 'USER', owner_label: 'Owner1', updated_at: 't' }];
+
+  let db = fakeRpc({ commissioner_league_teams: { data: teamRows, error: null } });
+  let r = await json(await handlers.handleCommissionerTeams(post({ token }), { ...base, rpc: db.rpc }));
+  check('teams: LIST is the default action', r.status === 200 && r.body.teams.length === 1 && r.body.teams[0].ownerLabel === 'Owner1' && r.body.teams[0].controlledBy === 'USER');
+  check('teams: list uses the token league', db.calls[0].args.p_league_id === LEAGUE);
+
+  r = await json(await handlers.handleCommissionerTeams(post({ action: 'LIST' }), { ...base, rpc: db.rpc }));
+  check('teams: no token 401', r.status === 401);
+  r = await json(await handlers.handleCommissionerTeams(post({ token, league_id: OTHER_LEAGUE }), { ...base, rpc: db.rpc }));
+  check('teams: another league 403', r.status === 403);
+
+  const updated = { team_id: TEAM_A, abbreviation: 'DAL', controlled_by: 'CPU', owner_label: null, changed: true };
+  db = fakeRpc({ commissioner_update_team: { data: [updated], error: null } });
+  const upd = (o) => handlers.handleCommissionerTeams(post({ token, action: 'update', team_id: TEAM_A, controlled_by: 'cpu', owner_label: '  ', commissioner_name: 'Commish', ...o }), { ...base, rpc: db.rpc });
+  r = await json(await upd({}));
+  check('teams: UPDATE (any case) ok', r.status === 200 && r.body.team.controlledBy === 'CPU' && r.body.team.changed === true);
+  const a = db.calls[0].args;
+  check('teams: update args (token league, CPU, blank label -> null, name)', a.p_league_id === LEAGUE && a.p_team_id === TEAM_A && a.p_controlled_by === 'CPU' && a.p_owner_label === null && a.p_commissioner_name === 'Commish');
+
+  db = fakeRpc({ commissioner_update_team: { data: [updated], error: null } });
+  r = await json(await upd({ controlled_by: 'Human', owner_label: 'New owner' }));
+  check('teams: HUMAN means USER; label kept', db.calls[0].args.p_controlled_by === 'USER' && db.calls[0].args.p_owner_label === 'New owner');
+
+  db = fakeRpc({ commissioner_update_team: { data: [updated], error: null } });
+  r = await json(await upd({ controlled_by: 'robot' }));
+  check('teams: bad control 400, no call', r.status === 400 && db.calls.length === 0);
+  r = await json(await upd({ owner_label: 'x'.repeat(61) }));
+  check('teams: long label 400', r.status === 400 && db.calls.length === 0);
+  r = await json(await upd({ commissioner_name: '' }));
+  check('teams: name required 400', r.status === 400 && db.calls.length === 0);
+  r = await json(await upd({ team_id: 'DAL' }));
+  check('teams: non-uuid team 400', r.status === 400 && db.calls.length === 0);
+  r = await json(await handlers.handleCommissionerTeams(post({ token, action: 'DELETE' }), { ...base, rpc: db.rpc }));
+  check('teams: unknown action 400', r.status === 400);
+
+  db = fakeRpc({ commissioner_update_team: { data: null, error: { code: 'P0002', message: 'Team not found in this league.' } } });
+  r = await json(await upd({}));
+  check('teams: team in another league 404', r.status === 404 && r.body.error === 'Team not found in this league.');
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

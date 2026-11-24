@@ -71,6 +71,14 @@
 
       commissionerAuditLog: async function () {
         return { ok: false, data: null, error: message, status: null };
+      },
+
+      commissionerTeams: async function () {
+        return { ok: false, data: null, error: message, status: null };
+      },
+
+      updateTeam: async function () {
+        return { ok: false, data: null, error: message, status: null };
       }
     });
 
@@ -405,6 +413,34 @@
     );
   }
 
+  // Web v2.1. data.teams = [{ teamId, abbreviation, cityName, nickname,
+  // division, controlledBy, ownerLabel, updatedAt }]
+  function commissionerTeams(token, leagueId) {
+    return invokeFunction(
+      'commissioner-teams',
+      { token, league_id: leagueId, action: 'LIST' },
+      'The team list could not be loaded.'
+    );
+  }
+
+  // controlledBy 'USER' (human) or 'CPU'. data.team = { teamId, abbreviation,
+  // controlledBy, ownerLabel, changed }
+  function updateTeam({ token, leagueId, teamId, controlledBy, ownerLabel, commissionerName }) {
+    return invokeFunction(
+      'commissioner-teams',
+      {
+        token,
+        league_id: leagueId,
+        action: 'UPDATE',
+        team_id: teamId,
+        controlled_by: controlledBy,
+        owner_label: ownerLabel || null,
+        commissioner_name: commissionerName
+      },
+      'The team could not be updated.'
+    );
+  }
+
   window.MaddenStorage = Object.freeze({
     isConfigured: true,
     acceptTrade,
@@ -416,6 +452,8 @@
     commissionerLogin,
     commissionerSessionCheck,
     reviewTrade,
-    commissionerAuditLog
+    commissionerAuditLog,
+    commissionerTeams,
+    updateTeam
   });
 })();

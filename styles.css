@@ -775,6 +775,56 @@ main {
   color: var(--navy);
 }
 
+.comm-teams {
+  margin-top: 12px;
+}
+
+.comm-team-list {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.comm-team-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.4fr) 110px minmax(140px, 1fr) auto;
+  gap: 8px;
+  align-items: end;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+}
+
+.comm-team-name strong {
+  display: block;
+  font-size: 12px;
+}
+
+.comm-team-field {
+  display: grid;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.comm-team-field select,
+.comm-team-field input {
+  padding: 6px 8px;
+  border: 1px solid var(--input-border);
+  border-radius: 7px;
+  background: var(--input-bg);
+  color: var(--text);
+}
+
+.comm-team-save {
+  cursor: pointer;
+  font-weight: 800;
+  background: var(--secondary-bg);
+  color: var(--secondary-text);
+}
+
 .correction-bar {
   display: grid;
   grid-template-columns: 1fr minmax(180px, 280px) auto;
@@ -1553,6 +1603,13 @@ textarea:focus-visible {
   }
   .tab {
     padding: 8px 6px;
+  }
+  .comm-team-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .comm-team-name,
+  .comm-team-save {
+    grid-column: 1 / -1;
   }
   .correction-bar,
   .admin-unlocked-head {

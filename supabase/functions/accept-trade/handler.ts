@@ -1,9 +1,9 @@
-// accept-trade request handling (Web v2.0). index.ts wires in Supabase; this
+// accept-trade request handling (Web v2.1). index.ts wires in Supabase; this
 // file has no Deno or Supabase APIs, so it is tested in Node.
 //
-//   v2.0 / v4.4    league trade: league fields required, logged through
-//                  submit_league_trade (trade, revision 0 and assets).
-//   v1.5.0 / v4.4  switchover only: plain insert with no league, as before.
+// Every accepted release (v2.0 and v2.1, both Ruleset v4.4) is a league
+// trade: league fields required, logged through submit_league_trade (trade,
+// revision 0 and assets). The v1.5.0 plain-insert path was removed in v2.1.
 
 import {
   failure,
@@ -11,11 +11,9 @@ import {
   preflight,
   readJsonObject,
   type Rpc,
-  type RpcResult,
   statusForDatabaseError,
 } from "../_shared/http.ts";
 import {
-  LEAGUE_RELEASE,
   tradeForStorage,
   validateLeagueFields,
   validateTradePayload,
@@ -23,8 +21,6 @@ import {
 
 export type AcceptTradeDeps = {
   rpc: Rpc;
-  // Inserts one row into trades and returns { id, trade_number, accepted_at }.
-  insertTrade: (row: Record<string, unknown>) => Promise<RpcResult>;
   log?: (message: string, details: unknown) => void;
 };
 
@@ -48,22 +44,6 @@ export async function handleAcceptTrade(request: Request, deps: AcceptTradeDeps)
   if (!validation.valid) return failure(validation.message, 400);
 
   const trade = tradeForStorage(validation.trade);
-
-  if (trade.web_release !== LEAGUE_RELEASE) {
-    // v1.5.0 switchover path, unchanged from Web v1.5.0.
-    const { data, error } = await deps.insertTrade(trade);
-    const row = firstRow(data);
-
-    if (error || !row) {
-      log("Trade insertion failed:", error);
-      return failure(notLogged, 500);
-    }
-
-    return jsonResponse({
-      ok: true,
-      trade: { id: row.id, tradeNumber: row.trade_number, acceptedAt: row.accepted_at },
-    });
-  }
 
   const league = validateLeagueFields(body);
   if (!league.valid) return failure(league.message, 400);

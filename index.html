@@ -12,7 +12,7 @@
         <div class="brandrow">
           <div>
             <div class="brand">MADDEN LEAGUE TRADE CALCULATOR</div>
-            <div class="ver">Web Release v2.0 · Ruleset v4.4</div>
+            <div class="ver">Web Release v2.1 · Ruleset v4.4</div>
           </div>
           <div class="brand-actions">
             <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false">Dark mode</button>
@@ -412,6 +412,17 @@
               <div class="comm-list" id="commAudit"></div>
             </section>
           </div>
+          <section class="admin-section comm-teams">
+            <div class="admin-section-head">
+              <div>
+                <h2>Teams</h2>
+                <p>Set each team to Human or CPU and give it an owner label (only commissioners see labels).
+                  Changes show in the team pickers right away and go in the audit log.</p>
+              </div>
+            </div>
+            <div class="admin-status" id="commTeamsStatus" aria-live="polite"></div>
+            <div class="comm-team-list" id="commTeams"></div>
+          </section>
         </div>
       </section>
     </main>

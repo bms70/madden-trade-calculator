@@ -30,7 +30,9 @@
     trades: [],
     pending: null,        // { trade, action } for the Review / Reverse form
     notice: '',           // last action's result, shown before the queue count
-    correction: null      // { trade, teamA, teamB } while correcting
+    correction: null,     // { trade, teamA, teamB } while correcting
+    teams: [],            // commissioner team list (v2.1), with owner labels
+    teamNotice: ''        // last team save result, shown before the team count
   };
 
   const ACTIONS = {
@@ -39,8 +41,15 @@
     TRADE_REVERSED: 'Reversed',
     TRADE_DELETED: 'Deleted (v1.5.0 Admin)',
     PRE_LEAGUE_MIGRATION: 'Pre-league history moved in',
-    LEAGUE_CREATED: 'League created'
+    LEAGUE_CREATED: 'League created',
+    LEAGUE_RENAMED: 'League renamed',
+    LEAGUE_STATUS_CHANGED: 'League status changed',
+    COMMISSIONER_PASSWORD_SET: 'Commissioner password set',
+    IMPORT_SECRET_ROTATED: 'Import secret changed',
+    TEAM_UPDATED: 'Team updated'
   };
+
+  const CONTROL = { USER: 'Human', CPU: 'CPU' };
 
   const ASSET_FIELDS = ['type', 'name', 'pick', 'timing', 'ovr', 'age', 'pos', 'dev', 'cap', 'years', 'league', 'current', 'projected'];
 
@@ -155,9 +164,21 @@
   function auditCard(event) {
     let label = ACTIONS[event.action] || event.action || 'Action';
     let who = [event.actorName, event.actorRole ? event.actorRole.toLowerCase() : ''].filter(Boolean).join(', ');
-    let details = event.details && typeof event.details === 'object' && event.details.verdict_before
-      ? `Verdict ${event.details.verdict_before} → ${event.details.verdict_after}`
-      : '';
+    let d = event.details && typeof event.details === 'object' ? event.details : {};
+    let details = '';
+    if (d.verdict_before) {
+      details = `Verdict ${d.verdict_before} → ${d.verdict_after}`;
+    } else if (event.action === 'TEAM_UPDATED' && d.team) {
+      let parts = [];
+      if (d.controlled_by_before && d.controlled_by_before !== d.controlled_by_after) {
+        parts.push(`${CONTROL[d.controlled_by_before] || d.controlled_by_before} → ${CONTROL[d.controlled_by_after] || d.controlled_by_after}`);
+      }
+      if (d.owner_label_changed) parts.push('owner label changed');
+      if (d.source === 'snallabot') parts.push('loaded from Snallabot');
+      details = `${d.team}${parts.length ? ': ' + parts.join(', ') : ''}`;
+    } else if (event.action === 'TEAM_UPDATED' && d.source === 'snallabot') {
+      details = `Teams loaded from Snallabot (${d.added || 0} added, ${d.updated || 0} updated)`;
+    }
     return `
       <article class="admin-audit-card">
         <div class="admin-audit-head">
@@ -220,6 +241,10 @@
     $('#commQueue').innerHTML = '';
     $('#commAll').innerHTML = '';
     $('#commAudit').innerHTML = '';
+    area.teams = [];
+    area.teamNotice = '';
+    $('#commTeams').innerHTML = '';
+    text('#commTeamsStatus', '');
     text('#commStatus', message || '');
     paint();
   }
@@ -287,9 +312,10 @@
     text('#commQueueStatus', 'Loading trades...');
     text('#commAuditStatus', 'Loading the audit log...');
 
-    let [history, audit] = await Promise.all([
+    let [history, audit, teams] = await Promise.all([
       window.MaddenStorage.leagueHistory(league.name),
-      window.MaddenStorage.commissionerAuditLog(token, league.id)
+      window.MaddenStorage.commissionerAuditLog(token, league.id),
+      window.MaddenStorage.commissionerTeams(token, league.id)
     ]);
 
     if (!sessionValid() || entered() !== league) return;
@@ -308,6 +334,81 @@
     } else {
       handleFailure(audit, '#commAuditStatus');
     }
+
+    if (!sessionValid()) return;
+    if (teams.ok) {
+      area.teams = Array.isArray(teams.data.teams) ? teams.data.teams : [];
+      renderTeams();
+    } else {
+      handleFailure(teams, '#commTeamsStatus');
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Teams (v2.1): human / CPU and owner label
+  // --------------------------------------------------------------------------
+
+  function teamRow(team) {
+    let id = esc(team.teamId);
+    let name = [team.cityName, team.nickname].filter(Boolean).join(' ') || team.abbreviation;
+    return `
+      <div class="comm-team-row">
+        <div class="comm-team-name">
+          <strong>${esc(name)} (${esc(team.abbreviation)})</strong>
+          <span class="history-time">${esc(team.division || '')}</span>
+        </div>
+        <label class="comm-team-field">Control
+          <select id="teamCtl-${id}">
+            <option value="USER"${team.controlledBy === 'USER' ? ' selected' : ''}>Human</option>
+            <option value="CPU"${team.controlledBy === 'CPU' ? ' selected' : ''}>CPU</option>
+          </select>
+        </label>
+        <label class="comm-team-field">Owner label
+          <input type="text" id="teamLabel-${id}" maxlength="60" value="${esc(team.ownerLabel || '').replace(/"/g, '&quot;')}">
+        </label>
+        <button type="button" class="btn comm-team-save" data-team-save="${id}">Save</button>
+      </div>`;
+  }
+
+  function renderTeams() {
+    let humans = area.teams.filter(t => t.controlledBy === 'USER').length;
+    $('#commTeams').innerHTML = area.teams.map(teamRow).join('');
+    if (!area.teamNotice) text('#commTeamsStatus', area.teams.length ? `${area.teams.length} teams, ${humans} human.` : 'No teams loaded yet. The site owner loads them from Snallabot.');
+    else text('#commTeamsStatus', `${area.teamNotice} ${area.teams.length} teams, ${humans} human.`);
+    for (let button of document.querySelectorAll('#commTeams [data-team-save]')) {
+      button.onclick = () => saveTeam(button.dataset.teamSave);
+    }
+  }
+
+  async function saveTeam(teamId) {
+    let team = area.teams.find(t => String(t.teamId) === String(teamId));
+    if (!team) return;
+    if (!sessionValid()) { signOut('Your commissioner session ended. Sign in again.'); return; }
+    let name = commissionerName();
+    if (!name) {
+      area.teamNotice = '';
+      text('#commTeamsStatus', 'Add your name at the top first; it goes in the audit log.');
+      return;
+    }
+    let control = $(`#teamCtl-${teamId}`).value;
+    let label = $(`#teamLabel-${teamId}`).value.trim();
+    text('#commTeamsStatus', `Saving ${team.abbreviation}...`);
+    let result = await window.MaddenStorage.updateTeam({
+      token: area.session.token,
+      leagueId: area.session.leagueId,
+      teamId,
+      controlledBy: control,
+      ownerLabel: label,
+      commissionerName: name
+    });
+    if (!result.ok) {
+      area.teamNotice = '';
+      handleFailure(result, '#commTeamsStatus');
+      return;
+    }
+    area.teamNotice = result.data.team.changed ? `${team.abbreviation} saved.` : `${team.abbreviation}: nothing changed.`;
+    if (result.data.team.changed && window.LeagueMode) await window.LeagueMode.reloadTeams();
+    await loadAll();
   }
 
   // --------------------------------------------------------------------------
@@ -549,6 +650,7 @@
     // For tests.
     _area: area,
     _tradeFlags: tradeFlags,
-    _queueTrades: queueTrades
+    _queueTrades: queueTrades,
+    _saveTeam: saveTeam
   });
 })();

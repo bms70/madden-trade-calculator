@@ -61,6 +61,8 @@ Fixes one team by hand.
 - Pass `null` for anything you want to keep as it is. For example, `select * from owner_set_team('<LEAGUE NAME>', 'OMH', null, 'New owner');` changes only the label.
 - The next `owner_load_teams` overwrites manual fixes with what Snallabot says.
 
+From Web v2.1, the commissioner can make the same changes on the **Commissioner → Teams** screen. `owner_load_teams` overwrites those too, so run it only when Snallabot's team list should win (for example after a relocation or a new season), and tell the commissioner.
+
 ### `owner_set_commissioner_password(name, password)`
 
 Sets the password the first time, or resets it later. It must be 8–200 characters. It is stored only as a bcrypt hash.
