@@ -259,6 +259,20 @@
     }
   }
 
+  // Re-reads the entered league's teams (after a commissioner edit), keeping
+  // the chosen teams.
+  async function reloadTeams() {
+    if (!league.entered || !window.MaddenStorage?.isConfigured) return;
+    let entered = league.entered;
+    let teams = await window.MaddenStorage.leagueTeams(entered.name);
+    if (!teams.ok || league.entered !== entered) return;
+    league.teams = teams.teams;
+    if (!findTeam(league.teamA)) league.teamA = '';
+    if (!findTeam(league.teamB)) league.teamB = '';
+    fillTeamPickers();
+    refresh();
+  }
+
   function leaveLeague() {
     league.entered = null;
     league.message = '';
@@ -321,6 +335,7 @@
     NOTE_MAX,
     init,
     isLeague: () => league.mode === 'LEAGUE',
+    reloadTeams,
     teamsReady,
     findTeam,
     teamFullName,

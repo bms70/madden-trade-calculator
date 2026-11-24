@@ -4,19 +4,16 @@
 
 import { trimmedString, uuidPattern } from "./http.ts";
 
-// Accepted Web Release / Ruleset pairs from Web v2.0.
-//   v2.0 / v4.4   league trades (requires the league fields)
-//   v1.5.0 / v4.4 accepted during the switchover window only, so open v1.5.0
-//                 tabs don't fail; logged without a league, then swept into
-//                 the main league as pre-league. Removed about a week after
-//                 launch (spec section 7).
-// v1.4.0 / v4.2 is no longer accepted.
+// Accepted Web Release / Ruleset pairs from Web v2.1. Every accepted pair is
+// a league release (league fields required).
+//   v2.1 / v4.4   current site
+//   v2.0 / v4.4   pages still open from v2.0 (same snapshot shape)
+// No longer accepted: v1.5.0 / v4.4 (the v2.0 switchover pair, removed in
+// v2.1 as launch runbook step 8) and v1.4.0 / v4.2.
 export const SUPPORTED_RELEASES: Record<string, string> = {
-  "v1.5.0": "v4.4",
   "v2.0": "v4.4",
+  "v2.1": "v4.4",
 };
-
-export const LEAGUE_RELEASE = "v2.0";
 
 const allowedVerdicts = new Set(["FAIR", "QUESTIONABLE", "UNFAIR", "LEAGUE-BREAKING"]);
 const allowedModes = new Set(["DRAFT_ONLY", "POSITIVE_PLAYER_TIE", "NO_ELIGIBLE_PLAYER", "DIRECTIONAL"]);

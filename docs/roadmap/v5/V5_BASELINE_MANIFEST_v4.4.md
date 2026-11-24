@@ -124,7 +124,7 @@ The two changed baseline files and the new files that carry `accept-trade` logic
 | 10b | `supabase/functions/_shared/trade-validation.ts` | New: the v1.5.0 trade checks, unchanged, plus league fields and the accepted pairs | 7226 | `0479889d4227f582ef7878b19bde5c77053cc723ddfc685af55304b6c21375dc` | `f1dbf4602277b8be8d190ae11f17a7546d2b8c32` |
 | 10c | `supabase/functions/_shared/http.ts` | New: shared HTTP helpers | 2212 | `3a5fcebdfad9ffb7c3ad06d17eb0b8958ffd44c2d6a5f82ebedf67b7ed140f77` | `0738172e9f441c9f4cabb1ee301a993cf52ad480` |
 
-About a week after launch, a maintenance update removes `v1.5.0` from `trade-validation.ts` (runbook step 8). Record its new hash here when that update lands.
+About a week after launch, a maintenance update removes `v1.5.0` from `trade-validation.ts` (runbook step 8). This was done in Web v2.1; see the next addendum.
 
 ## Addendum: reference workbook pick-entry fix (2026-11-22)
 
@@ -133,3 +133,14 @@ File 6 changed. Valuation is unchanged: no constant, table value or rule changed
 | # | File | Change | Bytes | SHA-256 | Git blob |
 |---|---|---|---|---|---|
 | 6 | `reference/Madden League Trade Calculator v4.4.xlsx` | Player / Pick cells formatted as Text; 15 formulas accept a pick stored as a number; pick drop-down | 37669 | `b8995a9137d15cf524be750576386bda9fed19c68a709ad00082a40a67d284d5` | `0c2399280a7781a01175a217e137f2a6f051842d` |
+
+## Addendum: Web Release v2.1 (2026-11-24)
+
+Web v2.1 changes `web_release` to `"v2.1"`. It folds in launch runbook step 8: `accept-trade` accepts v2.0 and v2.1 and refuses v1.5.0, and its plain-insert path is removed. **Valuation is unchanged:** `valuation.js` is byte-identical to the baseline tag, and all 16 parity scenarios produce the v1.5.0 snapshot apart from `web_release` (`tests/web-league-mode.test.js`).
+
+| # | File | Change | Bytes | SHA-256 | Git blob |
+|---|---|---|---|---|---|
+| 5 | `calculator-ui.js` | `web_release` `v2.1` (the only change) | 21163 | `544469a7d28775e5adf3f7daf535188e863c4b0425e98f1d008cd2f2825f943e` | `735c8005843a7c675071c459632a7c7f9bd2d067` |
+| 10 | `supabase/functions/accept-trade/index.ts` | Plain-insert wiring removed | 516 | `ffc47f563b212e6a3200397abca2f465c202264ea06d0b4cea33e814bce239d0` | `c561554a5c1c972d41b09ee5eee5d82dc26229f1` |
+| 10a | `supabase/functions/accept-trade/handler.ts` | v1.5.0 path removed; every accepted release is a league trade | 2924 | `7928fe19ea6864498b394b9c8524ec3cd4714c190387e9a3ffd44d4128352665` | `db71e94b9580f70c0eadb5dbe69ecf3b2f2b8fff` |
+| 10b | `supabase/functions/_shared/trade-validation.ts` | Accepted pairs: v2.0 / v4.4 and v2.1 / v4.4 | 7104 | `49e5b5ba335b58575b6c24d48c506c0400c8ec80199f2d0c942a263e1ce407de` | `a75a2b152d68f9f9ff8f06323f84bb5ea90d76dd` |

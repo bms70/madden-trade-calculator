@@ -13,6 +13,8 @@ Recorded 2026-11-22 (America/Chicago) on `release/web-v2.0` (build steps 1–7, 
 
 ## Automated suites
 
+In v2.1, `web-v2.0-league-mode.test.js` was renamed `web-league-mode.test.js` and `web-v2.0-functions.test.mjs` was renamed `web-functions.test.mjs`.
+
 | Suite | Command (repo root) | Result |
 |---|---|---|
 | Ruleset v4.4 regression | `node tests/ruleset-v4.4.test.js` | 64 / 64 PASS |

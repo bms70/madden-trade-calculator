@@ -15,7 +15,7 @@ Nothing here is deployed yet. The functions are deployed at release step 3, afte
 | `supabase/functions/accept-trade/handler.ts` | Request handling for `accept-trade` |
 | `supabase/functions/<name>/index.ts` | Thin wiring: Supabase client and `ADMIN_SESSION_SECRET` |
 
-The handlers use no Deno or Supabase APIs, so `tests/web-v2.0-functions.test.mjs` runs them in Node with a fake database.
+The handlers use no Deno or Supabase APIs, so `tests/web-functions.test.mjs` runs them in Node with a fake database.
 
 All functions: `POST` only (`OPTIONS` answers the CORS preflight), JSON body, publishable key (`verify_jwt = false`, as today). Every response has `ok: true` or `ok: false` with an `error` message to show the user. A bad JSON body returns 400.
 
@@ -54,7 +54,9 @@ Only the 16 trade fields are stored as the snapshot. The league fields go into t
 | Unknown league | 404 | "League not found." |
 | Database failure | 500 | "Trade could not be logged. No historical record was created." |
 
-**v1.5.0 / v4.4 (switchover only).** Same body and response as Web v1.5.0. It is a plain insert with no league; release step 6 sweeps these rows into the main league as pre-league. Removed about a week after launch.
+**v2.1 / v4.4** (from Web v2.1): the same body as v2.0, with `web_release: "v2.1"`. Both v2.0 and v2.1 are accepted.
+
+**v1.5.0 / v4.4:** accepted during the v2.0 switchover only, as a plain insert with no league. **Refused from Web v2.1**, and the plain-insert path was removed.
 
 **v1.4.0 / v4.2.** Refused (400).
 
@@ -100,6 +102,23 @@ Body: `{ token, league_id?, trade_id, action, commissioner_name, reason?, trade?
 Body: `{ token, league_id?, limit? }`. The limit is 1–1000 and defaults to 200.
 
 200 → `{ ok, events: [ { occurredAt, action, tradeNumber, actorRole, actorName, reason, details } ] }`, newest first, this league only.
+
+## `commissioner-teams` (new in Web v2.1)
+
+| Body | Result |
+|---|---|
+| `{ token, league_id?, action: "LIST" }` (`LIST` is the default) | 200 `{ ok, teams: [ { teamId, abbreviation, cityName, nickname, division, controlledBy, ownerLabel, updatedAt } ] }`, for the token's league |
+| `{ token, league_id?, action: "UPDATE", team_id, controlled_by, owner_label?, commissioner_name }` | 200 `{ ok, team: { teamId, abbreviation, controlledBy, ownerLabel, changed } }` |
+
+- `controlled_by` is `USER` or `CPU`, in any case; `HUMAN` also means USER.
+- `owner_label` can be up to 60 characters. A blank or null label clears it.
+- `commissioner_name` must be 1–60 characters.
+- **Errors:**
+  - 400 for invalid input
+  - 401 for no or an expired session
+  - 403 when `league_id` doesn't match the token
+  - 404 when the team isn't in this league
+- A change is audited as `TEAM_UPDATED` (actor COMMISSIONER, with before and after values). `changed: false` means nothing differed, and no event is written.
 
 ## Deploy (release step 3, not now)
 

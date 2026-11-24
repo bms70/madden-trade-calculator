@@ -1,6 +1,6 @@
-// Web v2.0 league mode in the browser scripts: snapshot contract, display-only
+// Web v2.0 / v2.1 league mode in the browser scripts: snapshot contract, display-only
 // team names, practice mode, league entry and submission.
-// Run from the repo root: node tests/web-v2.0-league-mode.test.js
+// Run from the repo root: node tests/web-league-mode.test.js
 // Also covers league Trade History (trade-history.js, step 4) and the
 // Commissioner area with correction mode (commissioner.js, step 5).
 //
@@ -61,6 +61,18 @@ function makeWindow({ storage, localStore = new Map() } = {}) {
     elements,
     querySelector(s) { if (!elements.has(s)) elements.set(s, fakeElement(s)); return elements.get(s); },
     querySelectorAll(sel) {
+      if (sel === '#commTeams [data-team-save]') {
+        const html = (elements.get('#commTeams') || { innerHTML: '' }).innerHTML;
+        return [...html.matchAll(/data-team-save="([^"]+)"/g)].map(m => {
+          const key = 'team|' + m[1];
+          if (!buttons.has(key)) {
+            const button = fakeElement('button');
+            button.dataset = { teamSave: m[1] };
+            buttons.set(key, button);
+          }
+          return buttons.get(key);
+        });
+      }
       if (sel !== '#commissioner [data-action]') return [];
       const html = ['#commQueue', '#commAll'].map(id => (elements.get(id) || { innerHTML: '' }).innerHTML).join('');
       return [...html.matchAll(/data-action="([A-Z]+)" data-trade-id="([^"]+)"/g)].map(m => {
@@ -157,12 +169,12 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
     const keysOk = JSON.stringify(Object.keys(a)) === JSON.stringify(FIELDS) && JSON.stringify(Object.keys(b)) === JSON.stringify(FIELDS);
     const { web_release: wa, ...restA } = a;
     const { web_release: wb, ...restB } = b;
-    if (keysOk && wa === 'v2.0' && wb === 'v1.5.0' && JSON.stringify(restA) === JSON.stringify(restB)) same++;
+    if (keysOk && wa === 'v2.1' && wb === 'v1.5.0' && JSON.stringify(restA) === JSON.stringify(restB)) same++;
     else mismatch.push(scenario.n);
   }
 
   check(`all ${scenarios.length} parity scenarios produce a snapshot`, compared === scenarios.length, mismatch.join(', '));
-  check('v2.0 snapshot = v1.5.0 snapshot apart from web_release (league mode, teams chosen)', same === compared && compared > 0, mismatch.join(', '));
+  check('v2.1 snapshot = v1.5.0 snapshot apart from web_release (league mode, teams chosen)', same === compared && compared > 0, mismatch.join(', '));
 
   const w = current();
   setTrade(w, scenarios[0]);
@@ -296,7 +308,7 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   el('#submitterNote').value = 'Deadline deal';
   await el('#acceptConfirm').onsubmit({ preventDefault() {} });
   const submitted = calls.find(c => c[0] === 'submit');
-  check('submitted the v2.0 league submission', submitted && submitted[1].web_release === 'v2.0' && submitted[1].submitter_note === 'Deadline deal' && submitted[1].other_team_id === TEAMS[1].team_id);
+  check('submitted the v2.1 league submission', submitted && submitted[1].web_release === 'v2.1' && submitted[1].submitter_note === 'Deadline deal' && submitted[1].other_team_id === TEAMS[1].team_id);
   check('confirmation message', el('#status').textContent === 'Logged as trade #42, Unreviewed.');
   check('name remembered, note cleared', w.localStore.get('maddenTrade.submitterName') === 'Sam' && el('#submitterNote').value === '');
 
@@ -404,9 +416,14 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   ];
   const ccalls = [];
   let reviewReply = { ok: true, data: { ok: true, trade: { tradeNumber: 68, reviewStatus: 'REVIEWED', currentRevision: 0 } }, error: null, status: 200 };
+  const commTeams = TEAMS3.map(t => ({ teamId: t.team_id, abbreviation: t.abbreviation, cityName: t.city_name, nickname: t.nickname, division: t.division, controlledBy: t.controlled_by, ownerLabel: t.controlled_by === 'USER' ? 'Owner "Q" <x>' : null, updatedAt: 't' }));
+  let teamsReply = { ok: true, data: { ok: true, teams: commTeams }, error: null, status: 200 };
+  let updateReply = { ok: true, data: { ok: true, team: { teamId: TEAMS3[1].team_id, abbreviation: 'OMH', controlledBy: 'USER', ownerLabel: 'New', changed: true } }, error: null, status: 200 };
   let loginReply = { ok: false, data: { ok: false, error: 'Wrong password.' }, error: 'Wrong password.', status: 401 };
   const cstorage = Object.assign({}, hstorage, {
-    leagueTeams: async () => ({ ok: true, teams: TEAMS3 }),
+    leagueTeams: async () => { ccalls.push(['leagueTeams']); return { ok: true, teams: TEAMS3 }; },
+    commissionerTeams: async (token, id) => { ccalls.push(['teams', token, id]); return teamsReply; },
+    updateTeam: async args => { ccalls.push(['updateTeam', args]); return updateReply; },
     leagueHistory: async name => { ccalls.push(['history', name]); return { ok: true, data: commRows.map(r => Object.assign({ id: r.trade_id }, r)) }; },
     commissionerLogin: async (name, pw) => { ccalls.push(['login', name, pw]); return loginReply; },
     commissionerAuditLog: async (token, id) => { ccalls.push(['audit', token, id]); return { ok: true, data: { ok: true, events: [{ occurredAt: iso(NOW), action: 'TRADE_CORRECTED', tradeNumber: 66, actorRole: 'COMMISSIONER', actorName: 'Commish', reason: 'Fix <pick>', details: { verdict_before: 'UNFAIR', verdict_after: 'FAIR' } }] }, error: null, status: 200 }; },
@@ -495,7 +512,7 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   reviewReply = { ok: true, data: { ok: true, trade: { tradeNumber: 70, reviewStatus: 'REVIEWED', currentRevision: 1 } }, error: null, status: 200 };
   await cel('#saveCorrection').onclick();
   const correctCall = ccalls.filter(c => c[0] === 'review')[1];
-  check('correction sends CORRECT with the edited v2.0 snapshot', correctCall && correctCall[1].action === 'CORRECT' && correctCall[1].reason === 'Missing pick' && correctCall[1].trade.web_release === 'v2.0' && correctCall[1].trade.cpu_team_assets.length === snapA.cpu_team_assets.length + 1);
+  check('correction sends CORRECT with the edited v2.1 snapshot', correctCall && correctCall[1].action === 'CORRECT' && correctCall[1].reason === 'Missing pick' && correctCall[1].trade.web_release === 'v2.1' && correctCall[1].trade.cpu_team_assets.length === snapA.cpu_team_assets.length + 1);
   check('correction snapshot keeps engine side names', /User Team|CPU Team/.test(JSON.stringify(correctCall[1].trade.trade_intelligence)));
   check('after save: bar hidden, teams restored, trade cleared', !CA.isCorrecting() && cel('#correctionBar').hidden === true && CLM.state.teamA === TEAMS[1].team_id && CLM.state.teamB === '' && vm.runInContext('state.A.length + state.B.length', cw.ctx) === 0);
 
@@ -505,8 +522,36 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   await cel('#commAction').onsubmit({ preventDefault() {} });
   check('401 signs the commissioner out', cel('#commUnlocked').hidden === true && cel('#commStatus').textContent.includes('session ended'));
 
-  // League change signs out
+  // Teams (v2.1)
   loginReply = { ok: true, data: { ok: true, session }, error: null, status: 200 };
+  cel('#commPassword').value = 'right';
+  await cel('#commLoginForm').onsubmit({ preventDefault() {} });
+  const teamsHtml = cel('#commTeams').innerHTML;
+  check('teams: listed after sign-in with the token and league', ccalls.some(c => c[0] === 'teams' && c[1] === 'tok-123' && c[2] === LEAGUE.id) && (teamsHtml.match(/comm-team-row/g) || []).length === 3);
+  check('teams: status counts teams and humans', cel('#commTeamsStatus').textContent === '3 teams, 2 human.');
+  check('teams: control preselected, label escaped', /value="USER" selected>Human/.test(teamsHtml) && /value="CPU" selected>CPU/.test(teamsHtml) && teamsHtml.includes('Owner &quot;Q&quot; &lt;x&gt;') && !teamsHtml.includes('<x>'));
+  const saveButton = cw.document.querySelectorAll('#commTeams [data-team-save]').find(b => b.dataset.teamSave === TEAMS3[1].team_id);
+  cel('#teamCtl-' + TEAMS3[1].team_id).value = 'USER';
+  cel('#teamLabel-' + TEAMS3[1].team_id).value = '  New  ';
+  cel('#commName').value = '';
+  await saveButton.onclick();
+  check('teams: save needs the commissioner name', !ccalls.some(c => c[0] === 'updateTeam') && cel('#commTeamsStatus').textContent.startsWith('Add your name'));
+  cel('#commName').value = 'Commish';
+  const pickerLoadsBefore = ccalls.filter(c => c[0] === 'leagueTeams').length;
+  await saveButton.onclick();
+  const upd = ccalls.find(c => c[0] === 'updateTeam');
+  check('teams: save sends token, league, team, control, trimmed label, name', upd && upd[1].token === 'tok-123' && upd[1].leagueId === LEAGUE.id && upd[1].teamId === TEAMS3[1].team_id && upd[1].controlledBy === 'USER' && upd[1].ownerLabel === 'New' && upd[1].commissionerName === 'Commish');
+  check('teams: pickers reloaded after a change', ccalls.filter(c => c[0] === 'leagueTeams').length === pickerLoadsBefore + 1);
+  check('teams: saved notice kept after the reload', cel('#commTeamsStatus').textContent.startsWith('OMH saved.'));
+  updateReply = { ok: true, data: { ok: true, team: { teamId: TEAMS3[1].team_id, abbreviation: 'OMH', controlledBy: 'USER', ownerLabel: 'New', changed: false } }, error: null, status: 200 };
+  const loadsBefore2 = ccalls.filter(c => c[0] === 'leagueTeams').length;
+  await saveButton.onclick();
+  check('teams: unchanged save says so, no picker reload', cel('#commTeamsStatus').textContent.startsWith('OMH: nothing changed.') && ccalls.filter(c => c[0] === 'leagueTeams').length === loadsBefore2);
+  updateReply = { ok: false, data: { ok: false, error: 'Commissioner sign-in required.', reason: 'expired' }, error: 'Commissioner sign-in required.', status: 401 };
+  await saveButton.onclick();
+  check('teams: 401 signs out and clears the team list', cel('#commUnlocked').hidden === true && cel('#commTeams').innerHTML === '');
+
+  // League change signs out
   cel('#commPassword').value = 'right';
   await cel('#commLoginForm').onsubmit({ preventDefault() {} });
   cel('#leagueLeave').onclick();
