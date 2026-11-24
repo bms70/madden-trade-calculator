@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Madden League Trade Calculator</title>
-    <link rel="stylesheet" href="styles.css?v=2.1">
+    <link rel="stylesheet" href="styles.css?v=2.1.1">
   </head>
   <body>
     <header class="top">
@@ -379,17 +379,17 @@
               <button type="submit" class="btn admin-confirm-delete" id="commActionConfirm">Confirm</button>
             </div>
           </form>
-          <section class="admin-section comm-teams">
-            <div class="admin-section-head">
-              <div>
-                <h2>Teams</h2>
-                <p>Set each team to Human or CPU and give it an owner label (only commissioners see labels).
-                  Changes show in the team pickers right away and go in the audit log.</p>
-              </div>
-            </div>
+          <details class="admin-section comm-teams" id="commTeamsPanel">
+            <summary class="comm-teams-summary">
+              <span class="comm-teams-title">Teams</span>
+              <span class="comm-teams-count" id="commTeamsSummary"></span>
+              <span class="comm-teams-hint">Human / CPU and owner labels</span>
+            </summary>
+            <p class="comm-teams-help">Changes save automatically and go in the audit log. Owner labels are only
+              visible to commissioners.</p>
             <div class="admin-status" id="commTeamsStatus" aria-live="polite"></div>
-            <div class="comm-team-list" id="commTeams"></div>
-          </section>
+            <div class="comm-team-groups" id="commTeams"></div>
+          </details>
           <section class="admin-section comm-queue">
             <div class="admin-section-head">
               <div>
@@ -433,13 +433,13 @@
     <!-- ?v= on local files: bump it with every Web Release so browsers fetch the
          new files instead of mixing cached old scripts with the new page. -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./supabase-config.js?v=2.1"></script>
-    <script src="./storage.js?v=2.1"></script>
-    <script src="./theme.js?v=2.1"></script>
-    <script src="./valuation.js?v=2.1"></script>
-    <script src="./league-mode.js?v=2.1"></script>
-    <script src="./calculator-ui.js?v=2.1"></script>
-    <script src="./trade-history.js?v=2.1"></script>
-    <script src="./commissioner.js?v=2.1"></script>
+    <script src="./supabase-config.js?v=2.1.1"></script>
+    <script src="./storage.js?v=2.1.1"></script>
+    <script src="./theme.js?v=2.1.1"></script>
+    <script src="./valuation.js?v=2.1.1"></script>
+    <script src="./league-mode.js?v=2.1.1"></script>
+    <script src="./calculator-ui.js?v=2.1.1"></script>
+    <script src="./trade-history.js?v=2.1.1"></script>
+    <script src="./commissioner.js?v=2.1.1"></script>
   </body>
 </html>

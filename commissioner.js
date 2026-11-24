@@ -348,36 +348,76 @@
   // Teams (v2.1): human / CPU and owner label
   // --------------------------------------------------------------------------
 
-  function teamRow(team) {
-    let id = esc(team.teamId);
+  function attr(value) {
+    return esc(value || '').replace(/"/g, '&quot;');
+  }
+
+  // One compact line: abbreviation, Human/CPU, owner label. Changes save
+  // automatically (select: on change; label: on blur or Enter).
+  function teamLine(team) {
+    let id = attr(team.teamId);
     let name = [team.cityName, team.nickname].filter(Boolean).join(' ') || team.abbreviation;
     return `
-      <div class="comm-team-row">
-        <div class="comm-team-name">
-          <strong>${esc(name)} (${esc(team.abbreviation)})</strong>
-          <span class="history-time">${esc(team.division || '')}</span>
-        </div>
-        <label class="comm-team-field">Control
-          <select id="teamCtl-${id}">
-            <option value="USER"${team.controlledBy === 'USER' ? ' selected' : ''}>Human</option>
-            <option value="CPU"${team.controlledBy === 'CPU' ? ' selected' : ''}>CPU</option>
-          </select>
-        </label>
-        <label class="comm-team-field">Owner label
-          <input type="text" id="teamLabel-${id}" maxlength="60" value="${esc(team.ownerLabel || '').replace(/"/g, '&quot;')}">
-        </label>
-        <button type="button" class="btn comm-team-save" data-team-save="${id}">Save</button>
+      <div class="comm-team-line">
+        <span class="comm-team-abbr" title="${attr(name)}">${esc(team.abbreviation)}</span>
+        <select id="teamCtl-${id}" data-team="${id}" aria-label="${attr(name)}: Human or CPU">
+          <option value="USER"${team.controlledBy === 'USER' ? ' selected' : ''}>Human</option>
+          <option value="CPU"${team.controlledBy === 'CPU' ? ' selected' : ''}>CPU</option>
+        </select>
+        <input type="text" id="teamLabel-${id}" data-team="${id}" maxlength="60" placeholder="Owner"
+          aria-label="${attr(name)}: owner label" value="${attr(team.ownerLabel)}">
       </div>`;
   }
 
-  function renderTeams() {
+  function teamSummary() {
     let humans = area.teams.filter(t => t.controlledBy === 'USER').length;
-    $('#commTeams').innerHTML = area.teams.map(teamRow).join('');
-    if (!area.teamNotice) text('#commTeamsStatus', area.teams.length ? `${area.teams.length} teams, ${humans} human.` : 'No teams loaded yet. The site owner loads them from Snallabot.');
-    else text('#commTeamsStatus', `${area.teamNotice} ${area.teams.length} teams, ${humans} human.`);
-    for (let button of document.querySelectorAll('#commTeams [data-team-save]')) {
-      button.onclick = () => saveTeam(button.dataset.teamSave);
+    text('#commTeamsSummary', area.teams.length ? `${area.teams.length} teams, ${humans} human` : 'no teams loaded');
+  }
+
+  // Teams grouped by division, in the order the list arrives (division, city).
+  function renderTeams() {
+    let groups = new Map();
+    for (let team of area.teams) {
+      let key = team.division || 'Other';
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(team);
     }
+    $('#commTeams').innerHTML = [...groups].map(([division, teams]) => `
+      <div class="comm-team-group">
+        <h3>${esc(division)}</h3>
+        ${teams.map(teamLine).join('')}
+      </div>`).join('');
+    teamSummary();
+    text('#commTeamsStatus', area.teams.length ? area.teamNotice : 'No teams loaded yet. The site owner loads them from Snallabot.');
+    for (let field of document.querySelectorAll('#commTeams [data-team]')) {
+      field.onchange = () => saveTeam(field.dataset.team);
+      if (field.tagName === 'INPUT') {
+        field.onkeydown = event => { if (event.key === 'Enter') field.blur(); };
+      }
+    }
+  }
+
+  // Audit log only (after a team save, so the team list isn't redrawn).
+  async function loadAudit() {
+    if (!sessionValid()) return;
+    let league = entered();
+    let audit = await window.MaddenStorage.commissionerAuditLog(area.session.token, league.id);
+    if (!sessionValid() || entered() !== league) return;
+    if (audit.ok) {
+      let events = Array.isArray(audit.data.events) ? audit.data.events : [];
+      $('#commAudit').innerHTML = events.map(auditCard).join('');
+      text('#commAuditStatus', events.length ? '' : 'No actions yet.');
+    } else {
+      handleFailure(audit, '#commAuditStatus');
+    }
+  }
+
+  // Puts a team's fields back to its saved values.
+  function restoreTeam(team) {
+    let control = $(`#teamCtl-${team.teamId}`);
+    let label = $(`#teamLabel-${team.teamId}`);
+    if (control) control.value = team.controlledBy;
+    if (label) label.value = team.ownerLabel || '';
   }
 
   async function saveTeam(teamId) {
@@ -387,7 +427,8 @@
     let name = commissionerName();
     if (!name) {
       area.teamNotice = '';
-      text('#commTeamsStatus', 'Add your name at the top first; it goes in the audit log.');
+      restoreTeam(team);
+      text('#commTeamsStatus', 'Add your name at the top first; it goes in the audit log. Nothing was saved.');
       return;
     }
     let control = $(`#teamCtl-${teamId}`).value;
@@ -403,12 +444,22 @@
     });
     if (!result.ok) {
       area.teamNotice = '';
+      if (result.status !== 401) restoreTeam(team);
       handleFailure(result, '#commTeamsStatus');
       return;
     }
-    area.teamNotice = result.data.team.changed ? `${team.abbreviation} saved.` : `${team.abbreviation}: nothing changed.`;
-    if (result.data.team.changed && window.LeagueMode) await window.LeagueMode.reloadTeams();
-    await loadAll();
+    let saved = result.data.team;
+    area.teamNotice = saved.changed ? `${team.abbreviation} saved.` : `${team.abbreviation}: nothing changed.`;
+    text('#commTeamsStatus', area.teamNotice);
+    if (!saved.changed) return;
+    // Update in place (no redraw, so focus stays in the next field).
+    team.controlledBy = saved.controlledBy;
+    team.ownerLabel = saved.ownerLabel;
+    teamSummary();
+    // Team pickers and the human-to-human flags follow the change.
+    if (window.LeagueMode) await window.LeagueMode.reloadTeams();
+    renderLists();
+    await loadAudit();
   }
 
   // --------------------------------------------------------------------------
