@@ -407,8 +407,9 @@ Full record: `docs/validation/VALIDATION_v2.1.md`.
 - Browser scripts (`node tests/web-league-mode.test.js`): **94 / 94 PASS**
 - Edge Function logic (`node --experimental-strip-types tests/web-functions.test.mjs`): **98 / 98 PASS**
 - Team editing database (`tests/web-v2.1-teams.test.py`): **23 / 23 PASS**
-- Import history database (`tests/import-history-db.test.py`): **43 / 43 PASS**
+- Import history database (`tests/import-history-db.test.py`): **44 / 44 PASS**
 - Trade ledger database (`tests/trade-ledger-db.test.py`): **48 / 48 PASS**
+- Team ID changes database (`tests/team-id-changes-db.test.py`): **22 / 22 PASS**
 - Live check: **PENDING release-owner sign-off**
 
 ### Web Release v2.0 / Ruleset v4.4

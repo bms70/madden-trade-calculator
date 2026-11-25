@@ -67,6 +67,10 @@ Draft picks are listed but not linked (pick ownership is deferred, Q33).
 
 There's no browser access. The service role can read; the owner commands run only from the dashboard.
 
+## Team ID changes
+
+Teams are compared as league teams, not raw Madden IDs, so a new set of team IDs (R23) doesn't show as roster moves and doesn't break player links. See `V5_IMPORT_HISTORY.md`, Team IDs.
+
 ## Launch checklist
 
 1. Merge the PR.
