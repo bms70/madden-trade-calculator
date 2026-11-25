@@ -80,6 +80,7 @@ The finish line is **Web v5.0 + Ruleset v5.0**. Releases before that follow thes
 - **Exit:** a normal trade can be built mostly by picking real league assets.
 
 ### Phase 4 — Transaction ledger · **Web v4.0**
+- **Backend groundwork built 2026-11-24** (no release): `trade_ledger`, player links to `rosterId`, duplicate and in-game checks, and roster-move evidence, read with owner SQL commands. Details: [`V5_TRADE_LEDGER.md`](V5_TRADE_LEDGER.md). A commissioner Ledger panel and any snapshot-contract change remain for the Web Release.
 - A normalized store of approved league trades (teams, players, picks, season, week or stage) with frozen v4.4 values.
 - Duplicate detection, plus roster-diff detection of player moves between snapshots (treated as evidence only).
 - This changes the snapshot contract, so it's a major release.

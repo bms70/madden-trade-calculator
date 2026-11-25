@@ -82,7 +82,7 @@ migrations = sorted(os.listdir(os.path.join(ROOT, "supabase", "migrations")))
 for m in migrations:
     with open(os.path.join(ROOT, "supabase", "migrations", m), encoding="utf-8") as f:
         psql(f.read())
-check("all migrations apply, import history last", migrations[-1] == "20261124020000_import_history.sql", migrations[-1])
+check("all migrations apply, including import history", "20261124020000_import_history.sql" in migrations)
 
 with open(os.path.join(ROOT, "docs", "roadmap", "v5", "sql", "connect-snallabot.sql"), encoding="utf-8") as f:
     connect = f.read().replace("extensions.", "").replace("<LEAGUE NAME>", LEAGUE)

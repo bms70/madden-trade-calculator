@@ -31,8 +31,11 @@ These are **not** PowerShell commands.
 | Move trades without a league into a league | `select * from owner_move_pre_league_history('<LEAGUE NAME>');` |
 | Import history: what's stored, one row per export | `select * from owner_import_history('<LEAGUE NAME>');` |
 | Import history: build for stored exports (backfill / repair) | `select * from owner_build_import_history('<LEAGUE NAME>');` |
+| Trade ledger, newest first | `select * from owner_trade_ledger('<LEAGUE NAME>');` |
+| Players who changed teams between exports | `select * from owner_roster_moves('<LEAGUE NAME>');` |
+| Link a traded player by hand | `select * from owner_link_trade_player('<LEAGUE NAME>', <trade #>, 'O1', <roster ID>);` |
 
-Every change is written to the league's audit log as **site owner**, so the commissioner sees it. The two import-history commands don't change league data and aren't audited; see [`V5_IMPORT_HISTORY.md`](V5_IMPORT_HISTORY.md).
+Every change is written to the league's audit log as **site owner**, so the commissioner sees it. The import-history and ledger commands don't change trades or teams and aren't audited; see [`V5_IMPORT_HISTORY.md`](V5_IMPORT_HISTORY.md) and [`V5_TRADE_LEDGER.md`](V5_TRADE_LEDGER.md).
 
 ## Details
 
