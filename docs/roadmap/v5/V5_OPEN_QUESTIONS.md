@@ -14,6 +14,7 @@ Last updated: 2026-11-22.
 
 | # | Enhancement | Notes |
 |---|---|---|
+| 33 | **Draft-pick ownership screen:** a table of who owns each pick (current draft, next year, two years away; 7 rounds), edited by the commissioner | **Deferred until after Web v5.0** (decided 2026-11-24). Picks aren't exported (A12), so it needs manual upkeep. If revived, the decisions already made: **commissioner only**, ownership moved **by hand** (trades record only a label like "Mid 3rd"). Undecided: how the table starts. Sketch: `draft_picks` in `V5_SAMPLE_SCHEMA.sql` |
 | 32 | **"Gives" layout:** each box shows what that team **gives**, with headings **USER TEAM** (left) and **CPU TEAM** (right), or the team names in League mode. The league found "receives" confusing | **Planned for Web v5.0** (decided 2026-11-23). Display only: the page maps each box to the engine's opposite side, so valuation, the snapshot and stored trades are unchanged. Update How to Use, the wiki and the Excel workbook to match |
 | 31 | **Site-owner screen** on the website: create, rename and archive leagues, set commissioner passwords, fix teams | Needs its own sign-in, stronger than a league password, because it controls every league. Most useful once there are several leagues. Until then: the owner toolkit's SQL commands |
 
@@ -75,4 +76,6 @@ Last updated: 2026-11-22.
 | **Site-owner screen?** (Q31) | **Not now; kept as a future enhancement** (2026-11-22). The SQL commands are fine for now (`V5_OWNER_TOOLKIT.md`). See Future enhancements |
 | **Offseason fade shape?** (Q19) | **Stage by stage** (re-signing → free agency → draft → preseason weeks 1, 2, 3), along the **in-season squared curve in reverse**: it holds strong early and drops faster near the end (2026-11-22) |
 | **Posture effect sizes?** (Q20) | **No starting values: set in Phase 6 calibration** from league history. Human teams stay a very small protective effect; CPU teams raise-only (2026-11-22) |
+| **Draft-pick ownership screen?** (Q33) | **Deferred until after Web v5.0** (2026-11-24). Pick labels stay typed in the calculator as today. See Future enhancements |
+| **Import history before the picker?** | **Yes** (2026-11-24): every export is normalized into `player_history` / `team_history` now (about 40 player fields, every export kept with latest per week, no game stats); the picker and pre-fill wait (`V5_IMPORT_HISTORY.md`). Live and backfilled 2026-11-24 |
 | **Retention and auto update?** (Q30) | **Keep full bodies for the newest 5 snapshots** (decided 2026-11-22; a per-league setting, `import_keep_full_snapshots`, changeable without a migration). Snallabot auto update turned on 2026-11-22; its frequency is still unknown and will be read from the snapshot rows. Revisit (for example, also keep one snapshot per week in full) only if exports turn out to be very frequent |
