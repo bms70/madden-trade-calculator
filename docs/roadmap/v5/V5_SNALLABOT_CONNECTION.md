@@ -14,7 +14,7 @@ The Snallabot connection: a backend-only receiver that stores every Snallabot ex
   - the weekly routes received, plus any unknown routes
   - the season, current week and stage from standings
   - a `complete` flag
-- **Retention:** full bodies are kept for each league's newest **5** snapshots (the league's `import_keep_full_snapshots` setting). Older payloads keep their row, route, size and hash, but the body is cleared.
+- **Retention:** full bodies are kept for each league's newest **N** snapshots (the league's `import_keep_full_snapshots` setting; default 5, **raised to 30 on 2026-11-24** until import history was in place, see [`V5_IMPORT_HISTORY.md`](V5_IMPORT_HISTORY.md)). Older payloads keep their row, route, size and hash, but the body is cleared.
 - **Nothing reads the data yet.** No site change, no pickers, nothing in the calculator. You view it in the Supabase dashboard. Normalizing rosters into a player list comes later (Web v3.0), from the stored raw bodies, so nothing is lost by waiting.
 
 ## What it doesn't do
@@ -48,7 +48,7 @@ The Snallabot connection: a backend-only receiver that stores every Snallabot ex
 
 **Access:** browser roles can't read or write any of these tables or call the function. Only the service role (the Edge Function and the dashboard) can.
 
-**Storage:** one current-week export is about 44 requests and 7 MB. With 5 snapshots kept in full, that's about 35 MB of bodies. Older snapshots keep only their rows.
+**Storage:** one current-week export is about 44 requests and 7 MB. With 5 snapshots kept in full, that's about 35 MB of bodies (30 kept: up to about 210 MB, under the 500 MB free-plan database limit; the database was 16 MB on 2026-11-24). Older snapshots keep only their rows.
 
 **Changing retention** needs no migration. In Explorer:
 `update public.leagues set import_keep_full_snapshots = <N> where name_key = lower('<league name>');`
@@ -97,5 +97,9 @@ Do these in order. Steps 1–3 don't affect the live site.
 
 - **Order:** connection first, then Phase 2 (decided 2026-11-21).
 - **Raw payloads only for now**, plus the health check; normalizing comes later (assumed, as recommended; Q29).
-- **Retention: full bodies for the newest 5 snapshots** (decided 2026-11-22, Q30; first set at 10, then lowered to 5). Stored per league as `import_keep_full_snapshots`.
+- **Retention: full bodies for the newest 5 snapshots** (decided 2026-11-22, Q30; first set at 10, then lowered to 5). **Raised to 30 on 2026-11-24** so no export is lost before import history exists; back to 5 once it runs cleanly. Stored per league as `import_keep_full_snapshots`.
 - **Auto update** turned on 2026-11-22; how often it sends is read from the snapshot rows (`select date_trunc('day', first_received_at), count(*) from public.import_snapshot_summary group by 1 order by 1 desc;`).
+
+## Import history (added 2026-11-24)
+
+Each roster and standings payload is now also copied into typed history tables (`player_history`, `team_history`) as it arrives, for Ruleset v5.0 evidence. Backend only. Details and launch steps: [`V5_IMPORT_HISTORY.md`](V5_IMPORT_HISTORY.md).

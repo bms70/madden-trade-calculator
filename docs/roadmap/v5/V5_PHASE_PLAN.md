@@ -52,6 +52,9 @@ The finish line is **Web v5.0 + Ruleset v5.0**. Releases before that follow thes
 ### Snallabot connection · backend only, no release (before Phase 2)
 - Done first (order change, 2026-11-21): a receiver at a secret URL stores every export as raw snapshots, with a health check and retention. No site change. **Live since 2026-11-22;** the first export was complete (32 / 32 rosters). Details: [`V5_SNALLABOT_CONNECTION.md`](V5_SNALLABOT_CONNECTION.md).
 
+### Import history · backend only, no release (after Web v2.1)
+- Decided 2026-11-24: the player picker and pre-fill wait, but every export is now normalized into `player_history` and `team_history` as it arrives, so v5.0 evidence (posture, aging, development, durability, cap efficiency) starts building now. Roster and standings only; game stats not now. Details: [`V5_IMPORT_HISTORY.md`](V5_IMPORT_HISTORY.md).
+
 ### Phase 2 — League layer and import layer · **Web v2.0**, then **v3.0**
 
 **Web v2.0 — League mode (no imports yet)** · design spec: [`V5_WEB_V2.0_SPEC.md`](V5_WEB_V2.0_SPEC.md)
@@ -63,7 +66,7 @@ The finish line is **Web v5.0 + Ruleset v5.0**. Releases before that follow thes
 - **Exit:** a real trade can be submitted, logged, reviewed, corrected and reversed in league mode, and practice mode is unchanged.
 
 **Web v3.0 — Imports**
-- The Supabase receiver and raw snapshots already exist (Snallabot connection). v3.0 adds normalization of teams and players from the stored payloads, using the field mapping, and Companion as a backup source.
+- The Supabase receiver, raw snapshots and normalized import history already exist (Snallabot connection, import history). v3.0 builds the commissioner review and the member-facing use on top of them, and adds Companion as a backup source.
 - Validation diagnostics. The commissioner reviews each snapshot and marks it **current**; auto update can deliver data, but nothing becomes current without review.
 - A **draft-pick ownership screen** for the commissioner, since picks aren't exported.
 - **Exit (roadmap Phase 2):** one real league snapshot loads without changing v4.4 valuation.
