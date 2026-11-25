@@ -5,7 +5,7 @@ Backend only. **No Web Release**, no site change, Ruleset v4.4 and `valuation.js
 **Why:** the player picker and pre-fill (Web v3.0, Phase 3) wait, but Ruleset v5.0 needs history now: posture, aging, development, durability and cap efficiency all need many weeks of data, and raw exports are only kept for a limited number of exports. So every export is copied into small typed history tables as it arrives. Decided 2026-11-24.
 
 - Migration: `supabase/migrations/20261124020000_import_history.sql`
-- Tests: `tests/import-history-db.test.py` (43 / 43)
+- Tests: `tests/import-history-db.test.py` (44 / 44)
 - No Edge Function change: the receiver's database function does the work, so launch is one `db push`.
 
 ## How it works
@@ -62,6 +62,16 @@ Values that aren't whole numbers or true/false are stored as blank, not guessed.
 ## Access
 
 History tables and views: no browser access (RLS on, nothing granted to `anon` / `authenticated`). The service role can read them. The owner commands run only from the dashboard.
+
+## Team IDs (added 2026-11-24)
+
+Madden can give every team a new `teamId`. The week 8 export did, for all 32 teams (R23). So:
+
+- `league_team_external_ids` records every Madden ID each league team has had. Each `leagueteams` payload is matched to the existing teams as it arrives: by a known ID, then abbreviation, then city + nickname.
+- The newest team list moves `league_teams.external_team_id` to the current ID, so `owner_load_teams` updates teams instead of adding them.
+- `player_history_view` and `team_history_latest` add `league_team_id` and `team_abbr`, which stay the same across ID changes. Use those, not `team_id`, to follow a team over time.
+- `league_team_of(league_id, madden_team_id)` gives the league team for any ID a team has had.
+- Migration: `20261125010000_team_id_changes.sql`. It records all stored team lists when applied. Tests: `tests/team-id-changes-db.test.py`.
 
 ## Launch checklist
 

@@ -112,6 +112,7 @@ One row per team (32). Confirmed fields:
 - `playerBestOvr` and `playerSchemeOvr` matched on both sampled teams (63 + 65 players). Watch whether they ever differ.
 - **`durabilityGrade` is 0 for every player** on the main-league sample. A Phase 7 durability factor would need `injuryRating` (75–96 on the sample) instead.
 - **Standings streaks are single-byte values** (see Standings).
+- **`teamId` can change.** On 2026-11-24 the week 8 export gave all 32 teams new IDs (same league ID). Never treat a raw `teamId` as permanent: map it to the league team (`league_team_of`, R23).
 
 ## Not used by v4.4 (kept in the raw snapshot)
 

@@ -105,8 +105,10 @@ check("29 roster payloads built (DONE)",
       psql(f"select count(*) from import_payloads where snapshot_id = '{SNAP}' and route like 'team/%/roster' and history_status = 'DONE';") == "29")
 check("standings payload built (DONE)",
       psql(f"select history_status from import_payloads where snapshot_id = '{SNAP}' and route = 'standings';") == "DONE")
+check("team list payload built too (team IDs, 20261125010000)",
+      psql(f"select history_status from import_payloads where snapshot_id = '{SNAP}' and route = 'leagueteams';") == "DONE")
 check("other routes untouched (no history status)",
-      psql(f"select count(*) from import_payloads where snapshot_id = '{SNAP}' and route !~ '^(team/[0-9]+/roster|standings)$' and history_status is not null;") == "0")
+      psql(f"select count(*) from import_payloads where snapshot_id = '{SNAP}' and route !~ '^(team/[0-9]+/roster|standings|leagueteams)$' and history_status is not null;") == "0")
 check("player rows: 29 payloads x 8 players", psql(f"select count(*) from player_history where snapshot_id = '{SNAP}';") == "232")
 check("team rows: 32 teams", psql(f"select count(*) from team_history where snapshot_id = '{SNAP}';") == "32")
 
@@ -170,8 +172,8 @@ check("team latest view: one row per team per week", psql("select count(*) from 
 psql(f"delete from player_history where snapshot_id = '{SNAP}'; delete from team_history where snapshot_id = '{SNAP}';"
      f"update import_payloads set history_status = null, history_built_at = null where snapshot_id = '{SNAP}' and history_status = 'DONE';")
 bf = psql(f"select concat_ws(',', payloads_built, payloads_failed, players, teams, skipped_trimmed) from owner_build_import_history('{LEAGUE}');")
-# 30 roster payloads (29 + the odd one) + 1 standings rebuilt; the bad one fails again.
-check("backfill rebuilds stored payloads; the bad one stays FAILED", bf.startswith("31,1,"), bf)
+# 30 roster payloads (29 + the odd one) + standings + team list rebuilt; the bad one fails again.
+check("backfill rebuilds stored payloads; the bad one stays FAILED", bf.startswith("32,1,"), bf)
 check("backfill restores player rows", psql(f"select count(*) from player_history where snapshot_id = '{SNAP}';") == "233")
 check("backfill is safe to run again (nothing new)",
       psql(f"select payloads_built || ',' || payloads_failed from owner_build_import_history('{LEAGUE}');") == "0,1")

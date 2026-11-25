@@ -133,7 +133,7 @@ migrations = sorted(os.listdir(os.path.join(ROOT, "supabase", "migrations")))
 for m in migrations:
     with open(os.path.join(ROOT, "supabase", "migrations", m), encoding="utf-8") as f:
         psql(f.read())
-check("all migrations apply, trade ledger last", migrations[-1] == "20261124030000_trade_ledger.sql", migrations[-1])
+check("all migrations apply, including the trade ledger", "20261124030000_trade_ledger.sql" in migrations)
 
 with open(os.path.join(ROOT, "docs", "roadmap", "v5", "sql", "connect-snallabot.sql"), encoding="utf-8") as f:
     LEAGUE_ID, SECRET = psql(f.read().replace("extensions.", "").replace("<LEAGUE NAME>", LEAGUE)).split("|")
