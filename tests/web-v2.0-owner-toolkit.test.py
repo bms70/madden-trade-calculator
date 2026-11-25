@@ -66,7 +66,7 @@ for m in sorted(os.listdir(os.path.join(ROOT, "supabase", "migrations"))):
     with open(os.path.join(ROOT, "supabase", "migrations", m), encoding="utf-8") as f:
         psql(f.read())
 check("all migrations apply, including the owner toolkit",
-      psql("select count(*) from pg_proc where proname like 'owner\\_%';") == "12")
+      psql("select count(*) from pg_proc where proname like 'owner\\_%';") == "14")
 
 # v1.x history: two v1.4.0/v4.2 trades and one v1.5.0/v4.4, one of them deleted.
 def legacy(release, ruleset, verdict, ovr):

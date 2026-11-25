@@ -29,8 +29,10 @@ These are **not** PowerShell commands.
 | Archive / reactivate a league | `select * from owner_set_league_status('<LEAGUE NAME>', 'ARCHIVED');` (or `'ACTIVE'`) |
 | New Snallabot import secret | `select * from owner_rotate_import_secret('<LEAGUE NAME>');` |
 | Move trades without a league into a league | `select * from owner_move_pre_league_history('<LEAGUE NAME>');` |
+| Import history: what's stored, one row per export | `select * from owner_import_history('<LEAGUE NAME>');` |
+| Import history: build for stored exports (backfill / repair) | `select * from owner_build_import_history('<LEAGUE NAME>');` |
 
-Every change is written to the league's audit log as **site owner**, so the commissioner sees it.
+Every change is written to the league's audit log as **site owner**, so the commissioner sees it. The two import-history commands don't change league data and aren't audited; see [`V5_IMPORT_HISTORY.md`](V5_IMPORT_HISTORY.md).
 
 ## Details
 
