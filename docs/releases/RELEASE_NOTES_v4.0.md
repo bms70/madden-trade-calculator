@@ -23,7 +23,7 @@ In League mode, a box below the trade shows each team's situation:
 
 - **Migration `20261127050000_web_v4_activity_and_posture.sql`:** the posture on trades, handled marks, and the activity and posture functions.
 - **New Edge Function:** `commissioner-activity`.
-- **`accept-trade`:** stores the posture. It accepts v4.0 and v3.1 (for pages left open, until the cleanup).
+- **`accept-trade`:** stores the posture. At launch it also accepted v3.1 for pages left open; a same-day maintenance update removed it, so a page left open from before the update says "Unsupported Web Release version" and the member reloads.
 
 ## Snapshot contract
 

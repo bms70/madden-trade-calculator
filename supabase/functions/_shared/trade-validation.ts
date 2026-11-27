@@ -7,10 +7,10 @@ import { trimmedString, uuidPattern } from "./http.ts";
 // Accepted Web Release / Ruleset pairs from Web v4.0. Every accepted pair is
 // a league release (league fields required).
 //   v4.0 / v4.4   current site: the submission adds the trade posture FYI
-//   v3.1 / v4.4   pages still open from v3.1 (same trade, no posture). To
-//                 remove a few days after launch (v4.0 runbook)
+// No longer accepted (2026-11-27, v4.0 runbook step 8): v3.1 and earlier
+// (pages left open from before an update: the member reloads and submits
+// again).
 export const SUPPORTED_RELEASES: Record<string, string> = {
-  "v3.1": "v4.4",
   "v4.0": "v4.4",
 };
 
