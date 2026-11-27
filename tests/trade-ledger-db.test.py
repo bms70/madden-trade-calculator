@@ -236,6 +236,18 @@ check("roster move explained by the logged trade (Kelce)", f"Travis Kelce,{A_ABB
 burrow = [m for m in moves if m.startswith("Joe Burrow")]
 check("move with no logged trade: NOT LOGGED (Burrow)", len(burrow) == 1 and burrow[0].endswith(",NOT LOGGED,-"), burrow)
 
+# Human / CPU (20261127010000): an unlogged move between CPU teams needs no check.
+psql(f"update league_teams set controlled_by = 'CPU' where id in ('{TEAM_A}', '{TEAM_B}');")
+row = psql(f"select concat_ws(',', from_control, to_control, check_this) from owner_roster_moves('{LEAGUE}') where roster_id = 202;")
+check("CPU to CPU unlogged move: shown, check_this false", row == "CPU,CPU,f", row)
+psql(f"update league_teams set controlled_by = 'USER' where id = '{TEAM_A}';")
+row = psql(f"select concat_ws(',', from_control, to_control, check_this) from owner_roster_moves('{LEAGUE}') where roster_id = 202;")
+check("unlogged move involving a human team: check_this true", row == "CPU,USER,t", row)
+check("logged moves never need a check",
+      psql(f"select count(*) from owner_roster_moves('{LEAGUE}') where status = 'LOGGED' and check_this;") == "0")
+check("moves needing a check sort first within an export",
+      psql(f"select player from owner_roster_moves('{LEAGUE}') limit 1;") == "Joe Burrow")
+
 # Burrow was traded in Madden first and logged afterwards.
 _, T5 = submit(trade([asset(name="Joe Burrow", pos="QB")], [asset(id=2, type="Draft Pick", pick="Late 3rd")]))
 check("trade logged after the move: matched on the receiving roster",
@@ -256,6 +268,7 @@ for fn in [f"owner_trade_ledger('{LEAGUE}')", f"owner_roster_moves('{LEAGUE}')",
            f"owner_link_trade_player('{LEAGUE}', {T2}, 'O1', 103)"]:
     failed, err = psql(f"select * from {fn};", role="service_role", expect_error=True)
     check(f"service role can't run {fn.split('(')[0]}", failed and "42501" in err, err)
+check("owner_roster_moves columns", psql("select pg_get_function_result('public.owner_roster_moves(text)'::regprocedure);").count("check_this boolean") == 1)
 check("stored trades untouched (no ledger columns on trades)",
       psql("select count(*) from information_schema.columns where table_name = 'trades' and column_name like '%ledger%';") == "0")
 
