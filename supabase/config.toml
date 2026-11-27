@@ -524,3 +524,17 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/commissioner-teams/deno.json"
 entrypoint = "./functions/commissioner-teams/index.ts"
+
+[functions.commissioner-picks]
+enabled = true
+# Web v3.0. The browser sends the publishable key; the commissioner token is checked by the function.
+verify_jwt = false
+import_map = "./functions/commissioner-picks/deno.json"
+entrypoint = "./functions/commissioner-picks/index.ts"
+
+[functions.commissioner-snapshots]
+enabled = true
+# Web v3.0. The browser sends the publishable key; the commissioner token is checked by the function.
+verify_jwt = false
+import_map = "./functions/commissioner-snapshots/deno.json"
+entrypoint = "./functions/commissioner-snapshots/index.ts"

@@ -14,6 +14,10 @@
  * Correction mode loads a trade into the calculator; v4.4 re-runs as usual
  * and Save correction sends buildTradeSnapshot() with a reason.
  *
+ * Web v3.0: Draft picks (move a pick by hand, Draft complete) and Exports
+ * (review each Snallabot export, mark one current). Corrections keep each
+ * pick's choice; the picks the trade moved are offered again.
+ *
  * Loaded last. Uses $, esc, state, emptyAsset, render, buildTradeSnapshot
  * (calculator-ui.js), historyBadge, historySideHeading, historyPackageSummary,
  * formatHistoryDate, resetTradeHistory (trade-history.js) and LeagueMode.
@@ -32,7 +36,14 @@
     notice: '',           // last action's result, shown before the queue count
     correction: null,     // { trade, teamA, teamB } while correcting
     teams: [],            // commissioner team list (v2.1), with owner labels
-    teamNotice: ''        // last team save result, shown before the team count
+    teamNotice: '',       // last team save result, shown before the team count
+    picks: null,          // v3.0: { currentDraftYear, rolloverDue, latestSeason, picks }
+    pickYear: null,       // Draft picks filter
+    pickRound: 1,
+    pickNotice: '',
+    confirmDraft: false,  // Draft complete asks once more
+    snapshots: [],        // v3.0: newest exports
+    snapshotNotice: ''
   };
 
   const ACTIONS = {
@@ -46,12 +57,16 @@
     LEAGUE_STATUS_CHANGED: 'League status changed',
     COMMISSIONER_PASSWORD_SET: 'Commissioner password set',
     IMPORT_SECRET_ROTATED: 'Import secret changed',
-    TEAM_UPDATED: 'Team updated'
+    TEAM_UPDATED: 'Team updated',
+    PICK_OWNERSHIP_CHANGED: 'Pick moved',
+    PICKS_SET_UP: 'Draft picks set up',
+    DRAFT_COMPLETED: 'Draft complete',
+    SNAPSHOT_MARKED_CURRENT: 'Export marked current'
   };
 
   const CONTROL = { USER: 'Human', CPU: 'CPU' };
 
-  const ASSET_FIELDS = ['type', 'name', 'pick', 'timing', 'ovr', 'age', 'pos', 'dev', 'cap', 'years', 'league', 'current', 'projected'];
+  const ASSET_FIELDS = ['type', 'name', 'pick', 'timing', 'ovr', 'age', 'pos', 'dev', 'cap', 'years', 'league', 'current', 'projected', 'pick_id'];
 
   // --------------------------------------------------------------------------
   // Helpers
@@ -245,6 +260,15 @@
     area.teamNotice = '';
     $('#commTeams').innerHTML = '';
     text('#commTeamsStatus', '');
+    area.picks = null;
+    area.pickNotice = '';
+    area.confirmDraft = false;
+    $('#commPicks').innerHTML = '';
+    text('#commPicksStatus', '');
+    area.snapshots = [];
+    area.snapshotNotice = '';
+    $('#commSnapshots').innerHTML = '';
+    text('#commSnapshotsStatus', '');
     text('#commStatus', message || '');
     paint();
   }
@@ -312,10 +336,12 @@
     text('#commQueueStatus', 'Loading trades...');
     text('#commAuditStatus', 'Loading the audit log...');
 
-    let [history, audit, teams] = await Promise.all([
+    let [history, audit, teams, picks, snapshots] = await Promise.all([
       window.MaddenStorage.leagueHistory(league.name),
       window.MaddenStorage.commissionerAuditLog(token, league.id),
-      window.MaddenStorage.commissionerTeams(token, league.id)
+      window.MaddenStorage.commissionerTeams(token, league.id),
+      window.MaddenStorage.commissionerPicks(token, league.id),
+      window.MaddenStorage.commissionerSnapshots(token, league.id)
     ]);
 
     if (!sessionValid() || entered() !== league) return;
@@ -342,6 +368,224 @@
     } else {
       handleFailure(teams, '#commTeamsStatus');
     }
+
+    if (!sessionValid()) return;
+    if (picks.ok) {
+      setPicks(picks.data);
+    } else {
+      handleFailure(picks, '#commPicksStatus');
+    }
+
+    if (!sessionValid()) return;
+    if (snapshots.ok) {
+      area.snapshots = Array.isArray(snapshots.data.snapshots) ? snapshots.data.snapshots : [];
+      renderSnapshots();
+    } else {
+      handleFailure(snapshots, '#commSnapshotsStatus');
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Draft picks (v3.0)
+  // --------------------------------------------------------------------------
+
+  function ordinal(round) {
+    return { 1: '1st', 2: '2nd', 3: '3rd' }[round] || `${round}th`;
+  }
+
+  function setPicks(data) {
+    area.picks = {
+      currentDraftYear: typeof data.currentDraftYear === 'number' ? data.currentDraftYear : null,
+      rolloverDue: data.rolloverDue === true,
+      latestSeason: data.latestSeason ?? null,
+      picks: Array.isArray(data.picks) ? data.picks : []
+    };
+    let years = [...new Set(area.picks.picks.map(p => p.draftYear))].sort();
+    if (!years.includes(area.pickYear)) area.pickYear = years[0] ?? null;
+    area.confirmDraft = false;
+    renderPicks();
+  }
+
+  function pickTeamOptions(selected) {
+    let teams = [...area.teams].sort((a, b) => String(a.abbreviation).localeCompare(String(b.abbreviation)));
+    return teams.map(t => `<option value="${attr(t.teamId)}"${t.teamId === selected ? ' selected' : ''}>${esc(t.abbreviation)}</option>`).join('');
+  }
+
+  function renderPicks() {
+    let info = area.picks;
+    let year = info && info.currentDraftYear;
+    $('#commPickControls').hidden = !year;
+    $('#commDraftComplete').hidden = !year;
+    $('#commPickRollover').hidden = !(year && info.rolloverDue);
+    if (!year) {
+      text('#commPicksSummary', 'not set up');
+      text('#commPicksStatus', info ? "Draft picks aren't set up for this league yet. The site owner turns them on." : '');
+      $('#commPicks').innerHTML = '';
+      return;
+    }
+    let moved = info.picks.filter(p => p.ownerTeamId !== p.originalTeamId).length;
+    text('#commPicksSummary', `current draft ${year} · ${moved} ${moved === 1 ? 'pick' : 'picks'} moved`);
+    text('#commPickRollover', info.rolloverDue
+      ? `The newest export shows the ${info.latestSeason} season. If the ${year} draft is done, select Draft complete.`
+      : '');
+
+    let years = [...new Set(info.picks.map(p => p.draftYear))].sort();
+    $('#commPickYear').innerHTML = years.map(y => `<option value="${y}"${y === area.pickYear ? ' selected' : ''}>${y}${y === year ? ' (current)' : ''}</option>`).join('');
+    $('#commPickRound').innerHTML = [1, 2, 3, 4, 5, 6, 7].map(r => `<option value="${r}"${r === area.pickRound ? ' selected' : ''}>${ordinal(r)} round</option>`).join('');
+
+    let rows = info.picks
+      .filter(p => p.draftYear === area.pickYear && p.round === area.pickRound)
+      .sort((a, b) => String(a.originalAbbreviation).localeCompare(String(b.originalAbbreviation)));
+    $('#commPicks').innerHTML = rows.map(p => `
+      <div class="comm-team-line comm-pick-line${p.ownerTeamId !== p.originalTeamId ? ' moved' : ''}">
+        <span class="comm-team-abbr">${esc(p.originalAbbreviation)}</span>
+        <span class="comm-pick-arrow" aria-hidden="true">owned by</span>
+        <select data-pick="${attr(p.pickId)}" aria-label="${attr(`${p.draftYear} ${ordinal(p.round)} (${p.originalAbbreviation}) owned by`)}">${pickTeamOptions(p.ownerTeamId)}</select>
+      </div>`).join('');
+    text('#commPicksStatus', area.pickNotice || 'Picks move automatically with submitted trades. Change one here only for a trade made outside the calculator.');
+    for (let select of document.querySelectorAll('#commPicks [data-pick]')) {
+      select.onchange = () => savePickOwner(select.dataset.pick, select.value);
+    }
+    let button = $('#commDraftComplete');
+    button.textContent = area.confirmDraft ? `Confirm: the ${year} draft is complete` : 'Draft complete';
+    $('#commDraftCancel').hidden = !area.confirmDraft;
+  }
+
+  async function savePickOwner(pickId, ownerTeamId) {
+    let pick = area.picks && area.picks.picks.find(p => p.pickId === pickId);
+    if (!pick) return;
+    if (!sessionValid()) { signOut('Your commissioner session ended. Sign in again.'); return; }
+    let name = commissionerName();
+    if (!name) {
+      area.pickNotice = '';
+      renderPicks();
+      text('#commPicksStatus', 'Add your name at the top first; it goes in the audit log. Nothing was saved.');
+      return;
+    }
+    let label = `${pick.draftYear} ${ordinal(pick.round)} (${pick.originalAbbreviation})`;
+    text('#commPicksStatus', `Saving ${label}...`);
+    let result = await window.MaddenStorage.setPickOwner({
+      token: area.session.token, leagueId: area.session.leagueId, pickId, ownerTeamId, commissionerName: name
+    });
+    if (!result.ok) {
+      area.pickNotice = '';
+      if (result.status !== 401) renderPicks();
+      handleFailure(result, '#commPicksStatus');
+      return;
+    }
+    let saved = result.data.pick;
+    pick.ownerTeamId = saved.ownerTeamId;
+    pick.ownerAbbreviation = saved.ownerAbbreviation;
+    area.pickNotice = saved.changed ? `${label} now belongs to ${saved.ownerAbbreviation}.` : `${label}: nothing changed.`;
+    renderPicks();
+    if (saved.changed) {
+      if (window.LeagueMode) await window.LeagueMode.reloadPicks();
+      await loadAudit();
+    }
+  }
+
+  async function draftComplete() {
+    let info = area.picks;
+    if (!info || !info.currentDraftYear) return;
+    if (!area.confirmDraft) {
+      area.confirmDraft = true;
+      renderPicks();
+      text('#commPicksStatus', `The ${info.currentDraftYear} picks will be marked used, ${info.currentDraftYear + 1} becomes the current draft, and ${info.currentDraftYear + 3} picks are added. Select Confirm to go ahead.`);
+      return;
+    }
+    if (!sessionValid()) { signOut('Your commissioner session ended. Sign in again.'); return; }
+    let name = commissionerName();
+    if (!name) {
+      text('#commPicksStatus', 'Add your name at the top first; it goes in the audit log. Nothing was saved.');
+      return;
+    }
+    $('#commDraftComplete').disabled = true;
+    try {
+      let result = await window.MaddenStorage.draftComplete({
+        token: area.session.token, leagueId: area.session.leagueId,
+        expectedYear: info.currentDraftYear, commissionerName: name
+      });
+      if (!result.ok) {
+        area.confirmDraft = false;
+        renderPicks();
+        handleFailure(result, '#commPicksStatus');
+        return;
+      }
+      let done = result.data.draft;
+      area.pickNotice = `The ${info.currentDraftYear} draft is complete. The current draft is now ${done.currentDraftYear}.`;
+      let picks = await window.MaddenStorage.commissionerPicks(area.session.token, area.session.leagueId);
+      if (picks.ok) setPicks(picks.data);
+      // Members' "Whose pick" years follow the new current draft.
+      if (window.LeagueMode) await window.LeagueMode.reloadPicks();
+      await loadAudit();
+    } finally {
+      $('#commDraftComplete').disabled = false;
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Exports (v3.0): review each Snallabot export and mark one current
+  // --------------------------------------------------------------------------
+
+  function snapshotLine(s) {
+    let when = s.receivedAt ? new Date(s.receivedAt).toLocaleString() : '';
+    let season = s.season ? `${s.season}, ${s.stageIndex === 1 ? 'week' : `stage ${s.stageIndex}, week`} ${s.week}` : 'season unknown';
+    let healthy = s.complete && !s.missingRosters && !s.historyFailed;
+    let issues = [];
+    if (!s.complete) issues.push('incomplete');
+    if (s.missingRosters) issues.push(`${s.missingRosters} rosters missing`);
+    if (s.historyFailed) issues.push(`${s.historyFailed} files failed`);
+    let action = s.isCurrent
+      ? '<span class="comm-snapshot-current">Current</span>'
+      : `<button type="button" class="btn comm-snapshot-mark" data-snapshot="${attr(s.snapshotId)}">Mark current</button>`;
+    return `
+      <div class="comm-snapshot-line${s.isCurrent ? ' current' : ''}">
+        <div>
+          <div class="comm-snapshot-title">${esc(season)}</div>
+          <div class="comm-snapshot-meta">${esc(when)} · ${esc(`${s.rostersReceived ?? 0}/${s.teamsInLeague ?? 0} rosters`)} · ${esc(`${(s.players ?? 0).toLocaleString()} players`)} · ${esc(`${(s.freeAgents ?? 0).toLocaleString()} free agents`)}</div>
+        </div>
+        <span class="comm-snapshot-health ${healthy ? 'ok' : 'warn'}">${healthy ? 'Healthy' : esc(issues.join(', '))}</span>
+        ${action}
+      </div>`;
+  }
+
+  function renderSnapshots() {
+    let current = area.snapshots.find(s => s.isCurrent);
+    text('#commSnapshotsSummary', current
+      ? `current: ${current.season}, week ${current.week}`
+      : (area.snapshots.length ? 'none marked current' : 'no exports yet'));
+    $('#commSnapshots').innerHTML = area.snapshots.map(snapshotLine).join('');
+    text('#commSnapshotsStatus', area.snapshotNotice || (area.snapshots.length
+      ? 'Check an export is healthy, then mark it current.'
+      : 'No Snallabot exports yet.'));
+    for (let button of document.querySelectorAll('#commSnapshots [data-snapshot]')) {
+      button.onclick = () => markCurrent(button.dataset.snapshot);
+    }
+  }
+
+  async function markCurrent(snapshotId) {
+    if (!sessionValid()) { signOut('Your commissioner session ended. Sign in again.'); return; }
+    let name = commissionerName();
+    if (!name) {
+      text('#commSnapshotsStatus', 'Add your name at the top first; it goes in the audit log. Nothing was saved.');
+      return;
+    }
+    text('#commSnapshotsStatus', 'Saving...');
+    let result = await window.MaddenStorage.markSnapshotCurrent({
+      token: area.session.token, leagueId: area.session.leagueId, snapshotId, commissionerName: name
+    });
+    if (!result.ok) {
+      area.snapshotNotice = '';
+      handleFailure(result, '#commSnapshotsStatus');
+      return;
+    }
+    let saved = result.data.snapshot;
+    for (let s of area.snapshots) s.isCurrent = s.snapshotId === saved.snapshotId;
+    area.snapshotNotice = `Marked current: ${saved.season}, week ${saved.week}.`;
+    renderSnapshots();
+    let picks = await window.MaddenStorage.commissionerPicks(area.session.token, area.session.leagueId);
+    if (picks.ok) setPicks(picks.data);
+    await loadAudit();
   }
 
   // --------------------------------------------------------------------------
@@ -584,6 +828,8 @@
       A: (trade.user_team_assets || []).map(toCalculatorAsset),
       B: (trade.cpu_team_assets || []).map(toCalculatorAsset)
     };
+    // v3.0: the picks this trade moved are offered again with their choices.
+    LM.setCorrectionTrade(trade.id);
 
     text('#correctionTitle', `Correcting trade #${trade.trade_number}`);
     $('#correctionReason').value = '';
@@ -605,6 +851,7 @@
       if ($('#teamB')) $('#teamB').value = correction.teamB;
     }
     state = { A: [], B: [] };
+    if (window.LeagueMode) window.LeagueMode.setCorrectionTrade(null);
     render();
   }
 
@@ -629,6 +876,11 @@
     let name = commissionerName();
     if (!name) {
       text('#correctionStatus', 'Add your name on the Commissioner tab first.');
+      return;
+    }
+    let picks = window.LeagueMode ? window.LeagueMode.picksReady(state) : { ok: true };
+    if (!picks.ok) {
+      text('#correctionStatus', picks.error);
       return;
     }
 
@@ -681,6 +933,10 @@
   $('#commActionCancel').onclick = closeAction;
   $('#saveCorrection').onclick = saveCorrection;
   $('#cancelCorrection').onclick = cancelCorrection;
+  $('#commPickYear').onchange = () => { area.pickYear = Number($('#commPickYear').value); area.pickNotice = ''; renderPicks(); };
+  $('#commPickRound').onchange = () => { area.pickRound = Number($('#commPickRound').value); area.pickNotice = ''; renderPicks(); };
+  $('#commDraftComplete').onclick = draftComplete;
+  $('#commDraftCancel').onclick = () => { area.confirmDraft = false; area.pickNotice = ''; renderPicks(); };
   paint();
 
   window.CommissionerArea = Object.freeze({
@@ -702,6 +958,9 @@
     _area: area,
     _tradeFlags: tradeFlags,
     _queueTrades: queueTrades,
-    _saveTeam: saveTeam
+    _saveTeam: saveTeam,
+    _savePickOwner: savePickOwner,
+    _draftComplete: draftComplete,
+    _markCurrent: markCurrent
   });
 })();

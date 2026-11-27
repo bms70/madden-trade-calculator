@@ -31,6 +31,10 @@ These are **not** PowerShell commands.
 | Move trades without a league into a league | `select * from owner_move_pre_league_history('<LEAGUE NAME>');` |
 | Import history: what's stored, one row per export | `select * from owner_import_history('<LEAGUE NAME>');` |
 | Import history: build for stored exports (backfill / repair) | `select * from owner_build_import_history('<LEAGUE NAME>');` |
+| Draft picks: turn on tracking (current draft year = the next draft, e.g. 2028 during the 2027 season) | `select * from owner_setup_draft_picks('<LEAGUE NAME>', 2028);` |
+| Draft picks: update ownership from trades logged before tracking | `select * from owner_replay_pick_trades('<LEAGUE NAME>');` |
+| Draft picks: list moved picks (or every pick of one year) | `select * from owner_draft_picks('<LEAGUE NAME>');` / `select * from owner_draft_picks('<LEAGUE NAME>', 2029);` |
+| Draft picks: set one pick's owner | `select * from owner_set_pick_owner('<LEAGUE NAME>', 2029, 2, 'DAL', 'PHI');` |
 | Trade ledger, newest first | `select * from owner_trade_ledger('<LEAGUE NAME>');` |
 | Players who changed teams between exports | `select * from owner_roster_moves('<LEAGUE NAME>');` |
 | Link a traded player by hand | `select * from owner_link_trade_player('<LEAGUE NAME>', <trade #>, 'O1', <roster ID>);` |

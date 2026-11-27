@@ -385,5 +385,86 @@ async function json(response) { return { status: response.status, body: await re
   check('teams: team in another league 404', r.status === 404 && r.body.error === 'Team not found in this league.');
 }
 
+// ---------------------------------------------------------------------------
+// Web v3.0: release pair, commissioner-picks, commissioner-snapshots
+// ---------------------------------------------------------------------------
+{
+  check('v3.0 / v4.4 accepted', validation.validateTradePayload(snapshot({ web_release: 'v3.0' })).valid === true);
+  check('v3.0 with another ruleset refused', validation.validateTradePayload(snapshot({ web_release: 'v3.0', ruleset_version: 'v4.2' })).valid === false);
+  const withPick = snapshot({ web_release: 'v3.0', cpu_team_assets: [{ type: 'Draft Pick', pick: 'Mid 2nd', timing: 'Next year', pick_id: TRADE_ID }] });
+  const stored = validation.tradeForStorage(validation.validateTradePayload(withPick).trade);
+  check('pick_id kept in the stored assets', stored.cpu_team_assets[0].pick_id === TRADE_ID);
+
+  const base = { secret: SECRET, nowSeconds: () => NOW };
+  const token = (await sessions.createCommissionerSession(SECRET, LEAGUE, NOW)).token;
+  const PICK = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+  const SNAP = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+  const pickRow = { pick_id: PICK, draft_year: 2029, round: 2, original_team_id: TEAM_B, original_abbreviation: 'DAL', owner_team_id: TEAM_A, owner_abbreviation: 'PHI', current_draft_year: 2028, rollover_due: true, latest_season: 2028 };
+
+  let db = fakeRpc({ commissioner_draft_picks: { data: [pickRow], error: null } });
+  let r = await json(await handlers.handleCommissionerPicks(post({ token }), { ...base, rpc: db.rpc }));
+  check('picks: LIST default', r.status === 200 && r.body.currentDraftYear === 2028 && r.body.rolloverDue === true && r.body.latestSeason === 2028 && r.body.picks[0].ownerAbbreviation === 'PHI' && r.body.picks[0].originalAbbreviation === 'DAL');
+  check('picks: LIST uses the token league', db.calls[0].args.p_league_id === LEAGUE);
+  db = fakeRpc({ commissioner_draft_picks: { data: [], error: null } });
+  r = await json(await handlers.handleCommissionerPicks(post({ token, action: 'list' }), { ...base, rpc: db.rpc }));
+  check('picks: not set up -> null year, no picks', r.status === 200 && r.body.currentDraftYear === null && r.body.picks.length === 0 && r.body.rolloverDue === false);
+  r = await json(await handlers.handleCommissionerPicks(post({ action: 'LIST' }), { ...base, rpc: db.rpc }));
+  check('picks: no token 401', r.status === 401);
+  r = await json(await handlers.handleCommissionerPicks(post({ token, league_id: OTHER_LEAGUE }), { ...base, rpc: db.rpc }));
+  check('picks: other league 403', r.status === 403);
+
+  db = fakeRpc({ commissioner_set_pick_owner: { data: [{ pick_id: PICK, owner_team_id: TEAM_B, owner_abbreviation: 'DAL', changed: true }], error: null } });
+  const setOwner = (o) => handlers.handleCommissionerPicks(post({ token, action: 'set_owner', pick_id: PICK, owner_team_id: TEAM_B, commissioner_name: ' Commish ', ...o }), { ...base, rpc: db.rpc });
+  r = await json(await setOwner({}));
+  check('picks: SET_OWNER ok', r.status === 200 && r.body.pick.changed === true && r.body.pick.ownerAbbreviation === 'DAL');
+  const a = db.calls[0].args;
+  check('picks: SET_OWNER args', a.p_league_id === LEAGUE && a.p_pick_id === PICK && a.p_owner_team_id === TEAM_B && a.p_commissioner_name === 'Commish');
+  db = fakeRpc({});
+  r = await json(await setOwner({ pick_id: '2029-2-DAL' }));
+  check('picks: bad pick 400, no call', r.status === 400 && db.calls.length === 0);
+  r = await json(await setOwner({ owner_team_id: 'DAL' }));
+  check('picks: bad team 400', r.status === 400 && db.calls.length === 0);
+  r = await json(await setOwner({ commissioner_name: '' }));
+  check('picks: name required 400', r.status === 400 && db.calls.length === 0);
+  db = fakeRpc({ commissioner_set_pick_owner: { data: null, error: { code: '22023', message: 'That pick has already been used.' } } });
+  r = await json(await setOwner({}));
+  check('picks: database reason shown (400)', r.status === 400 && r.body.error === 'That pick has already been used.');
+  db = fakeRpc({ commissioner_set_pick_owner: { data: null, error: { code: 'XX000', message: 'internal detail' } } });
+  r = await json(await setOwner({}));
+  check('picks: server error hides detail', r.status === 500 && !r.body.error.includes('internal'));
+
+  db = fakeRpc({ commissioner_draft_complete: { data: [{ current_draft_year: 2029, picks_retired: 224, picks_created: 224 }], error: null } });
+  const complete = (o) => handlers.handleCommissionerPicks(post({ token, action: 'DRAFT_COMPLETE', expected_year: 2028, commissioner_name: 'Commish', ...o }), { ...base, rpc: db.rpc });
+  r = await json(await complete({}));
+  check('picks: DRAFT_COMPLETE ok', r.status === 200 && r.body.draft.currentDraftYear === 2029 && db.calls[0].args.p_expected_year === 2028);
+  db = fakeRpc({});
+  r = await json(await complete({ expected_year: '2028' }));
+  check('picks: DRAFT_COMPLETE needs a numeric year', r.status === 400 && db.calls.length === 0);
+  r = await json(await complete({ commissioner_name: undefined }));
+  check('picks: DRAFT_COMPLETE needs a name', r.status === 400 && db.calls.length === 0);
+  r = await json(await handlers.handleCommissionerPicks(post({ token, action: 'DELETE' }), { ...base, rpc: db.rpc }));
+  check('picks: unknown action 400', r.status === 400);
+
+  const snapRow = { snapshot_id: SNAP, first_received_at: '2026-11-27T16:32:26Z', status: 'RECEIVED', season: 2027, stage_index: 1, week: 9, rosters_received: 32, teams_in_league: 32, missing_roster_count: 0, complete: true, players: 2056, free_agents: 580, history_failed: 0, is_current: false };
+  db = fakeRpc({ commissioner_snapshots: { data: [snapRow], error: null } });
+  r = await json(await handlers.handleCommissionerSnapshots(post({ token }), { ...base, rpc: db.rpc }));
+  const sn = r.body.snapshots && r.body.snapshots[0];
+  check('snapshots: LIST', r.status === 200 && sn.week === 9 && sn.players === 2056 && sn.freeAgents === 580 && sn.complete === true && sn.isCurrent === false && db.calls[0].args.p_league_id === LEAGUE);
+  db = fakeRpc({ commissioner_mark_snapshot_current: { data: [{ snapshot_id: SNAP, season: 2027, week: 9, changed: true }], error: null } });
+  const mark = (o) => handlers.handleCommissionerSnapshots(post({ token, action: 'mark_current', snapshot_id: SNAP, commissioner_name: 'Commish', ...o }), { ...base, rpc: db.rpc });
+  r = await json(await mark({}));
+  check('snapshots: MARK_CURRENT ok', r.status === 200 && r.body.snapshot.changed === true && db.calls[0].args.p_snapshot_id === SNAP);
+  db = fakeRpc({});
+  r = await json(await mark({ snapshot_id: 'latest' }));
+  check('snapshots: bad export 400', r.status === 400 && db.calls.length === 0);
+  r = await json(await mark({ commissioner_name: '' }));
+  check('snapshots: name required', r.status === 400 && db.calls.length === 0);
+  db = fakeRpc({ commissioner_mark_snapshot_current: { data: null, error: { code: '22023', message: 'This export is still arriving. Try again in a few minutes.' } } });
+  r = await json(await mark({}));
+  check('snapshots: still arriving shown', r.status === 400 && r.body.error.startsWith('This export is still arriving'));
+  r = await json(await handlers.handleCommissionerSnapshots(post({ action: 'LIST' }), { ...base, rpc: db.rpc }));
+  check('snapshots: no token 401', r.status === 401);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

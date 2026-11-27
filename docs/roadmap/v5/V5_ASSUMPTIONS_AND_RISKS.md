@@ -21,7 +21,7 @@ Updated 2026-11-21 with the main-league capture (A3, A8–A11, R8 resolved; A18,
 | A9 | The main league's platform label, route paths and free-agent payload match the solo-league test | Field mapping | Commissioner | **Confirmed:** label `pc`, all routes as expected. Free agents ruled out of scope | Resolved |
 | A10 | Standings `calendarYear` is a usable season for import snapshots | Field mapping | Claude | **Confirmed:** 2027 on every team | Resolved |
 | A11 | The calculator's cap-hit units and role options can be mapped from the export without changing v4.4 inputs | Field mapping | Claude | **Confirmed:** cap hit ÷ 100 = the calculator's $M; roles (Starter / Backup) aren't exported and stay typed | Resolved |
-| A12 | Draft-pick ownership is not exported, so the commissioner maintains it on a pick screen | Feasibility | Commissioner | After Web v5.0 (Q33) | Assumed; screen deferred |
+| A12 | Draft-pick ownership is not exported, so the commissioner maintains it on a pick screen | Feasibility | Commissioner | Web v3.0 (Q33) | Confirmed; built in v3.0. Trades through the calculator swap picks automatically; trades made only in Madden still need a manual move |
 | A13 | Existing trade history moves into the current league in one migration, marked pre-league | Identity and access | Site owner | Phase 2 (Web v2.0) | Assumed |
 | A14 | The current Supabase project has room for league tables, raw import payloads and the ledger at league scale | — | Site owner | Phase 2 (before Web v3.0) | Assumed |
 | A15 | The deployed `accept-trade` matches the repo copy hashed in the baseline manifest (accepts v1.4.0/v4.2 and v1.5.0/v4.4) | Baseline manifest | Site owner | Phase 2 (re-deploy from repo before Web v2.0) | Assumed |

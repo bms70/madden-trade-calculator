@@ -10,6 +10,8 @@
  * migration change. Web v2.0/v2.1: the snapshot is the v1.5.0 snapshot with
  * web_release "v2.1" ("v2.0" before v2.1); league-mode.js adds the league fields on submission and
  * swaps team names into the displayed text only (never the stored text).
+ * Web v3.0: web_release "v3.0", and each asset adds pick_id (the chosen
+ * draft pick in League mode when the league tracks picks; null otherwise).
  * Practice mode doesn't log trades.
  *
  * Initial render() runs at the end of this file, so everything render() calls
@@ -53,7 +55,8 @@ function emptyAsset() {
     years:'',
     league:'',
     current:'',
-    projected:''
+    projected:'',
+    pick_id:''
   }
 }
 
@@ -81,10 +84,27 @@ function esc(s) {
   return String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))
 }
 
+// Web v3.0: "Whose pick" in League mode (league-mode.js pickField).
+function pickFieldHtml(side,a) {
+  let f=window.LeagueMode?window.LeagueMode.pickField(side,a):{tracking:false};
+  if(!f.tracking)return '';
+  let options=f.loading?'<option value="">Loading picks...</option>'
+    :!f.choices.length?`<option value="">${esc(f.empty)}</option>`
+    :(f.selected?'':'<option value="">Choose...</option>')+f.choices.map(c=>`<option value="${esc(c.value)}"${c.value===f.selected?' selected':''}>${esc(c.label)}</option>`).join('');
+  return `<label>Whose pick<select data-k="pick_id">${options}</select></label>`
+}
+
+function pickMeta(side,a) {
+  let f=window.LeagueMode?window.LeagueMode.pickField(side,a):{tracking:false};
+  if(!f.tracking||f.loading)return '';
+  let chosen=f.choices.find(c=>c.value===f.selected);
+  return chosen?` · ${chosen.label.split(' · ')[1]}`:' · choose whose pick';
+}
+
 function card(a,side,val) {
   let label=a.type==='Draft Pick'?a.pick:(a.name||'Player'),
-    meta=a.type==='Draft Pick'?`Draft Pick · ${a.timing}`:`${a.pos} · ${a.ovr||'—'} OVR · ${a.dev}`;
-  return `<div class="asset" data-id="${a.id}" data-side="${side}"><button type="button" class="summary toggle"><div><div class="aname">${esc(label)}</div><div class="meta">${esc(meta)}</div></div><div class="aval">${val?val.toFixed(1):'—'}</div></button><div class="editor"><div class="fields"><label>Asset type<select data-k="type">${opts(['Player','Draft Pick'],a.type)}</select></label>${a.type==='Draft Pick'?`<label>Pick<select data-k="pick">${opts(Object.keys(PICK_VALUES),a.pick)}</select></label><label>Timing<select data-k="timing">${opts(allowedTimings(a.pick),pickTiming(a))}</select></label>`:`<label>Player name<input data-k="name" value="${esc(a.name)}"></label><label>OVR<input type="number" min="0" max="99" data-k="ovr" value="${a.ovr}"></label><label>Age<input type="number" min="18" max="60" data-k="age" value="${a.age}"></label><label>Position<select data-k="pos">${opts(Object.keys(POS),a.pos)}</select></label><label>Dev trait<select data-k="dev">${opts(Object.keys(DEV),a.dev)}</select></label><label>Cap hit $M<input type="number" min="0" data-k="cap" value="${a.cap}"></label><label>Years left<input type="number" min="1" max="10" step="1" inputmode="numeric" data-k="years" value="${a.years}"></label><label>Years in league<input type="number" min="0" max="40" data-k="league" value="${a.league}"></label><label>Current role<select data-k="current"><option value=""></option>${opts(['Starter','Backup'],a.current)}</select></label><label>Projected role<select data-k="projected"><option value=""></option>${opts(['Starter','Backup'],a.projected)}</select></label>`}</div><div class="acts"><button type="button" class="btn remove">Remove</button><button type="button" class="btn done">Done</button></div></div></div>`
+    meta=a.type==='Draft Pick'?`Draft Pick · ${a.timing}${pickMeta(side,a)}`:`${a.pos} · ${a.ovr||'—'} OVR · ${a.dev}`;
+  return `<div class="asset" data-id="${a.id}" data-side="${side}"><button type="button" class="summary toggle"><div><div class="aname">${esc(label)}</div><div class="meta">${esc(meta)}</div></div><div class="aval">${val?val.toFixed(1):'—'}</div></button><div class="editor"><div class="fields"><label>Asset type<select data-k="type">${opts(['Player','Draft Pick'],a.type)}</select></label>${a.type==='Draft Pick'?`<label>Pick<select data-k="pick">${opts(Object.keys(PICK_VALUES),a.pick)}</select></label><label>Timing<select data-k="timing">${opts(allowedTimings(a.pick),pickTiming(a))}</select></label>${pickFieldHtml(side,a)}`:`<label>Player name<input data-k="name" value="${esc(a.name)}"></label><label>OVR<input type="number" min="0" max="99" data-k="ovr" value="${a.ovr}"></label><label>Age<input type="number" min="18" max="60" data-k="age" value="${a.age}"></label><label>Position<select data-k="pos">${opts(Object.keys(POS),a.pos)}</select></label><label>Dev trait<select data-k="dev">${opts(Object.keys(DEV),a.dev)}</select></label><label>Cap hit $M<input type="number" min="0" data-k="cap" value="${a.cap}"></label><label>Years left<input type="number" min="1" max="10" step="1" inputmode="numeric" data-k="years" value="${a.years}"></label><label>Years in league<input type="number" min="0" max="40" data-k="league" value="${a.league}"></label><label>Current role<select data-k="current"><option value=""></option>${opts(['Starter','Backup'],a.current)}</select></label><label>Projected role<select data-k="projected"><option value=""></option>${opts(['Starter','Backup'],a.projected)}</select></label>`}</div><div class="acts"><button type="button" class="btn remove">Remove</button><button type="button" class="btn done">Done</button></div></div></div>`
 }
 
 // ----------------------------------------------------------------------------
@@ -107,7 +127,8 @@ function snapshotAsset(asset) {
     league: asset.league,
     current: asset.current,
     projected: asset.projected,
-    value: asset.value
+    value: asset.value,
+    pick_id: asset.type==='Draft Pick'&&asset.pick_id ? asset.pick_id : null
   };
 }
 
@@ -173,7 +194,7 @@ function buildTradeSnapshot() {
   let requiredTarget= typeof v.requiredTarget==='number' ? v.requiredTarget : null;
   let fairMaximum= typeof v.fairMaximum==='number' ? v.fairMaximum : null;
   return {
-    web_release:'v2.1',
+    web_release:'v3.0',
     ruleset_version:'v4.4',
     user_team_assets:A.arr.map(snapshotAsset),
     cpu_team_assets:B.arr.map(snapshotAsset),
@@ -208,17 +229,24 @@ function currentSubmissionKey() {
 }
 
 // Submit to league: league mode, both teams chosen, a complete trade, storage
-// available, not mid-submit, and not the trade that was just logged.
+// available, not mid-submit, every draft pick chosen (v3.0), and not the trade
+// that was just logged.
+function picksCheck() {
+  return window.LeagueMode?window.LeagueMode.picksReady(state):{ok:true,error:''};
+}
+
 function acceptDisabled(v) {
   return v.mode==='INCOMPLETE'||
     !window.MaddenStorage?.isConfigured||
     loggingTrade||
     !window.LeagueMode?.teamsReady()||
+    !picksCheck().ok||
     (lastLoggedSnapshotKey!==null&&currentSubmissionKey()===lastLoggedSnapshotKey);
 }
 
 function render() {
   closeAcceptConfirmation();
+  if(window.LeagueMode)window.LeagueMode.resolvePicks(state);
   let leagueMode=!!window.LeagueMode?.isLeague();
   // Correction mode (commissioner.js) saves through its own bar, not Submit.
   let correcting=!!window.CommissionerArea?.isCorrecting();
@@ -245,6 +273,13 @@ function render() {
   }
   let practiceNote=$('#practiceNote');
   if(practiceNote)practiceNote.hidden=leagueMode||correcting;
+  let pickNotice=$('#pickNotice');
+  if(pickNotice) {
+    let pc=picksCheck();
+    let show=leagueMode&&v.mode!=='INCOMPLETE'&&!pc.ok;
+    pickNotice.hidden=!show;
+    pickNotice.textContent=show?pc.error:'';
+  }
   $('#atotal').textContent=A.adj.toFixed(1);
   $('#btotal').textContent=B.adj.toFixed(1);
   $('#verdict').textContent=v.v;
@@ -374,6 +409,11 @@ function openAcceptConfirmation() {
     $('#status').textContent= 'Trade storage is unavailable. No historical record was created.';
     return;
   }
+  let pc=picksCheck();
+  if(!pc.ok) {
+    $('#status').textContent=pc.error;
+    return;
+  }
   let panel=$('#acceptConfirm');
   if(!panel)return;
   let warning=$('#acceptWarning');
@@ -443,6 +483,8 @@ async function logAcceptedTrade(name,note) {
     $('#submitterNote').value='';
     $('#status').textContent= `Logged as trade #${result.trade.tradeNumber}, Unreviewed.`;
     if(typeof resetTradeHistory==='function')resetTradeHistory();
+    // The traded picks have moved: refresh the "Whose pick" choices.
+    if(window.LeagueMode)await window.LeagueMode.reloadPicks();
   } catch(error) {
     console.error('Unexpected Trade logging failure:',error);
     $('#status').textContent= 'Trade could not be logged. No historical record was created.';

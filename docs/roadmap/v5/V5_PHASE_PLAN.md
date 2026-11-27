@@ -68,12 +68,12 @@ The finish line is **Web v5.0 + Ruleset v5.0**. Releases before that follow thes
 **Web v3.0 — Imports**
 - The Supabase receiver, raw snapshots and normalized import history already exist (Snallabot connection, import history). v3.0 builds the commissioner review and the member-facing use on top of them, and adds Companion as a backup source.
 - Validation diagnostics. The commissioner reviews each snapshot and marks it **current**; auto update can deliver data, but nothing becomes current without review.
-- ~~A draft-pick ownership screen for the commissioner~~ **Deferred until after Web v5.0** (2026-11-24, Q33). Pick labels stay typed.
+- **Draft-pick ownership** and **snapshot review**: built in **Web v3.0** (2026-11-27, Q33; spec `V5_WEB_V3.0_SPEC.md`). Picks swap automatically with submitted trades; members choose **Whose pick**.
 - **Exit (roadmap Phase 2):** one real league snapshot loads without changing v4.4 valuation.
 
 ### Phase 3 — League-aware calculator · **Web v3.1+**
 - A team selector from imported teams. The **player picker pre-fills all fields**, and every field stays editable.
-- ~~An owned-pick selector~~ (deferred with the pick screen, Q33).
+- An owned-pick selector: **done in Web v3.0** ("Whose pick").
 - An audit view showing imported and submitted values side by side, with edited fields highlighted.
 - Smarter pre-fill (suggestions only, editable): **role from the depth chart** and **future first-round tier from standings**.
 - Long snappers are hidden from the pickers until v5.0 gives them a value; they can still be entered by hand.
@@ -128,7 +128,7 @@ Guardrails: every input must be enterable by hand; nothing loosens premium-asset
 |---|---|---|
 | (none) | 0–1 | Baseline freeze, specs, capture spike |
 | **Web v2.0** | 2 | League mode, review queue, per-league commissioner password |
-| **Web v3.0** | 2 | Snallabot imports and snapshot review (pick-ownership screen deferred past v5.0) |
+| **Web v3.0** | 2 | Draft-pick ownership (auto-swap on submit) and snapshot review |
 | Web v3.1+ | 3 | Player-picker pre-fill, audit diffs, role and future-first suggestions |
 | **Web v4.0** | 4 | Transaction ledger |
 | Web v4.1+ | 5–8 | League context and posture FYI, calibration tools, shadow mode |

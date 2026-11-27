@@ -1,4 +1,4 @@
-// Web v2.0 / v2.1 league mode in the browser scripts: snapshot contract, display-only
+// Web v2.0 / v2.1 / v3.0 league mode in the browser scripts: snapshot contract, display-only
 // team names, practice mode, league entry and submission.
 // Run from the repo root: node tests/web-league-mode.test.js
 // Also covers league Trade History (trade-history.js, step 4) and the
@@ -168,12 +168,18 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
     const keysOk = JSON.stringify(Object.keys(a)) === JSON.stringify(FIELDS) && JSON.stringify(Object.keys(b)) === JSON.stringify(FIELDS);
     const { web_release: wa, ...restA } = a;
     const { web_release: wb, ...restB } = b;
-    if (keysOk && wa === 'v2.1' && wb === 'v1.5.0' && JSON.stringify(restA) === JSON.stringify(restB)) same++;
+    // v3.0 adds pick_id to every asset (null outside pick tracking), last.
+    const pickIds = [...restA.user_team_assets, ...restA.cpu_team_assets].map(x => x.pick_id);
+    const lastKey = [...restA.user_team_assets, ...restA.cpu_team_assets].every(x => Object.keys(x).at(-1) === 'pick_id');
+    const strip = list => list.map(({ pick_id, ...x }) => x);
+    restA.user_team_assets = strip(restA.user_team_assets);
+    restA.cpu_team_assets = strip(restA.cpu_team_assets);
+    if (keysOk && wa === 'v3.0' && wb === 'v1.5.0' && lastKey && pickIds.every(x => x === null) && JSON.stringify(restA) === JSON.stringify(restB)) same++;
     else mismatch.push(scenario.n);
   }
 
   check(`all ${scenarios.length} parity scenarios produce a snapshot`, compared === scenarios.length, mismatch.join(', '));
-  check('v2.1 snapshot = v1.5.0 snapshot apart from web_release (league mode, teams chosen)', same === compared && compared > 0, mismatch.join(', '));
+  check('v3.0 snapshot = v1.5.0 snapshot apart from web_release and pick_id: null (league without pick tracking)', same === compared && compared > 0, mismatch.join(', '));
 
   const w = current();
   setTrade(w, scenarios[0]);
@@ -307,7 +313,7 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   el('#submitterNote').value = 'Deadline deal';
   await el('#acceptConfirm').onsubmit({ preventDefault() {} });
   const submitted = calls.find(c => c[0] === 'submit');
-  check('submitted the v2.1 league submission', submitted && submitted[1].web_release === 'v2.1' && submitted[1].submitter_note === 'Deadline deal' && submitted[1].other_team_id === TEAMS[1].team_id);
+  check('submitted the v3.0 league submission', submitted && submitted[1].web_release === 'v3.0' && submitted[1].submitter_note === 'Deadline deal' && submitted[1].other_team_id === TEAMS[1].team_id);
   check('confirmation message', el('#status').textContent === 'Logged as trade #42, Unreviewed.');
   check('name remembered, note cleared', w.localStore.get('maddenTrade.submitterName') === 'Sam' && el('#submitterNote').value === '');
 
@@ -427,6 +433,9 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
     commissionerLogin: async (name, pw) => { ccalls.push(['login', name, pw]); return loginReply; },
     commissionerAuditLog: async (token, id) => { ccalls.push(['audit', token, id]); return { ok: true, data: { ok: true, events: [{ occurredAt: iso(NOW), action: 'TRADE_CORRECTED', tradeNumber: 66, actorRole: 'COMMISSIONER', actorName: 'Commish', reason: 'Fix <pick>', details: { verdict_before: 'UNFAIR', verdict_after: 'FAIR' } }] }, error: null, status: 200 }; },
     reviewTrade: async args => { ccalls.push(['review', args]); return reviewReply; },
+    commissionerPicks: async (token, id) => { ccalls.push(['picks', token, id]); return { ok: true, data: { ok: true, currentDraftYear: null, rolloverDue: false, latestSeason: null, picks: [] }, error: null, status: 200 }; },
+    commissionerSnapshots: async (token, id) => { ccalls.push(['snapshots', token, id]); return { ok: true, data: { ok: true, snapshots: [] }, error: null, status: 200 }; },
+    leaguePickChoices: async () => ({ ok: true, picks: [], currentDraftYear: null }),
   });
   const cw = makeWindow({ storage: cstorage });
   load(cw, PAGE);
@@ -511,7 +520,7 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   reviewReply = { ok: true, data: { ok: true, trade: { tradeNumber: 70, reviewStatus: 'REVIEWED', currentRevision: 1 } }, error: null, status: 200 };
   await cel('#saveCorrection').onclick();
   const correctCall = ccalls.filter(c => c[0] === 'review')[1];
-  check('correction sends CORRECT with the edited v2.1 snapshot', correctCall && correctCall[1].action === 'CORRECT' && correctCall[1].reason === 'Missing pick' && correctCall[1].trade.web_release === 'v2.1' && correctCall[1].trade.cpu_team_assets.length === snapA.cpu_team_assets.length + 1);
+  check('correction sends CORRECT with the edited v3.0 snapshot', correctCall && correctCall[1].action === 'CORRECT' && correctCall[1].reason === 'Missing pick' && correctCall[1].trade.web_release === 'v3.0' && correctCall[1].trade.cpu_team_assets.length === snapA.cpu_team_assets.length + 1);
   check('correction snapshot keeps engine side names', /User Team|CPU Team/.test(JSON.stringify(correctCall[1].trade.trade_intelligence)));
   check('after save: bar hidden, teams restored, trade cleared', !CA.isCorrecting() && cel('#correctionBar').hidden === true && CLM.state.teamA === TEAMS[1].team_id && CLM.state.teamB === '' && vm.runInContext('state.A.length + state.B.length', cw.ctx) === 0);
 
@@ -566,6 +575,162 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   await cel('#commLoginForm').onsubmit({ preventDefault() {} });
   cel('#leagueLeave').onclick();
   check('leaving the league signs out', cel('#commUnlocked').hidden === true && cel('#commNoLeague').hidden === false && CA._area.session === null);
+  check('commissioner: picks and exports loaded with the token (not set up / none)', ccalls.some(c => c[0] === 'picks' && c[1] === 'tok-123') && ccalls.some(c => c[0] === 'snapshots' && c[1] === 'tok-123'));
+
+  // -------------------------------------------------------------------------
+  // 9. Web v3.0 draft picks: "Whose pick", submit, correction
+  // -------------------------------------------------------------------------
+  const DAL = TEAMS[0].team_id, OMH = TEAMS[1].team_id, KCX = 'cccccccc-cccc-4ccc-8ccc-000000000003';
+  const P = n => `dddddddd-dddd-4ddd-8ddd-00000000000${n}`;
+  // OMH owns its 2029 2nd and KC's 2029 2nd; DAL owns its 2028 1st. OMH owns no 2030 3rd.
+  let pickRows = [
+    { pick_id: P(1), draft_year: 2029, round: 2, original_team_id: OMH, original_abbreviation: 'OMH', owner_team_id: OMH, in_this_trade: false, current_draft_year: 2028 },
+    { pick_id: P(2), draft_year: 2029, round: 2, original_team_id: KCX, original_abbreviation: 'KC', owner_team_id: OMH, in_this_trade: false, current_draft_year: 2028 },
+    { pick_id: P(3), draft_year: 2028, round: 1, original_team_id: DAL, original_abbreviation: 'DAL', owner_team_id: DAL, in_this_trade: false, current_draft_year: 2028 },
+    { pick_id: P(4), draft_year: 2029, round: 3, original_team_id: OMH, original_abbreviation: 'OMH', owner_team_id: OMH, in_this_trade: false, current_draft_year: 2028 },
+  ];
+  const pcalls = [];
+  const pstorage = {
+    isConfigured: true,
+    leagueLookup: async () => ({ ok: true, league: { ...LEAGUE, maddenVersion: '27', currentDraftYear: 2028 } }),
+    leagueTeams: async () => ({ ok: true, teams: TEAMS }),
+    leaguePickChoices: async (name, a, b, tradeId) => { pcalls.push(['choices', name, a, b, tradeId || null]); return { ok: true, picks: pickRows, currentDraftYear: 2028 }; },
+    submitLeagueTrade: async sub => { pcalls.push(['submit', sub]); return { ok: true, trade: { tradeNumber: 77, leagueName: 'Sample League' } }; },
+  };
+  const pw = makeWindow({ storage: pstorage });
+  load(pw, PAGE);
+  const pel = s => pw.document.querySelector(s);
+  const PLM = vm.runInContext('LeagueMode', pw.ctx);
+  const prun = code => vm.runInContext(code, pw.ctx);
+  const settle = () => new Promise(r => setTimeout(r, 0));
+
+  check('pickRound matches the database rule', ['1.05', 'Future Mid 1st', 'Early 2nd', 'Late 3rd', '4th', '7th', '8th'].map(PLM.pickRound).join(',') === '1,1,2,3,4,7,');
+  check('pickYearOffset', ['Current draft', 'Next year', 'Two years away', 'x'].map(PLM.pickYearOffset).join(',') === '0,1,2,');
+
+  prun("LeagueMode.state.mode = 'LEAGUE';");
+  pel('#leagueInput').value = 'Sample League';
+  await pel('#leagueEntry').onsubmit({ preventDefault() {} });
+  check('league entry keeps the current draft year', PLM.state.entered.currentDraftYear === 2028 && !PLM.pickTracking());
+  pel('#teamA').value = DAL; pel('#teamA').onchange();
+  pel('#teamB').value = OMH; pel('#teamB').onchange();
+  await settle();
+  const choiceCall = pcalls.filter(c => c[0] === 'choices').at(-1);
+  check('both teams chosen: their picks are loaded', PLM.pickTracking() && choiceCall && choiceCall[2] === DAL && choiceCall[3] === OMH && choiceCall[4] === null && PLM.state.picks.rows.length === 4);
+
+  // DAL receives OMH's "Late 3rd, Next year" (one fit) and gives a player.
+  const pickAsset = (id, pick, timing) => `Object.assign(emptyAsset(), { id: ${id}, type: 'Draft Pick', pick: '${pick}', timing: '${timing}' })`;
+  const player = id => `Object.assign(emptyAsset(), { id: ${id}, type: 'Player', name: 'Vet', pos: 'WR', ovr: '82', age: '27', dev: 'Normal' })`;
+  prun(`state = { A: [${pickAsset(901, 'Late 3rd', 'Next year')}], B: [${player(902)}] }; render();`);
+  check('one fitting pick is chosen automatically', prun('state.A[0].pick_id') === P(4));
+  const aHtml = pel('.side[data-side="A"]').querySelector('.assets').innerHTML;
+  check('card shows "Whose pick" with the choice and "own"', aHtml.includes('Whose pick') && aHtml.includes('2029 3rd · own') && aHtml.includes('Draft Pick · Next year · own'));
+  check('submit enabled once every pick is chosen', pel('#acceptTrade').disabled === false && pel('#pickNotice').hidden === true);
+
+  // Two fits: OMH's own 2029 2nd and KC's.
+  prun(`state.A.push(${pickAsset(903, 'Mid 2nd', 'Next year')}); render();`);
+  check('two fitting picks: nothing chosen, submit disabled, notice shown', prun('state.A[1].pick_id') === '' && pel('#acceptTrade').disabled === true && pel('#pickNotice').hidden === false && pel('#pickNotice').textContent.startsWith('Choose whose pick Mid 2nd'));
+  const aHtml2 = pel('.side[data-side="A"]').querySelector('.assets').innerHTML;
+  check('both choices offered, with "via KC"', aHtml2.includes('Choose...') && aHtml2.includes('2029 2nd · own') && aHtml2.includes('2029 2nd · via KC'));
+  prun(`state.A[1].pick_id = '${P(2)}'; render();`);
+  check('a chosen pick is kept and submit is enabled', prun('state.A[1].pick_id') === P(2) && pel('#acceptTrade').disabled === false);
+
+  // No fit: OMH owns no 2030 3rd ("Late 3rd, Two years away").
+  prun(`state.A.push(${pickAsset(904, 'Late 3rd', 'Two years away')}); render();`);
+  const aHtml3 = pel('.side[data-side="A"]').querySelector('.assets').innerHTML;
+  check('no fitting pick: says so, submit disabled', aHtml3.includes('OMH has no 2030 3rd pick') && pel('#acceptTrade').disabled === true);
+  prun('state.A.pop(); render();');
+
+  // Changing the round drops a choice that no longer fits.
+  prun("state.A[1].pick = 'Early 3rd'; render();");
+  check('changing the round drops the old choice; the only fit is already in the trade, so none is chosen', prun('state.A[1].pick_id') === '');
+  check('the same pick twice blocks submit', (prun(`state.A[1].pick_id = '${P(4)}'; LeagueMode.picksReady(state).error`)) === 'The same pick is in the trade twice.');
+  prun(`state.A[1].pick = 'Mid 2nd'; state.A[1].pick_id = '${P(2)}'; render();`);
+
+  run(pw, 'openAcceptConfirmation()');
+  pel('#submitterName').value = 'Sam';
+  await pel('#acceptConfirm').onsubmit({ preventDefault() {} });
+  const psub = pcalls.find(c => c[0] === 'submit');
+  check('submission carries each pick_id (players: null)', psub && psub[1].web_release === 'v3.0' && psub[1].user_team_assets.map(a => a.pick_id).join(',') === `${P(4)},${P(2)}` && psub[1].cpu_team_assets[0].pick_id === null);
+  check('after submit the pick choices reload', pcalls.filter(c => c[0] === 'choices').length >= 2 && pcalls.at(-1)[0] === 'choices');
+
+  // Practice mode: no pick tracking, pick_id null.
+  prun("LeagueMode.state.mode = 'PRACTICE'; render();");
+  check('practice mode: no "Whose pick", pick_id null', !pel('.side[data-side="A"]').querySelector('.assets').innerHTML.includes('Whose pick') && prun('buildTradeSnapshot()').user_team_assets.every(a => a.pick_id === null));
+  prun("LeagueMode.state.mode = 'LEAGUE'; render();");
+
+  // Correction lists the trade's own picks.
+  await PLM.setCorrectionTrade('t-corr-1');
+  check('correction loads choices for that trade', pcalls.filter(c => c[0] === 'choices').at(-1)[4] === 't-corr-1');
+  await PLM.setCorrectionTrade(null);
+  check('ending the correction reloads without it', pcalls.filter(c => c[0] === 'choices').at(-1)[4] === null);
+
+  // Choices that fail to load block submit with the reason.
+  pstorage.leaguePickChoices = async () => ({ ok: false, picks: [], currentDraftYear: null, error: 'Draft picks could not be loaded.' });
+  await PLM.reloadPicks();
+  check('failed pick load blocks submit', PLM.picksReady(vm.runInContext('state', pw.ctx)).error === 'Draft picks could not be loaded.' && pel('#acceptTrade').disabled === true);
+
+  // -------------------------------------------------------------------------
+  // 10. Web v3.0 commissioner: Draft picks and Exports
+  // -------------------------------------------------------------------------
+  const commPick = (n, year, round, orig, origAbbr, owner, ownerAbbr) => ({ pickId: P(n), draftYear: year, round, originalTeamId: orig, originalAbbreviation: origAbbr, ownerTeamId: owner, ownerAbbreviation: ownerAbbr });
+  let picksData = { ok: true, currentDraftYear: 2028, rolloverDue: true, latestSeason: 2028, picks: [
+    commPick(1, 2028, 1, DAL, 'DAL', DAL, 'DAL'), commPick(2, 2028, 1, OMH, 'OMH', DAL, 'DAL'),
+    commPick(3, 2029, 2, OMH, 'OMH', OMH, 'OMH'), commPick(4, 2030, 7, DAL, 'DAL', DAL, 'DAL') ] };
+  let snapsData = { ok: true, snapshots: [
+    { snapshotId: 'snap-9', receivedAt: '2026-11-27T16:32:26Z', status: 'RECEIVING', season: 2027, stageIndex: 1, week: 9, rostersReceived: 32, teamsInLeague: 32, missingRosters: 0, complete: true, players: 2056, freeAgents: 580, historyFailed: 0, isCurrent: false },
+    { snapshotId: 'snap-8', receivedAt: '2026-11-25T04:47:29Z', status: 'RECEIVED', season: 2027, stageIndex: 1, week: 8, rostersReceived: 31, teamsInLeague: 32, missingRosters: 1, complete: false, players: 1990, freeAgents: 581, historyFailed: 0, isCurrent: true } ] };
+  const kcalls = [];
+  const kstorage = Object.assign({}, cstorage, {
+    commissionerPicks: async (t, id) => { kcalls.push(['picks', t, id]); return { ok: true, data: picksData, error: null, status: 200 }; },
+    commissionerSnapshots: async (t, id) => { kcalls.push(['snapshots', t, id]); return { ok: true, data: snapsData, error: null, status: 200 }; },
+    setPickOwner: async args => { kcalls.push(['setOwner', args]); return { ok: true, data: { ok: true, pick: { pickId: args.pickId, ownerTeamId: args.ownerTeamId, ownerAbbreviation: 'OMH', changed: true } }, error: null, status: 200 }; },
+    draftComplete: async args => { kcalls.push(['draft', args]); return { ok: true, data: { ok: true, draft: { currentDraftYear: 2029, picksRetired: 224, picksCreated: 224 } }, error: null, status: 200 }; },
+    markSnapshotCurrent: async args => { kcalls.push(['mark', args]); return { ok: true, data: { ok: true, snapshot: { snapshotId: args.snapshotId, season: 2027, week: 9, changed: true } }, error: null, status: 200 }; },
+    commissionerAuditLog: async () => ({ ok: true, data: { ok: true, events: [{ occurredAt: iso(NOW), action: 'DRAFT_COMPLETED', tradeNumber: null, actorRole: 'COMMISSIONER', actorName: 'Commish', reason: null, details: {} }] }, error: null, status: 200 }),
+  });
+  const kw = makeWindow({ storage: kstorage });
+  load(kw, PAGE);
+  const kel = s => kw.document.querySelector(s);
+  const KCA = vm.runInContext('CommissionerArea', kw.ctx);
+  vm.runInContext("LeagueMode.state.mode = 'LEAGUE';", kw.ctx);
+  kel('#leagueInput').value = 'Sample League';
+  await kel('#leagueEntry').onsubmit({ preventDefault() {} });
+  kel('#commPassword').value = 'right';
+  loginReply = { ok: true, data: { ok: true, session }, error: null, status: 200 };
+  await kel('#commLoginForm').onsubmit({ preventDefault() {} });
+  check('draft picks: summary and rollover hint', kel('#commPicksSummary').textContent === 'current draft 2028 · 1 pick moved' && kel('#commPickRollover').hidden === false && kel('#commPickRollover').textContent.includes('2028 season') && kel('#commPickRollover').textContent.includes('2028 draft is done'));
+  const pickHtml = kel('#commPicks').innerHTML;
+  check('draft picks: 2028 1st round shown (2 picks), moved one marked', (pickHtml.match(/comm-pick-line/g) || []).length === 2 && pickHtml.includes('comm-pick-line moved') && kel('#commPickYear').innerHTML.includes('2028 (current)'));
+  kel('#commPickYear').value = '2030'; kel('#commPickYear').onchange();
+  kel('#commPickRound').value = '7'; kel('#commPickRound').onchange();
+  check('draft picks: year and round filter', (kel('#commPicks').innerHTML.match(/comm-pick-line/g) || []).length === 1);
+  check('audit label for draft complete', kel('#commAudit').innerHTML.includes('Draft complete'));
+
+  kel('#commName').value = '';
+  await KCA._savePickOwner(P(4), OMH);
+  check('pick move needs the commissioner name', !kcalls.some(c => c[0] === 'setOwner') && kel('#commPicksStatus').textContent.startsWith('Add your name'));
+  kel('#commName').value = 'Commish';
+  await KCA._savePickOwner(P(4), OMH);
+  const so = kcalls.find(c => c[0] === 'setOwner');
+  check('pick move sends token, league, pick, team, name', so && so[1].token === 'tok-123' && so[1].leagueId === LEAGUE.id && so[1].pickId === P(4) && so[1].ownerTeamId === OMH && so[1].commissionerName === 'Commish');
+  check('pick move notice', kel('#commPicksStatus').textContent === '2030 7th (DAL) now belongs to OMH.');
+
+  await KCA._draftComplete();
+  check('draft complete asks to confirm first (no call)', !kcalls.some(c => c[0] === 'draft') && kel('#commDraftComplete').textContent === 'Confirm: the 2028 draft is complete' && kel('#commDraftCancel').hidden === false);
+  picksData = { ok: true, currentDraftYear: 2029, rolloverDue: false, latestSeason: 2028, picks: [commPick(5, 2029, 1, DAL, 'DAL', DAL, 'DAL')] };
+  await KCA._draftComplete();
+  const dc = kcalls.find(c => c[0] === 'draft');
+  check('draft complete sends the expected year', dc && dc[1].expectedYear === 2028 && dc[1].commissionerName === 'Commish');
+  check('after draft complete: new year shown, hint gone', kel('#commPicksSummary').textContent === 'current draft 2029 · 0 picks moved' && kel('#commPickRollover').hidden === true && kel('#commPicksStatus').textContent.includes('current draft is now 2029'));
+
+  const snapsHtml = kel('#commSnapshots').innerHTML;
+  check('exports: listed newest first with health', snapsHtml.indexOf('2027, week 9') < snapsHtml.indexOf('2027, week 8') && snapsHtml.includes('Healthy') && snapsHtml.includes('incomplete, 1 rosters missing') && snapsHtml.includes('2,056 players'));
+  check('exports: current one marked, others have the button', snapsHtml.includes('comm-snapshot-current') && snapsHtml.includes('data-snapshot="snap-9"') && !snapsHtml.includes('data-snapshot="snap-8"'));
+  check('exports: summary shows the current export', kel('#commSnapshotsSummary').textContent === 'current: 2027, week 8');
+  await KCA._markCurrent('snap-9');
+  const mc = kcalls.find(c => c[0] === 'mark');
+  check('mark current sends token, league, export, name', mc && mc[1].snapshotId === 'snap-9' && mc[1].token === 'tok-123' && mc[1].commissionerName === 'Commish');
+  check('mark current updates the list', kel('#commSnapshotsSummary').textContent === 'current: 2027, week 9' && kel('#commSnapshotsStatus').textContent === 'Marked current: 2027, week 9.');
 
   console.log(`\n${pass} / ${pass + fail} ${fail ? 'FAIL' : 'PASS'}`);
   process.exit(fail ? 1 : 0);

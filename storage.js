@@ -79,6 +79,30 @@
 
       updateTeam: async function () {
         return { ok: false, data: null, error: message, status: null };
+      },
+
+      leaguePickChoices: async function () {
+        return { ok: false, picks: [], currentDraftYear: null, error: message };
+      },
+
+      commissionerPicks: async function () {
+        return { ok: false, data: null, error: message, status: null };
+      },
+
+      setPickOwner: async function () {
+        return { ok: false, data: null, error: message, status: null };
+      },
+
+      draftComplete: async function () {
+        return { ok: false, data: null, error: message, status: null };
+      },
+
+      commissionerSnapshots: async function () {
+        return { ok: false, data: null, error: message, status: null };
+      },
+
+      markSnapshotCurrent: async function () {
+        return { ok: false, data: null, error: message, status: null };
       }
     });
 
@@ -205,7 +229,8 @@
 
   const LEAGUE_UNAVAILABLE = 'League data is unavailable right now.';
 
-  // { ok, league: { id, name, maddenVersion } | null }. null = no such league.
+  // { ok, league: { id, name, maddenVersion, currentDraftYear } | null }.
+  // null = no such league. currentDraftYear null = picks aren't tracked.
   async function leagueLookup(name) {
     if (typeof name !== 'string' || name.trim().length === 0) {
       return { ok: true, league: null, error: null };
@@ -232,7 +257,8 @@
         league: {
           id: row.league_id,
           name: row.league_name,
-          maddenVersion: row.madden_version
+          maddenVersion: row.madden_version,
+          currentDraftYear: typeof row.current_draft_year === 'number' ? row.current_draft_year : null
         },
         error: null
       };
@@ -270,6 +296,39 @@
         teams: [],
         error: 'The team list could not be loaded.'
       };
+    }
+  }
+
+  // Web v3.0: the picks two teams own, for the "whose pick" choice. With
+  // tradeId (a commissioner correction) the picks that trade moved are listed
+  // with the team that gave them. { ok, currentDraftYear, picks: [{ pick_id,
+  // draft_year, round, original_team_id, original_abbreviation, owner_team_id,
+  // in_this_trade }] }
+  async function leaguePickChoices(name, teamA, teamB, tradeId) {
+    const failed = { ok: false, picks: [], currentDraftYear: null, error: 'Draft picks could not be loaded.' };
+    try {
+      const { data, error } = await client.rpc('league_pick_choices', {
+        p_name: String(name || '').trim(),
+        p_team_a: teamA,
+        p_team_b: teamB,
+        p_trade_id: tradeId || null
+      });
+
+      if (error) {
+        console.error('Pick choices failed:', error);
+        return failed;
+      }
+
+      const rows = Array.isArray(data) ? data : [];
+      return {
+        ok: true,
+        currentDraftYear: rows.length ? rows[0].current_draft_year : null,
+        picks: rows,
+        error: null
+      };
+    } catch (error) {
+      console.error('Pick choices connection failed:', error);
+      return failed;
     }
   }
 
@@ -441,6 +500,54 @@
     );
   }
 
+  // Web v3.0. data = { currentDraftYear, rolloverDue, latestSeason, picks: [{ pickId,
+  // draftYear, round, originalTeamId, originalAbbreviation, ownerTeamId, ownerAbbreviation }] }
+  function commissionerPicks(token, leagueId) {
+    return invokeFunction(
+      'commissioner-picks',
+      { token, league_id: leagueId, action: 'LIST' },
+      'The draft picks could not be loaded.'
+    );
+  }
+
+  // data.pick = { pickId, ownerTeamId, ownerAbbreviation, changed }
+  function setPickOwner({ token, leagueId, pickId, ownerTeamId, commissionerName }) {
+    return invokeFunction(
+      'commissioner-picks',
+      { token, league_id: leagueId, action: 'SET_OWNER', pick_id: pickId, owner_team_id: ownerTeamId, commissioner_name: commissionerName },
+      'The pick could not be updated.'
+    );
+  }
+
+  // data.draft = { currentDraftYear, picksRetired, picksCreated }
+  function draftComplete({ token, leagueId, expectedYear, commissionerName }) {
+    return invokeFunction(
+      'commissioner-picks',
+      { token, league_id: leagueId, action: 'DRAFT_COMPLETE', expected_year: expectedYear, commissioner_name: commissionerName },
+      "The draft couldn't be marked complete."
+    );
+  }
+
+  // data.snapshots = [{ snapshotId, receivedAt, status, season, stageIndex, week,
+  // rostersReceived, teamsInLeague, missingRosters, complete, players, freeAgents,
+  // historyFailed, isCurrent }]
+  function commissionerSnapshots(token, leagueId) {
+    return invokeFunction(
+      'commissioner-snapshots',
+      { token, league_id: leagueId, action: 'LIST' },
+      'The exports could not be loaded.'
+    );
+  }
+
+  // data.snapshot = { snapshotId, season, week, changed }
+  function markSnapshotCurrent({ token, leagueId, snapshotId, commissionerName }) {
+    return invokeFunction(
+      'commissioner-snapshots',
+      { token, league_id: leagueId, action: 'MARK_CURRENT', snapshot_id: snapshotId, commissioner_name: commissionerName },
+      "The export couldn't be marked current."
+    );
+  }
+
   window.MaddenStorage = Object.freeze({
     isConfigured: true,
     acceptTrade,
@@ -454,6 +561,12 @@
     reviewTrade,
     commissionerAuditLog,
     commissionerTeams,
-    updateTeam
+    updateTeam,
+    leaguePickChoices,
+    commissionerPicks,
+    setPickOwner,
+    draftComplete,
+    commissionerSnapshots,
+    markSnapshotCurrent
   });
 })();
