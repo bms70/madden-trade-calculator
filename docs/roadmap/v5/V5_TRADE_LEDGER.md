@@ -3,7 +3,7 @@
 Phase 4 groundwork, **backend only**. No Web Release and no site change. Ruleset v4.4, `valuation.js`, the snapshot contract and stored trades are unchanged. Decided 2026-11-24.
 
 - Migration: `supabase/migrations/20261124030000_trade_ledger.sql`
-- Tests: `tests/trade-ledger-db.test.py` (48 / 48)
+- Tests: `tests/trade-ledger-db.test.py` (53 / 53)
 - Builds on import history ([`V5_IMPORT_HISTORY.md`](V5_IMPORT_HISTORY.md)).
 
 ## What it gives v5.0
@@ -40,6 +40,7 @@ Draft picks are listed but not linked (pick ownership is deferred, Q33).
   - `LOGGED`: a linked league trade moved him between those two teams, submitted from 30 days before the earlier export to 7 days after the later one.
   - `NOT LOGGED`: no trade explains the move. That can mean a trade made in Madden but never logged, a release followed by a signing, or a logged trade whose player isn't linked yet.
   - Moves to or from free agency aren't shown, because free agents aren't in history.
+  - `from_control` / `to_control` show whether each team is `USER` or `CPU`, using its current setting. **`check_this`** is true for a NOT LOGGED move involving a human team: probably a trade that should have gone through the calculator. Those sort first in each export. A NOT LOGGED move between two CPU teams is usually Madden's own CPU trade and needs nothing (added 2026-11-27, `20261127010000_roster_moves_control.sql`).
 
 ## Owner commands (Supabase dashboard → SQL editor)
 
