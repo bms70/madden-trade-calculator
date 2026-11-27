@@ -103,12 +103,22 @@ function formatHistoryDate(value) {
   return date.toLocaleString();
 }
 
+// Web v3.1: a current-draft pick with its actual number reads "Pick 2.14".
+function historyPickLabel(asset) {
+  let n=Number(asset.pick_number);
+  let round=typeof window.LeagueMode?.pickRound==='function'?window.LeagueMode.pickRound(asset.pick):null;
+  if(Number.isInteger(n)&&n>=1&&n<=32&&round&&(asset.timing||'Current draft')==='Current draft') {
+    return `Pick ${round}.${String(n).padStart(2,'0')}`;
+  }
+  return asset.pick||'Draft Pick';
+}
+
 function historyAssetLabel(asset) {
   if(!asset||typeof asset!=='object') {
     return 'Unknown asset';
   }
   if(asset.type==='Draft Pick') {
-    return asset.pick||'Draft Pick';
+    return historyPickLabel(asset);
   }
   return asset.name||'Player';
 }
@@ -181,7 +191,7 @@ function historyAssetDetail(asset) {
   if(asset.type==='Draft Pick') {
     return `
       <div class="history-asset">
-        <strong>${esc(asset.pick||'Draft Pick')}</strong>
+        <strong>${esc(historyPickLabel(asset))}</strong>
         <span>${esc(asset.timing||'Current draft')}</span>
         <b>Individual Value: ${esc(value)}</b>
       </div>
