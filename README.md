@@ -2,7 +2,7 @@
 
 A responsive web calculator for evaluating Player and Draft Pick trades in a Madden league. League mode logs each league's trades for commissioner review, and a practice mode is available for trying trades freely.
 
-**Current Web Release:** v3.0  
+**Current Web Release:** v3.1  
 **Current Ruleset:** v4.4
 
 ---
@@ -11,11 +11,13 @@ A responsive web calculator for evaluating Player and Draft Pick trades in a Mad
 
 The current production mapping is:
 
-**Web Release v3.0 | Ruleset v4.4**
+**Web Release v3.1 | Ruleset v4.4**
 
 Web Releases and Rulesets are versioned independently.
 
-Web Release v3.0 adds **draft-pick ownership**: in League mode each Draft Pick names whose pick it is, and submitted trades move picks to their new teams automatically. The Commissioner tab adds **Draft picks** (move a pick by hand, Draft complete) and **Exports** (review each Snallabot export and mark one current).
+Web Release v3.1 makes **draft-pick entry** follow Madden: Timing, then Round, then the actual **Pick number** for the current draft or **Early / Mid / Late** for future picks. Values are unchanged.
+
+Web Release v3.0 added **draft-pick ownership**: in League mode each Draft Pick names whose pick it is, and submitted trades move picks to their new teams automatically. The Commissioner tab adds **Draft picks** (move a pick by hand, Draft complete) and **Exports** (review each Snallabot export and mark one current).
 
 Web Release v2.1 added **commissioner team editing**: the Commissioner tab sets each team to Human or CPU and gives it an owner label.
 
@@ -278,6 +280,7 @@ Current governed Ruleset files include:
 
 Release notes and governed release records.
 
+- `RELEASE_NOTES_v3.1.md`
 - `RELEASE_NOTES_v3.0.md`
 - `RELEASE_NOTES_v2.1.md`
 - `RELEASE_NOTES_v2.0.md`
@@ -403,6 +406,15 @@ A Ruleset version identifies the governed trade-valuation framework.
 ---
 
 ## Release Validation
+
+### Web Release v3.1 / Ruleset v4.4
+
+Full record: `docs/validation/VALIDATION_v3.1.md`.
+
+- Ruleset v4.4 regression: **64 / 64 PASS**. `valuation.js` matches its baseline hash.
+- Browser scripts: **151 / 151 PASS**
+- Edge Function logic: **125 / 125 PASS**
+- Live check: **PENDING release-owner sign-off**
 
 ### Web Release v3.0 / Ruleset v4.4
 

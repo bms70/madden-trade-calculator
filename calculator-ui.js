@@ -12,6 +12,10 @@
  * swaps team names into the displayed text only (never the stored text).
  * Web v3.0: web_release "v3.0", and each asset adds pick_id (the chosen
  * draft pick in League mode when the league tracks picks; null otherwise).
+ * Web v3.1: web_release "v3.1", and each asset adds pick_number (the actual
+ * pick, 1-32, for a current-draft pick; null otherwise). The stored pick
+ * label stays the Ruleset v4.4 value key ("1.14", "Mid 2nd", "Future Early
+ * 1st", "5th"), so valuation is unchanged.
  * Practice mode doesn't log trades.
  *
  * Initial render() runs at the end of this file, so everything render() calls
@@ -56,8 +60,117 @@ function emptyAsset() {
     league:'',
     current:'',
     projected:'',
-    pick_id:''
+    pick_id:'',
+    pick_number:''
   }
+}
+
+// ----------------------------------------------------------------------------
+// Draft pick entry (Web v3.1): Timing -> Round -> Pick number (current draft)
+// or Early / Mid / Late (future). The pick label (a.pick) stays the Ruleset
+// v4.4 value key, built from those answers. Current-draft 2nd and 3rd round
+// picks map to Early (1-10), Mid (11-21) or Late (22-32); rounds 4-7 have one
+// value per round.
+// ----------------------------------------------------------------------------
+
+const PICK_TIMINGS=['Current draft','Next year','Two years away'];
+
+function ordinalRound(r) {
+  return {1:'1st',2:'2nd',3:'3rd'}[r]||`${r}th`
+}
+
+function tierForNumber(n) {
+  return n<=10?'Early':n<=21?'Mid':'Late'
+}
+
+function tierStart(tier) {
+  return {Early:1,Mid:11,Late:22}[tier]||11
+}
+
+function pad2(n) {
+  return String(n).padStart(2,'0')
+}
+
+// The parts behind a pick label: { timing, round, number, tier }.
+// timing is the effective timing (pickTiming); number is set for the
+// current draft, tier for future rounds 1-3.
+function pickParts(a) {
+  let timing=pickTiming(a),
+    label=String(a.pick||''),
+    saved=Number(a.pick_number),
+    round=1,
+    tier=null,
+    number=null,
+    m;
+  if((m=/^1\.(\d{2})$/.exec(label))) { round=1; number=Number(m[1]); }
+  else if((m=/^Future (Early|Mid|Late) 1st$/.exec(label))) { round=1; tier=m[1]; }
+  else if(label==='Future 1st - Unknown') { round=1; tier='Unknown'; }
+  else if((m=/^(Early|Mid|Late) (2nd|3rd)$/.exec(label))) { round=m[2]==='2nd'?2:3; tier=m[1]; }
+  else if((m=/^([4-7])th$/.exec(label))) { round=Number(m[1]); }
+  if(timing==='Current draft') {
+    if(number===null) {
+      let fits=Number.isInteger(saved)&&saved>=1&&saved<=32&&(!tier||tierForNumber(saved)===tier);
+      number=fits?saved:(tier?tierStart(tier):1);
+    }
+    tier=null;
+  } else {
+    number=null;
+    if(round>3)tier=null;
+    else if(!tier)tier='Mid';
+  }
+  return {timing,round,number,tier}
+}
+
+function pickLabelFor(p) {
+  if(p.timing==='Current draft') {
+    if(p.round===1)return `1.${pad2(p.number)}`;
+    if(p.round<=3)return `${tierForNumber(p.number)} ${ordinalRound(p.round)}`;
+    return ordinalRound(p.round);
+  }
+  if(p.round===1)return p.tier==='Unknown'?'Future 1st - Unknown':`Future ${p.tier||'Mid'} 1st`;
+  if(p.round<=3)return `${p.tier==='Unknown'?'Mid':(p.tier||'Mid')} ${ordinalRound(p.round)}`;
+  return ordinalRound(p.round);
+}
+
+// Applies one pick field change ('timing', 'round', 'pick_number', 'tier').
+function setPickPart(a,k,value) {
+  let p=pickParts(a);
+  if(k==='timing') {
+    let next=PICK_TIMINGS.includes(value)?value:'Current draft';
+    if(p.timing==='Current draft'&&next!=='Current draft')p.tier=p.round<=3?tierForNumber(p.number):null;
+    if(p.timing!=='Current draft'&&next==='Current draft')p.number=p.tier&&p.tier!=='Unknown'?tierStart(p.tier):(p.round===1?16:1);
+    p.timing=next;
+  }
+  if(k==='round') {
+    p.round=Math.min(7,Math.max(1,Number(value)||1));
+    if(p.timing==='Current draft'&&!p.number)p.number=1;
+    if(p.timing!=='Current draft')p.tier=p.round<=3?(p.tier&&(p.round===1||p.tier!=='Unknown')?p.tier:'Mid'):null;
+  }
+  if(k==='pick_number')p.number=Math.min(32,Math.max(1,Number(value)||1));
+  if(k==='tier')p.tier=value;
+  a.timing=p.timing;
+  a.pick=pickLabelFor(p);
+  a.pick_number=p.timing==='Current draft'?String(p.number):'';
+}
+
+// "Pick 2.14" (current draft) or the label ("Future Mid 1st", "Mid 2nd", "5th").
+function pickTitle(a) {
+  let p=pickParts(a);
+  return p.timing==='Current draft'?`Pick ${p.round}.${pad2(p.number)}`:pickLabelFor(p)
+}
+
+function pickFieldsHtml(a) {
+  let p=pickParts(a),
+    sel=(k,list,val)=>`<select data-k="${k}">${list.map(([v,t])=>`<option value="${v}"${String(v)===String(val)?' selected':''}>${t}</option>`).join('')}</select>`,
+    html=`<label>Timing${sel('timing',PICK_TIMINGS.map(t=>[t,t]),p.timing)}</label>`+
+      `<label>Round${sel('round',[1,2,3,4,5,6,7].map(r=>[r,`Round ${r}`]),p.round)}</label>`;
+  if(p.timing==='Current draft') {
+    html+=`<label>Pick number${sel('pick_number',Array.from({length:32},(_,i)=>[i+1,`Pick ${i+1}`]),p.number)}</label>`;
+  } else if(p.round<=3) {
+    let tiers=p.round===1?['Early','Mid','Late','Unknown']:['Early','Mid','Late'];
+    html+=`<label>Projected${sel('tier',tiers.map(t=>[t,t]),p.tier)}</label>`;
+  }
+  return html
 }
 
 // Ruleset v4.4 Fairness Score read: score plus which side the trade favours.
@@ -102,9 +215,9 @@ function pickMeta(side,a) {
 }
 
 function card(a,side,val) {
-  let label=a.type==='Draft Pick'?a.pick:(a.name||'Player'),
+  let label=a.type==='Draft Pick'?pickTitle(a):(a.name||'Player'),
     meta=a.type==='Draft Pick'?`Draft Pick · ${a.timing}${pickMeta(side,a)}`:`${a.pos} · ${a.ovr||'—'} OVR · ${a.dev}`;
-  return `<div class="asset" data-id="${a.id}" data-side="${side}"><button type="button" class="summary toggle"><div><div class="aname">${esc(label)}</div><div class="meta">${esc(meta)}</div></div><div class="aval">${val?val.toFixed(1):'—'}</div></button><div class="editor"><div class="fields"><label>Asset type<select data-k="type">${opts(['Player','Draft Pick'],a.type)}</select></label>${a.type==='Draft Pick'?`<label>Pick<select data-k="pick">${opts(Object.keys(PICK_VALUES),a.pick)}</select></label><label>Timing<select data-k="timing">${opts(allowedTimings(a.pick),pickTiming(a))}</select></label>${pickFieldHtml(side,a)}`:`<label>Player name<input data-k="name" value="${esc(a.name)}"></label><label>OVR<input type="number" min="0" max="99" data-k="ovr" value="${a.ovr}"></label><label>Age<input type="number" min="18" max="60" data-k="age" value="${a.age}"></label><label>Position<select data-k="pos">${opts(Object.keys(POS),a.pos)}</select></label><label>Dev trait<select data-k="dev">${opts(Object.keys(DEV),a.dev)}</select></label><label>Cap hit $M<input type="number" min="0" data-k="cap" value="${a.cap}"></label><label>Years left<input type="number" min="1" max="10" step="1" inputmode="numeric" data-k="years" value="${a.years}"></label><label>Years in league<input type="number" min="0" max="40" data-k="league" value="${a.league}"></label><label>Current role<select data-k="current"><option value=""></option>${opts(['Starter','Backup'],a.current)}</select></label><label>Projected role<select data-k="projected"><option value=""></option>${opts(['Starter','Backup'],a.projected)}</select></label>`}</div><div class="acts"><button type="button" class="btn remove">Remove</button><button type="button" class="btn done">Done</button></div></div></div>`
+  return `<div class="asset" data-id="${a.id}" data-side="${side}"><button type="button" class="summary toggle"><div><div class="aname">${esc(label)}</div><div class="meta">${esc(meta)}</div></div><div class="aval">${val?val.toFixed(1):'—'}</div></button><div class="editor"><div class="fields"><label>Asset type<select data-k="type">${opts(['Player','Draft Pick'],a.type)}</select></label>${a.type==='Draft Pick'?`${pickFieldsHtml(a)}${pickFieldHtml(side,a)}`:`<label>Player name<input data-k="name" value="${esc(a.name)}"></label><label>OVR<input type="number" min="0" max="99" data-k="ovr" value="${a.ovr}"></label><label>Age<input type="number" min="18" max="60" data-k="age" value="${a.age}"></label><label>Position<select data-k="pos">${opts(Object.keys(POS),a.pos)}</select></label><label>Dev trait<select data-k="dev">${opts(Object.keys(DEV),a.dev)}</select></label><label>Cap hit $M<input type="number" min="0" data-k="cap" value="${a.cap}"></label><label>Years left<input type="number" min="1" max="10" step="1" inputmode="numeric" data-k="years" value="${a.years}"></label><label>Years in league<input type="number" min="0" max="40" data-k="league" value="${a.league}"></label><label>Current role<select data-k="current"><option value=""></option>${opts(['Starter','Backup'],a.current)}</select></label><label>Projected role<select data-k="projected"><option value=""></option>${opts(['Starter','Backup'],a.projected)}</select></label>`}</div><div class="acts"><button type="button" class="btn remove">Remove</button><button type="button" class="btn done">Done</button></div></div></div>`
 }
 
 // ----------------------------------------------------------------------------
@@ -128,7 +241,8 @@ function snapshotAsset(asset) {
     current: asset.current,
     projected: asset.projected,
     value: asset.value,
-    pick_id: asset.type==='Draft Pick'&&asset.pick_id ? asset.pick_id : null
+    pick_id: asset.type==='Draft Pick'&&asset.pick_id ? asset.pick_id : null,
+    pick_number: asset.type==='Draft Pick'&&pickTiming(asset)==='Current draft' ? pickParts(asset).number : null
   };
 }
 
@@ -194,7 +308,7 @@ function buildTradeSnapshot() {
   let requiredTarget= typeof v.requiredTarget==='number' ? v.requiredTarget : null;
   let fairMaximum= typeof v.fairMaximum==='number' ? v.fairMaximum : null;
   return {
-    web_release:'v3.0',
+    web_release:'v3.1',
     ruleset_version:'v4.4',
     user_team_assets:A.arr.map(snapshotAsset),
     cpu_team_assets:B.arr.map(snapshotAsset),
@@ -332,10 +446,15 @@ function bindCards() {
     let card=el.closest('.asset'),
       side=card.dataset.side,
       a=state[side].find(x=>x.id==card.dataset.id);
-    a[el.dataset.k]=el.value;
-    // Ruleset v4.4: exact 1st-round slots are current draft only and Future
-    // 1sts are next year or later, so keep timing valid for the chosen pick.
-    if(a.type==='Draft Pick')a.timing=pickTiming(a);
+    let k=el.dataset.k;
+    if(a.type==='Draft Pick'&&['timing','round','pick_number','tier'].includes(k)) {
+      // Web v3.1: rebuild the v4.4 pick label from Timing / Round / Pick number / Projected.
+      setPickPart(a,k,el.value);
+    } else {
+      a[k]=el.value;
+      // A new Draft Pick starts as pick 1.01 in the current draft.
+      if(k==='type'&&a.type==='Draft Pick')a.timing=pickTiming(a);
+    }
     render();
     requestAnimationFrame(()=> {
       let c=document.querySelector(`.asset[data-id="${a.id}"]`);

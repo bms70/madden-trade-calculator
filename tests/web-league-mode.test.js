@@ -168,18 +168,27 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
     const keysOk = JSON.stringify(Object.keys(a)) === JSON.stringify(FIELDS) && JSON.stringify(Object.keys(b)) === JSON.stringify(FIELDS);
     const { web_release: wa, ...restA } = a;
     const { web_release: wb, ...restB } = b;
-    // v3.0 adds pick_id to every asset (null outside pick tracking), last.
-    const pickIds = [...restA.user_team_assets, ...restA.cpu_team_assets].map(x => x.pick_id);
-    const lastKey = [...restA.user_team_assets, ...restA.cpu_team_assets].every(x => Object.keys(x).at(-1) === 'pick_id');
-    const strip = list => list.map(({ pick_id, ...x }) => x);
+    // v3.0 adds pick_id (null outside pick tracking) and v3.1 pick_number to
+    // every asset, last: the number for a current-draft pick, else null.
+    const all = [...restA.user_team_assets, ...restA.cpu_team_assets];
+    const pickIds = all.map(x => x.pick_id);
+    const lastKeys = all.every(x => Object.keys(x).slice(-2).join(',') === 'pick_id,pick_number');
+    const numbersOk = all.every(x => {
+      if (x.type !== 'Draft Pick') return x.pick_number === null;
+      const slot = /^1\.(\d{2})$/.exec(x.pick);
+      if (slot) return x.pick_number === Number(slot[1]);
+      if (/^Future/.test(x.pick) || x.timing !== 'Current draft') return x.pick_number === null;
+      return Number.isInteger(x.pick_number);
+    });
+    const strip = list => list.map(({ pick_id, pick_number, ...x }) => x);
     restA.user_team_assets = strip(restA.user_team_assets);
     restA.cpu_team_assets = strip(restA.cpu_team_assets);
-    if (keysOk && wa === 'v3.0' && wb === 'v1.5.0' && lastKey && pickIds.every(x => x === null) && JSON.stringify(restA) === JSON.stringify(restB)) same++;
+    if (keysOk && wa === 'v3.1' && wb === 'v1.5.0' && lastKeys && numbersOk && pickIds.every(x => x === null) && JSON.stringify(restA) === JSON.stringify(restB)) same++;
     else mismatch.push(scenario.n);
   }
 
   check(`all ${scenarios.length} parity scenarios produce a snapshot`, compared === scenarios.length, mismatch.join(', '));
-  check('v3.0 snapshot = v1.5.0 snapshot apart from web_release and pick_id: null (league without pick tracking)', same === compared && compared > 0, mismatch.join(', '));
+  check('v3.1 snapshot = v1.5.0 snapshot apart from web_release, pick_id: null and pick_number (league without pick tracking)', same === compared && compared > 0, mismatch.join(', '));
 
   const w = current();
   setTrade(w, scenarios[0]);
@@ -313,7 +322,7 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   el('#submitterNote').value = 'Deadline deal';
   await el('#acceptConfirm').onsubmit({ preventDefault() {} });
   const submitted = calls.find(c => c[0] === 'submit');
-  check('submitted the v3.0 league submission', submitted && submitted[1].web_release === 'v3.0' && submitted[1].submitter_note === 'Deadline deal' && submitted[1].other_team_id === TEAMS[1].team_id);
+  check('submitted the v3.1 league submission', submitted && submitted[1].web_release === 'v3.1' && submitted[1].submitter_note === 'Deadline deal' && submitted[1].other_team_id === TEAMS[1].team_id);
   check('confirmation message', el('#status').textContent === 'Logged as trade #42, Unreviewed.');
   check('name remembered, note cleared', w.localStore.get('maddenTrade.submitterName') === 'Sam' && el('#submitterNote').value === '');
 
@@ -520,7 +529,7 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   reviewReply = { ok: true, data: { ok: true, trade: { tradeNumber: 70, reviewStatus: 'REVIEWED', currentRevision: 1 } }, error: null, status: 200 };
   await cel('#saveCorrection').onclick();
   const correctCall = ccalls.filter(c => c[0] === 'review')[1];
-  check('correction sends CORRECT with the edited v3.0 snapshot', correctCall && correctCall[1].action === 'CORRECT' && correctCall[1].reason === 'Missing pick' && correctCall[1].trade.web_release === 'v3.0' && correctCall[1].trade.cpu_team_assets.length === snapA.cpu_team_assets.length + 1);
+  check('correction sends CORRECT with the edited v3.1 snapshot', correctCall && correctCall[1].action === 'CORRECT' && correctCall[1].reason === 'Missing pick' && correctCall[1].trade.web_release === 'v3.1' && correctCall[1].trade.cpu_team_assets.length === snapA.cpu_team_assets.length + 1);
   check('correction snapshot keeps engine side names', /User Team|CPU Team/.test(JSON.stringify(correctCall[1].trade.trade_intelligence)));
   check('after save: bar hidden, teams restored, trade cleared', !CA.isCorrecting() && cel('#correctionBar').hidden === true && CLM.state.teamA === TEAMS[1].team_id && CLM.state.teamB === '' && vm.runInContext('state.A.length + state.B.length', cw.ctx) === 0);
 
@@ -650,7 +659,7 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   pel('#submitterName').value = 'Sam';
   await pel('#acceptConfirm').onsubmit({ preventDefault() {} });
   const psub = pcalls.find(c => c[0] === 'submit');
-  check('submission carries each pick_id (players: null)', psub && psub[1].web_release === 'v3.0' && psub[1].user_team_assets.map(a => a.pick_id).join(',') === `${P(4)},${P(2)}` && psub[1].cpu_team_assets[0].pick_id === null);
+  check('submission carries each pick_id (players: null)', psub && psub[1].web_release === 'v3.1' && psub[1].user_team_assets.map(a => a.pick_id).join(',') === `${P(4)},${P(2)}` && psub[1].cpu_team_assets[0].pick_id === null);
   check('after submit the pick choices reload', pcalls.filter(c => c[0] === 'choices').length >= 2 && pcalls.at(-1)[0] === 'choices');
 
   // Practice mode: no pick tracking, pick_id null.
@@ -668,6 +677,47 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   pstorage.leaguePickChoices = async () => ({ ok: false, picks: [], currentDraftYear: null, error: 'Draft picks could not be loaded.' });
   await PLM.reloadPicks();
   check('failed pick load blocks submit', PLM.picksReady(vm.runInContext('state', pw.ctx)).error === 'Draft picks could not be loaded.' && pel('#acceptTrade').disabled === true);
+
+  // -------------------------------------------------------------------------
+  // 9b. Web v3.1 pick entry: Timing -> Round -> Pick number / Projected
+  // -------------------------------------------------------------------------
+  {
+    const v = makeWindow();
+    load(v, PAGE);
+    const vr = code => vm.runInContext(code, v.ctx);
+    const label = (timing, round, number, tier) => vr(`pickLabelFor({ timing: '${timing}', round: ${round}, number: ${number}, tier: ${tier === null ? 'null' : `'${tier}'`} })`);
+    check('current 1st: exact slot', label('Current draft', 1, 7, null) === '1.07' && label('Current draft', 1, 32, null) === '1.32');
+    check('current 2nd/3rd: 1-10 Early, 11-21 Mid, 22-32 Late', [1, 10, 11, 21, 22, 32].map(n => label('Current draft', 2, n, null)).join(',') === 'Early 2nd,Early 2nd,Mid 2nd,Mid 2nd,Late 2nd,Late 2nd' && label('Current draft', 3, 14, null) === 'Mid 3rd');
+    check('current 4th-7th: one label per round', label('Current draft', 4, 3, null) === '4th' && label('Current draft', 7, 30, null) === '7th');
+    check('future 1st: Early / Mid / Late / Unknown', ['Early', 'Mid', 'Late', 'Unknown'].map(t => label('Next year', 1, null, t)).join(',') === 'Future Early 1st,Future Mid 1st,Future Late 1st,Future 1st - Unknown');
+    check('future 2nd/3rd: tier; 4th-7th: round only', label('Two years away', 2, null, 'Late') === 'Late 2nd' && label('Next year', 3, null, 'Early') === 'Early 3rd' && label('Next year', 6, null, null) === '6th');
+    check('every built label is a v4.4 value key', vr("[...Array(7).keys()].every(r => [...Array(32).keys()].every(n => PICK_VALUES[pickLabelFor({ timing: 'Current draft', round: r + 1, number: n + 1, tier: null })] !== undefined)) && ['Next year','Two years away'].every(t => [1,2,3,4,5,6,7].every(r => (r === 1 ? ['Early','Mid','Late','Unknown'] : r <= 3 ? ['Early','Mid','Late'] : [null]).every(tier => PICK_VALUES[pickLabelFor({ timing: t, round: r, number: null, tier })] !== undefined)))"));
+
+    vr("state = { A: [Object.assign(emptyAsset(), { id: 801, type: 'Draft Pick' })], B: [] }; window.__a = state.A[0];");
+    const a = () => vr('JSON.stringify({ pick: __a.pick, timing: __a.timing, n: __a.pick_number })');
+    vr("setPickPart(__a, 'round', '2'); setPickPart(__a, 'pick_number', '14');");
+    check('round 2, pick 14 -> Mid 2nd, number kept', a() === JSON.stringify({ pick: 'Mid 2nd', timing: 'Current draft', n: '14' }));
+    check('card title shows the actual pick', vr('pickTitle(__a)') === 'Pick 2.14');
+    check('snapshot keeps pick_number 14 and the v4.4 label', vr('JSON.stringify(snapshotAsset(Object.assign({ value: 1 }, __a)))').includes('"pick":"Mid 2nd"') && vr('snapshotAsset(Object.assign({ value: 1 }, __a)).pick_number') === 14);
+    vr("setPickPart(__a, 'timing', 'Next year');");
+    check('to next year: tier from the pick number, no number', a() === JSON.stringify({ pick: 'Mid 2nd', timing: 'Next year', n: '' }) && vr('snapshotAsset(Object.assign({ value: 1 }, __a)).pick_number') === null);
+    vr("setPickPart(__a, 'round', '1'); setPickPart(__a, 'tier', 'Unknown');");
+    check('future round 1 Unknown', a().includes('Future 1st - Unknown'));
+    vr("setPickPart(__a, 'round', '2');");
+    check('Unknown falls back to Mid outside round 1', a().includes('"pick":"Mid 2nd"'));
+    vr("setPickPart(__a, 'tier', 'Late'); setPickPart(__a, 'timing', 'Current draft');");
+    check('back to current: number starts at the tier (Late -> 22)', a() === JSON.stringify({ pick: 'Late 2nd', timing: 'Current draft', n: '22' }));
+    vr("setPickPart(__a, 'round', '5'); setPickPart(__a, 'timing', 'Two years away');");
+    check('future rounds 4-7: no tier', vr('pickParts(__a).tier') === null && a().includes('"pick":"5th"'));
+    const html = vr("pickFieldsHtml(__a)");
+    check('future round 5: Timing and Round only', html.includes('Timing') && html.includes('Round') && !html.includes('Pick number') && !html.includes('Projected'));
+    vr("setPickPart(__a, 'timing', 'Current draft'); setPickPart(__a, 'round', '1'); setPickPart(__a, 'pick_number', '9');");
+    const html2 = vr("pickFieldsHtml(__a)");
+    check('current round 1: Pick number 1-32 with 9 selected', html2.includes('Pick number') && (html2.match(/<option value="\d+"/g) || []).length === 7 + 32 && html2.includes('value="9" selected'));
+    check('old labels load: "Mid 2nd" current -> pick 11, "1.05" -> pick 5', vr("pickParts({ pick: 'Mid 2nd', timing: 'Current draft' }).number") === 11 && vr("pickParts({ pick: '1.05', timing: 'Two years away' }).number") === 5);
+    check('a saved number outside its tier is ignored', vr("pickParts({ pick: 'Early 2nd', timing: 'Current draft', pick_number: '25' }).number") === 1);
+    check('history shows "Pick 2.14" for a numbered current pick', vr("historyAssetLabel({ type: 'Draft Pick', pick: 'Mid 2nd', timing: 'Current draft', pick_number: 14 })") === 'Pick 2.14' && vr("historyAssetLabel({ type: 'Draft Pick', pick: 'Mid 2nd', timing: 'Next year', pick_number: null })") === 'Mid 2nd' && vr("historyAssetLabel({ type: 'Draft Pick', pick: '1.03', timing: 'Current draft' })") === '1.03');
+  }
 
   // -------------------------------------------------------------------------
   // 10. Web v3.0 commissioner: Draft picks and Exports

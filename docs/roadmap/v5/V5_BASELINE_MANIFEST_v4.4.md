@@ -154,3 +154,13 @@ Web v3.0 changes `web_release` to `"v3.0"` and adds one asset field, `pick_id` (
 | 5 | `calculator-ui.js` | `web_release` `v3.0`; `pick_id` per asset; "Whose pick" field; submit waits for pick choices | 23017 | `776c8918b87e0a889feae41775931d8fcd23826870e76fc20d421ed546909809` | `c81deef1f425364714ede374628024d13dc81e2a` |
 | 5a | `league-mode.js` | Pick choices, auto-selection and checks | 18328 | `d343727ac5e52970e765b16315e4ec4a14eec5cbe844119f6cb1d1ef5711b878` | `832dd986a703c1837cd2638af7c7709354766f5f` |
 | 10b | `supabase/functions/_shared/trade-validation.ts` | Accepted pairs: v2.0, v2.1 and v3.0 / v4.4 | 7356 | `249aa97ea2090d3bb370537dd6cc858980ae8a279a358b428159cc730996fffd` | `9c40a0fc78cc7a1af33a705053a21892f97c2747` |
+
+## Addendum: Web Release v3.1 (2026-11-27)
+
+Web v3.1 changes `web_release` to `"v3.1"`, changes how a Draft Pick is entered (Timing → Round → Pick number, or Early / Mid / Late), and adds one asset field, `pick_number` (the actual pick for a current-draft pick; `null` otherwise). The stored pick label is still the Ruleset v4.4 value key. **Valuation is unchanged:** `valuation.js` is byte-identical to the baseline tag, and every parity scenario gives the v1.5.0 snapshot apart from `web_release`, `pick_id` and `pick_number`.
+
+| # | File | Change | Bytes | SHA-256 | Git blob |
+|---|---|---|---|---|---|
+| 5 | `calculator-ui.js` | `web_release` `v3.1`; pick entry; `pick_number` per asset | 27751 | `9de03ac50675d44f059fee1e45715b93c7fc0c1e0018d16b1c801c7fd5b2479e` | `da99868a78bd59c9542b5dac92bb66085a2e53d2` |
+| 6 | `trade-history.js` | "Pick 2.14" for numbered current picks | 16674 | `8f0714a745c557552ea416203cfa0d1ada18ede6815cea6b3a5541d21342a880` | `8a75a20d8cfe2851e0156d079f061c85af8b882a` |
+| 10b | `supabase/functions/_shared/trade-validation.ts` | Accepted pairs: v2.0, v2.1, v3.0 and v3.1 / v4.4 | 7456 | `d50e5588e08e9b8f1dbd9e3bf2edc11b3c3bbf78f2eee5b9297927620cc62ed1` | `a3bddf04681cdac3a0754de7ea2f16bc1038e5e1` |

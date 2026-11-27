@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Madden League Trade Calculator</title>
-    <link rel="stylesheet" href="styles.css?v=3.0.0">
+    <link rel="stylesheet" href="styles.css?v=3.1.0">
   </head>
   <body>
     <header class="top">
@@ -12,7 +12,7 @@
         <div class="brandrow">
           <div>
             <div class="brand">MADDEN LEAGUE TRADE CALCULATOR</div>
-            <div class="ver">Web Release v3.0 · Ruleset v4.4</div>
+            <div class="ver">Web Release v3.1 · Ruleset v4.4</div>
           </div>
           <div class="brand-actions">
             <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false">Dark mode</button>
@@ -169,12 +169,15 @@
           </div>
           <div class="rulecard">
             <h2>Adding a Draft Pick</h2>
-            <p>Choose <b>Draft Pick</b>, then select the pick. The Timing list shows only the options that fit
-              that pick:</p>
+            <p>Choose <b>Draft Pick</b>, then answer in order:</p>
             <ul>
-              <li>Exact first-round slots (1.01–1.32) are this year's picks, so they are always Current draft.</li>
-              <li>Future 1sts are Next year or Two years away.</li>
-              <li>Round 2–7 picks can be Current draft, Next year, or Two years away.</li>
+              <li><b>Timing:</b> Current draft, Next year, or Two years away.</li>
+              <li><b>Round:</b> 1 to 7.</li>
+              <li><b>Current draft:</b> choose the <b>Pick number</b> (1–32), as Madden shows it. A 1st-round pick is
+                valued at its exact slot. 2nd and 3rd-round picks count as Early (picks 1–10), Mid (11–21) or Late
+                (22–32). Rounds 4–7 have one value per round.</li>
+              <li><b>Next year or Two years away:</b> choose where the pick is <b>Projected</b>: Early, Mid or Late
+                (1st round also Unknown). Rounds 4–7 need only the round.</li>
             </ul>
             <p>In League mode, if your league tracks draft picks, choose <b>Whose pick</b> too: the list shows
               the picks the giving team owns for that round and year (its own, or "via" the team it came from).
@@ -465,13 +468,13 @@
     <!-- ?v= on local files: bump it with every Web Release so browsers fetch the
          new files instead of mixing cached old scripts with the new page. -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./supabase-config.js?v=3.0.0"></script>
-    <script src="./storage.js?v=3.0.0"></script>
-    <script src="./theme.js?v=3.0.0"></script>
-    <script src="./valuation.js?v=3.0.0"></script>
-    <script src="./league-mode.js?v=3.0.0"></script>
-    <script src="./calculator-ui.js?v=3.0.0"></script>
-    <script src="./trade-history.js?v=3.0.0"></script>
-    <script src="./commissioner.js?v=3.0.0"></script>
+    <script src="./supabase-config.js?v=3.1.0"></script>
+    <script src="./storage.js?v=3.1.0"></script>
+    <script src="./theme.js?v=3.1.0"></script>
+    <script src="./valuation.js?v=3.1.0"></script>
+    <script src="./league-mode.js?v=3.1.0"></script>
+    <script src="./calculator-ui.js?v=3.1.0"></script>
+    <script src="./trade-history.js?v=3.1.0"></script>
+    <script src="./commissioner.js?v=3.1.0"></script>
   </body>
 </html>

@@ -66,7 +66,7 @@
 
   const CONTROL = { USER: 'Human', CPU: 'CPU' };
 
-  const ASSET_FIELDS = ['type', 'name', 'pick', 'timing', 'ovr', 'age', 'pos', 'dev', 'cap', 'years', 'league', 'current', 'projected', 'pick_id'];
+  const ASSET_FIELDS = ['type', 'name', 'pick', 'timing', 'ovr', 'age', 'pos', 'dev', 'cap', 'years', 'league', 'current', 'projected', 'pick_id', 'pick_number'];
 
   // --------------------------------------------------------------------------
   // Helpers

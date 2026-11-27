@@ -390,6 +390,9 @@ async function json(response) { return { status: response.status, body: await re
 // ---------------------------------------------------------------------------
 {
   check('v3.0 / v4.4 accepted', validation.validateTradePayload(snapshot({ web_release: 'v3.0' })).valid === true);
+  check('v3.1 / v4.4 accepted', validation.validateTradePayload(snapshot({ web_release: 'v3.1' })).valid === true);
+  const numbered = validation.tradeForStorage(validation.validateTradePayload(snapshot({ web_release: 'v3.1', cpu_team_assets: [{ type: 'Draft Pick', pick: 'Mid 2nd', timing: 'Current draft', pick_number: 14 }] })).trade);
+  check('pick_number kept in the stored assets', numbered.cpu_team_assets[0].pick_number === 14);
   check('v3.0 with another ruleset refused', validation.validateTradePayload(snapshot({ web_release: 'v3.0', ruleset_version: 'v4.2' })).valid === false);
   const withPick = snapshot({ web_release: 'v3.0', cpu_team_assets: [{ type: 'Draft Pick', pick: 'Mid 2nd', timing: 'Next year', pick_id: TRADE_ID }] });
   const stored = validation.tradeForStorage(validation.validateTradePayload(withPick).trade);

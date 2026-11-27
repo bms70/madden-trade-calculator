@@ -4,9 +4,10 @@
 
 import { trimmedString, uuidPattern } from "./http.ts";
 
-// Accepted Web Release / Ruleset pairs from Web v3.0. Every accepted pair is
+// Accepted Web Release / Ruleset pairs from Web v3.1. Every accepted pair is
 // a league release (league fields required).
-//   v3.0 / v4.4   current site: Draft Pick assets carry pick_id in League mode
+//   v3.1 / v4.4   current site: Draft Pick assets add pick_number (current draft)
+//   v3.0 / v4.4   pages still open from v3.0: Draft Pick assets carry pick_id
 //   v2.1 / v4.4   pages still open from v2.1 (same shape without pick_id; once
 //                 a league tracks picks, the database refuses their pick trades
 //                 with "reload the page")
@@ -17,6 +18,7 @@ export const SUPPORTED_RELEASES: Record<string, string> = {
   "v2.0": "v4.4",
   "v2.1": "v4.4",
   "v3.0": "v4.4",
+  "v3.1": "v4.4",
 };
 
 const allowedVerdicts = new Set(["FAIR", "QUESTIONABLE", "UNFAIR", "LEAGUE-BREAKING"]);
