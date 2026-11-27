@@ -3,7 +3,7 @@
 Phase 4 groundwork, **backend only**. No Web Release and no site change. Ruleset v4.4, `valuation.js`, the snapshot contract and stored trades are unchanged. Decided 2026-11-24.
 
 - Migration: `supabase/migrations/20261124030000_trade_ledger.sql`
-- Tests: `tests/trade-ledger-db.test.py` (53 / 53), `tests/free-agents-db.test.py` (20 / 20)
+- Tests: `tests/trade-ledger-db.test.py` (53 / 53), `tests/free-agents-db.test.py` (22 / 22)
 - Builds on import history ([`V5_IMPORT_HISTORY.md`](V5_IMPORT_HISTORY.md)).
 
 ## What it gives v5.0
@@ -41,7 +41,8 @@ Draft picks are listed but not linked (pick ownership is deferred, Q33).
   - `NOT LOGGED`: no trade explains the move. That can mean a trade made in Madden but never logged, a release followed by a signing, or a logged trade whose player isn't linked yet.
   - `SIGNING`: free agent to a team. `RELEASE`: a team to free agency (added 2026-11-27, once free agents were saved). They're never flagged and sort last.
   - `from_status` / `to_status`: ROSTER, PRACTICE SQUAD, IR or FREE AGENT. A status change on the same team (say roster to practice squad) isn't a move.
-  - `contract_changed` (team-to-team moves only): a traded player normally keeps his contract, while a player cut and picked up before the next export usually has a new one. It's a hint, not proof; it's not known how Madden treats waiver claims.
+  - `PRACTICE SQUAD`: an unlogged move to or from another team's practice squad (signed off a practice squad, or cut and signed to one). Not flagged; a logged trade still shows LOGGED (added 2026-11-27, `20261127030000_roster_moves_practice_squad.sql`).
+  - `contract_changed` (team-to-team moves only): salary, contract length or years left changed, which suggests a new contract (a signing) rather than a trade. Bonus and cap hit are ignored. On live data (week 8 → 9), cap hit changed for every player who moved and none who stayed, and bonus for 4 of 5 movers, because a traded player's bonus stays with the old team. It's a hint, not proof.
   - `from_control` / `to_control` show whether each team is `USER` or `CPU`, using its current setting. **`check_this`** is true for a NOT LOGGED move involving a human team: probably a trade that should have gone through the calculator. Those sort first in each export. A NOT LOGGED move between two CPU teams is usually Madden's own CPU trade and needs nothing (added 2026-11-27, `20261127010000_roster_moves_control.sql`).
 
 ## Owner commands (Supabase dashboard → SQL editor)
