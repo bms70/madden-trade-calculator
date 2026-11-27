@@ -144,3 +144,13 @@ Web v2.1 changes `web_release` to `"v2.1"`. It folds in launch runbook step 8: `
 | 10 | `supabase/functions/accept-trade/index.ts` | Plain-insert wiring removed | 516 | `ffc47f563b212e6a3200397abca2f465c202264ea06d0b4cea33e814bce239d0` | `c561554a5c1c972d41b09ee5eee5d82dc26229f1` |
 | 10a | `supabase/functions/accept-trade/handler.ts` | v1.5.0 path removed; every accepted release is a league trade | 2924 | `7928fe19ea6864498b394b9c8524ec3cd4714c190387e9a3ffd44d4128352665` | `db71e94b9580f70c0eadb5dbe69ecf3b2f2b8fff` |
 | 10b | `supabase/functions/_shared/trade-validation.ts` | Accepted pairs: v2.0 / v4.4 and v2.1 / v4.4 | 7104 | `49e5b5ba335b58575b6c24d48c506c0400c8ec80199f2d0c942a263e1ce407de` | `a75a2b152d68f9f9ff8f06323f84bb5ea90d76dd` |
+
+## Addendum: Web Release v3.0 (2026-11-27)
+
+Web v3.0 changes `web_release` to `"v3.0"` and adds one asset field, `pick_id` (the chosen draft pick in League mode when the league tracks picks; `null` otherwise). **Valuation is unchanged:** `valuation.js` is byte-identical to the baseline tag. All parity scenarios produce the v1.5.0 snapshot apart from `web_release` and `pick_id: null` (`tests/web-league-mode.test.js`).
+
+| # | File | Change | Bytes | SHA-256 | Git blob |
+|---|---|---|---|---|---|
+| 5 | `calculator-ui.js` | `web_release` `v3.0`; `pick_id` per asset; "Whose pick" field; submit waits for pick choices | 23017 | `776c8918b87e0a889feae41775931d8fcd23826870e76fc20d421ed546909809` | `c81deef1f425364714ede374628024d13dc81e2a` |
+| 5a | `league-mode.js` | Pick choices, auto-selection and checks | 18328 | `d343727ac5e52970e765b16315e4ec4a14eec5cbe844119f6cb1d1ef5711b878` | `832dd986a703c1837cd2638af7c7709354766f5f` |
+| 10b | `supabase/functions/_shared/trade-validation.ts` | Accepted pairs: v2.0, v2.1 and v3.0 / v4.4 | 7356 | `249aa97ea2090d3bb370537dd6cc858980ae8a279a358b428159cc730996fffd` | `9c40a0fc78cc7a1af33a705053a21892f97c2747` |

@@ -1,6 +1,7 @@
 // Request handling for the Web v2.0 commissioner functions:
 //   commissioner-login, commissioner-session-check, review-trade,
-//   commissioner-audit-log, commissioner-teams (v2.1)
+//   commissioner-audit-log, commissioner-teams (v2.1),
+//   commissioner-picks and commissioner-snapshots (v3.0)
 // Each function's index.ts wires in Supabase and the secret; this file has no
 // Deno or Supabase APIs, so it is tested in Node.
 
@@ -376,5 +377,179 @@ export async function handleCommissionerTeams(request: Request, deps: Commission
       ownerLabel: row.owner_label,
       changed: row.changed === true,
     },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// commissioner-picks (Web v3.0):
+//   { token, league_id?, action: "LIST" }  -> current draft year, rollover hint, active picks
+//   { token, league_id?, action: "SET_OWNER", pick_id, owner_team_id, commissioner_name }
+//   { token, league_id?, action: "DRAFT_COMPLETE", expected_year, commissioner_name }
+// ---------------------------------------------------------------------------
+export async function handleCommissionerPicks(request: Request, deps: CommissionerDeps): Promise<Response> {
+  const start = await begin(request, deps);
+  if ("response" in start) return start.response;
+  const { body, secret } = start;
+
+  const session = await requireSession(body, secret, deps);
+  if ("response" in session) return session.response;
+
+  const action = typeof body.action === "string" ? body.action.trim().toUpperCase() : "LIST";
+
+  if (action === "LIST") {
+    const { data, error } = await deps.rpc("commissioner_draft_picks", { p_league_id: session.leagueId });
+    if (error) {
+      logger(deps)("Pick list failed:", error);
+      return failure("The draft picks could not be loaded.", 500);
+    }
+    const rows = Array.isArray(data) ? data as Record<string, unknown>[] : [];
+    const first = rows[0];
+    return jsonResponse({
+      ok: true,
+      currentDraftYear: first ? first.current_draft_year : null,
+      rolloverDue: first ? first.rollover_due === true : false,
+      latestSeason: first ? first.latest_season ?? null : null,
+      picks: rows.map((row) => ({
+        pickId: row.pick_id,
+        draftYear: row.draft_year,
+        round: row.round,
+        originalTeamId: row.original_team_id,
+        originalAbbreviation: row.original_abbreviation,
+        ownerTeamId: row.owner_team_id,
+        ownerAbbreviation: row.owner_abbreviation,
+      })),
+    });
+  }
+
+  const commissionerName = trimmedString(body.commissioner_name, 60);
+
+  if (action === "SET_OWNER") {
+    const pickId = typeof body.pick_id === "string" ? body.pick_id.trim() : "";
+    const ownerTeamId = typeof body.owner_team_id === "string" ? body.owner_team_id.trim() : "";
+    if (!uuidPattern.test(pickId)) return failure("A valid pick is required.", 400);
+    if (!uuidPattern.test(ownerTeamId)) return failure("A valid team is required.", 400);
+    if (!commissionerName) return failure("Commissioner name must be 1 to 60 characters.", 400);
+
+    const { data, error } = await deps.rpc("commissioner_set_pick_owner", {
+      p_league_id: session.leagueId,
+      p_pick_id: pickId,
+      p_owner_team_id: ownerTeamId,
+      p_commissioner_name: commissionerName,
+    });
+    if (error) {
+      const status = statusForDatabaseError(error.code);
+      logger(deps)("Pick owner change failed:", error);
+      return failure(status === 500 ? "The pick could not be updated." : error.message, status);
+    }
+    const row = firstRow(data);
+    if (!row) return failure("The pick could not be updated.", 500);
+    return jsonResponse({
+      ok: true,
+      pick: {
+        pickId: row.pick_id,
+        ownerTeamId: row.owner_team_id,
+        ownerAbbreviation: row.owner_abbreviation,
+        changed: row.changed === true,
+      },
+    });
+  }
+
+  if (action === "DRAFT_COMPLETE") {
+    const expected = body.expected_year;
+    if (typeof expected !== "number" || !Number.isInteger(expected) || expected < 2000 || expected > 2200) {
+      return failure("The current draft year is required.", 400);
+    }
+    if (!commissionerName) return failure("Commissioner name must be 1 to 60 characters.", 400);
+
+    const { data, error } = await deps.rpc("commissioner_draft_complete", {
+      p_league_id: session.leagueId,
+      p_expected_year: expected,
+      p_commissioner_name: commissionerName,
+    });
+    if (error) {
+      const status = statusForDatabaseError(error.code);
+      logger(deps)("Draft complete failed:", error);
+      return failure(status === 500 ? "The draft couldn't be marked complete." : error.message, status);
+    }
+    const row = firstRow(data);
+    if (!row) return failure("The draft couldn't be marked complete.", 500);
+    return jsonResponse({
+      ok: true,
+      draft: {
+        currentDraftYear: row.current_draft_year,
+        picksRetired: row.picks_retired,
+        picksCreated: row.picks_created,
+      },
+    });
+  }
+
+  return failure("Unknown pick action.", 400);
+}
+
+// ---------------------------------------------------------------------------
+// commissioner-snapshots (Web v3.0):
+//   { token, league_id?, action: "LIST" }  -> the newest exports with health
+//   { token, league_id?, action: "MARK_CURRENT", snapshot_id, commissioner_name }
+// ---------------------------------------------------------------------------
+export async function handleCommissionerSnapshots(request: Request, deps: CommissionerDeps): Promise<Response> {
+  const start = await begin(request, deps);
+  if ("response" in start) return start.response;
+  const { body, secret } = start;
+
+  const session = await requireSession(body, secret, deps);
+  if ("response" in session) return session.response;
+
+  const action = typeof body.action === "string" ? body.action.trim().toUpperCase() : "LIST";
+
+  if (action === "LIST") {
+    const { data, error } = await deps.rpc("commissioner_snapshots", { p_league_id: session.leagueId, p_limit: 10 });
+    if (error) {
+      logger(deps)("Snapshot list failed:", error);
+      return failure("The exports could not be loaded.", 500);
+    }
+    const rows = Array.isArray(data) ? data as Record<string, unknown>[] : [];
+    return jsonResponse({
+      ok: true,
+      snapshots: rows.map((row) => ({
+        snapshotId: row.snapshot_id,
+        receivedAt: row.first_received_at,
+        status: row.status,
+        season: row.season,
+        stageIndex: row.stage_index,
+        week: row.week,
+        rostersReceived: row.rosters_received,
+        teamsInLeague: row.teams_in_league,
+        missingRosters: row.missing_roster_count,
+        complete: row.complete === true,
+        players: row.players,
+        freeAgents: row.free_agents,
+        historyFailed: row.history_failed,
+        isCurrent: row.is_current === true,
+      })),
+    });
+  }
+
+  if (action !== "MARK_CURRENT") return failure("Unknown export action.", 400);
+
+  const snapshotId = typeof body.snapshot_id === "string" ? body.snapshot_id.trim() : "";
+  if (!uuidPattern.test(snapshotId)) return failure("A valid export is required.", 400);
+  const commissionerName = trimmedString(body.commissioner_name, 60);
+  if (!commissionerName) return failure("Commissioner name must be 1 to 60 characters.", 400);
+
+  const { data, error } = await deps.rpc("commissioner_mark_snapshot_current", {
+    p_league_id: session.leagueId,
+    p_snapshot_id: snapshotId,
+    p_commissioner_name: commissionerName,
+  });
+  if (error) {
+    const status = statusForDatabaseError(error.code);
+    logger(deps)("Mark current failed:", error);
+    return failure(status === 500 ? "The export couldn't be marked current." : error.message, status);
+  }
+  const row = firstRow(data);
+  if (!row) return failure("The export couldn't be marked current.", 500);
+  return jsonResponse({
+    ok: true,
+    snapshot: { snapshotId: row.snapshot_id, season: row.season, week: row.week, changed: row.changed === true },
   });
 }

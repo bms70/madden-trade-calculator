@@ -2,7 +2,7 @@
 
 A responsive web calculator for evaluating Player and Draft Pick trades in a Madden league. League mode logs each league's trades for commissioner review, and a practice mode is available for trying trades freely.
 
-**Current Web Release:** v2.1  
+**Current Web Release:** v3.0  
 **Current Ruleset:** v4.4
 
 ---
@@ -11,11 +11,13 @@ A responsive web calculator for evaluating Player and Draft Pick trades in a Mad
 
 The current production mapping is:
 
-**Web Release v2.1 | Ruleset v4.4**
+**Web Release v3.0 | Ruleset v4.4**
 
 Web Releases and Rulesets are versioned independently.
 
-Web Release v2.1 adds **commissioner team editing**: the Commissioner tab sets each team to Human or CPU and gives it an owner label.
+Web Release v3.0 adds **draft-pick ownership**: in League mode each Draft Pick names whose pick it is, and submitted trades move picks to their new teams automatically. The Commissioner tab adds **Draft picks** (move a pick by hand, Draft complete) and **Exports** (review each Snallabot export and mark one current).
+
+Web Release v2.1 added **commissioner team editing**: the Commissioner tab sets each team to Human or CPU and gives it an owner label.
 
 Web Release v2.0 added **League mode**:
 
@@ -140,6 +142,8 @@ The Commissioner area includes:
 - **Correct:** opens the trade in the calculator. The commissioner edits it, v4.4 re-runs, and **Save correction** (with a required reason) adds a revision.
 - **Reverse:** with a required reason. The trade leaves Trade History but nothing is erased.
 - **Teams** (v2.1): set each team to Human or CPU and give it an owner label (visible only to commissioners). Changes update the team pickers right away and are audited.
+- **Draft picks** (v3.0): who owns each pick, by year and round. Move a pick by hand for a trade made outside the calculator, and select **Draft complete** after the draft. Audited.
+- **Exports** (v3.0): the newest Snallabot exports with their health; **Mark current** records which one the league is on.
 - **Audit log:** the league's actions, newest first.
 
 The commissioner's name is self-reported audit metadata, not a verified identity. Every action is authorized server-side for the token's league.
@@ -274,6 +278,7 @@ Current governed Ruleset files include:
 
 Release notes and governed release records.
 
+- `RELEASE_NOTES_v3.0.md`
 - `RELEASE_NOTES_v2.1.md`
 - `RELEASE_NOTES_v2.0.md`
 - `RELEASE_NOTES_v1.5.0.md`
@@ -398,6 +403,16 @@ A Ruleset version identifies the governed trade-valuation framework.
 ---
 
 ## Release Validation
+
+### Web Release v3.0 / Ruleset v4.4
+
+Full record: `docs/validation/VALIDATION_v3.0.md`.
+
+- Ruleset v4.4 regression: **64 / 64 PASS**. `valuation.js` matches its baseline hash.
+- Browser scripts (`node tests/web-league-mode.test.js`): **132 / 132 PASS**
+- Edge Function logic (`node --experimental-strip-types tests/web-functions.test.mjs`): **123 / 123 PASS**
+- Draft picks and exports database (`tests/web-v3.0-picks-db.test.py`): **64 / 64 PASS**
+- Live check: **PENDING release-owner sign-off**
 
 ### Web Release v2.1 / Ruleset v4.4
 

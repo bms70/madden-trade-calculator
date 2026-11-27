@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Madden League Trade Calculator</title>
-    <link rel="stylesheet" href="styles.css?v=2.1.1">
+    <link rel="stylesheet" href="styles.css?v=3.0.0">
   </head>
   <body>
     <header class="top">
@@ -12,7 +12,7 @@
         <div class="brandrow">
           <div>
             <div class="brand">MADDEN LEAGUE TRADE CALCULATOR</div>
-            <div class="ver">Web Release v2.1 · Ruleset v4.4</div>
+            <div class="ver">Web Release v3.0 · Ruleset v4.4</div>
           </div>
           <div class="brand-actions">
             <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false">Dark mode</button>
@@ -98,6 +98,7 @@
         <div class="trade-actions">
           <button type="button" class="accept-trade" id="acceptTrade" disabled hidden>Submit to league</button>
           <p class="practice-note" id="practiceNote">Practice mode doesn't log trades. Switch to League to submit one.</p>
+          <p class="pick-notice" id="pickNotice" aria-live="polite" hidden></p>
         </div>
         <form class="accept-confirm" id="acceptConfirm" role="dialog" aria-labelledby="acceptConfirmTitle" aria-describedby="acceptConfirmDescription" hidden>
           <h2 id="acceptConfirmTitle">Submit this trade to the league?</h2>
@@ -175,6 +176,10 @@
               <li>Future 1sts are Next year or Two years away.</li>
               <li>Round 2–7 picks can be Current draft, Next year, or Two years away.</li>
             </ul>
+            <p>In League mode, if your league tracks draft picks, choose <b>Whose pick</b> too: the list shows
+              the picks the giving team owns for that round and year (its own, or "via" the team it came from).
+              If only one fits, it's chosen for you. When the trade is submitted, the picks move to their new
+              teams.</p>
           </div>
           <div class="rulecard">
             <h2>Optional Fields & Defaults</h2>
@@ -342,7 +347,8 @@
       </section>
       <section id="commissioner" class="panel" hidden>
         <div class="rulesintro"><strong>Commissioner</strong> Review your league's trades: mark them
-          reviewed, correct them, or reverse them. Every action is recorded in the audit log.</div>
+          reviewed, correct them, or reverse them. Keep draft-pick ownership right and check each Snallabot
+          export. Every action is recorded in the audit log.</div>
         <div class="history-state" id="commNoLeague">Switch to League and enter your league to use the
           Commissioner area.</div>
         <div class="admin-login-card" id="commLocked" hidden>
@@ -390,6 +396,32 @@
             <div class="admin-status" id="commTeamsStatus" aria-live="polite"></div>
             <div class="comm-team-groups" id="commTeams"></div>
           </details>
+          <details class="admin-section comm-teams comm-picks" id="commPicksPanel">
+            <summary class="comm-teams-summary">
+              <span class="comm-teams-title">Draft picks</span>
+              <span class="comm-teams-count" id="commPicksSummary"></span>
+              <span class="comm-teams-hint">Who owns each pick</span>
+            </summary>
+            <p class="comm-pick-rollover" id="commPickRollover" hidden></p>
+            <div class="comm-pick-controls" id="commPickControls" hidden>
+              <label>Draft<select id="commPickYear"></select></label>
+              <label>Round<select id="commPickRound"></select></label>
+              <span class="comm-pick-spacer"></span>
+              <button type="button" class="btn" id="commDraftCancel" hidden>Cancel</button>
+              <button type="button" class="btn comm-draft-complete" id="commDraftComplete" hidden>Draft complete</button>
+            </div>
+            <div class="admin-status" id="commPicksStatus" aria-live="polite"></div>
+            <div class="comm-pick-grid" id="commPicks"></div>
+          </details>
+          <details class="admin-section comm-teams comm-snapshots" id="commSnapshotsPanel">
+            <summary class="comm-teams-summary">
+              <span class="comm-teams-title">Exports</span>
+              <span class="comm-teams-count" id="commSnapshotsSummary"></span>
+              <span class="comm-teams-hint">Snallabot exports, newest first</span>
+            </summary>
+            <div class="admin-status" id="commSnapshotsStatus" aria-live="polite"></div>
+            <div class="comm-snapshot-list" id="commSnapshots"></div>
+          </details>
           <section class="admin-section comm-queue">
             <div class="admin-section-head">
               <div>
@@ -433,13 +465,13 @@
     <!-- ?v= on local files: bump it with every Web Release so browsers fetch the
          new files instead of mixing cached old scripts with the new page. -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./supabase-config.js?v=2.1.1"></script>
-    <script src="./storage.js?v=2.1.1"></script>
-    <script src="./theme.js?v=2.1.1"></script>
-    <script src="./valuation.js?v=2.1.1"></script>
-    <script src="./league-mode.js?v=2.1.1"></script>
-    <script src="./calculator-ui.js?v=2.1.1"></script>
-    <script src="./trade-history.js?v=2.1.1"></script>
-    <script src="./commissioner.js?v=2.1.1"></script>
+    <script src="./supabase-config.js?v=3.0.0"></script>
+    <script src="./storage.js?v=3.0.0"></script>
+    <script src="./theme.js?v=3.0.0"></script>
+    <script src="./valuation.js?v=3.0.0"></script>
+    <script src="./league-mode.js?v=3.0.0"></script>
+    <script src="./calculator-ui.js?v=3.0.0"></script>
+    <script src="./trade-history.js?v=3.0.0"></script>
+    <script src="./commissioner.js?v=3.0.0"></script>
   </body>
 </html>

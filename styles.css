@@ -635,7 +635,15 @@ main {
   color: var(--muted);
 }
 
+.pick-notice {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--warn, #b45309);
+}
+
 .practice-note[hidden],
+.pick-notice[hidden],
 .accept-trade[hidden] {
   display: none;
 }
@@ -779,8 +787,134 @@ main {
   margin-top: 12px;
 }
 
-.comm-teams + .comm-queue {
+.comm-teams + .comm-queue,
+.comm-teams + .comm-teams {
   margin-top: 12px;
+}
+
+/* Web v3.0: Draft picks and Exports */
+.comm-pick-rollover {
+  margin: 8px 0 0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--questionable-bg);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.comm-pick-rollover[hidden],
+.comm-pick-controls[hidden] {
+  display: none;
+}
+
+.comm-pick-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.comm-pick-controls label {
+  display: grid;
+  gap: 2px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.comm-pick-controls select {
+  padding: 4px 6px;
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 11px;
+}
+
+.comm-pick-spacer {
+  flex: 1;
+}
+
+.comm-pick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 2px 12px;
+  margin-top: 8px;
+}
+
+.comm-pick-line {
+  grid-template-columns: 42px auto 84px;
+  justify-content: start;
+}
+
+.comm-pick-arrow {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.comm-pick-line.moved .comm-team-abbr {
+  color: var(--navy);
+  text-decoration: underline;
+}
+
+.comm-snapshot-list {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.comm-snapshot-line {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+}
+
+.comm-snapshot-line.current {
+  border-color: var(--navy);
+}
+
+.comm-snapshot-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.comm-snapshot-meta {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.comm-snapshot-health {
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.comm-snapshot-health.ok {
+  color: var(--fair, #15803d);
+}
+
+.comm-snapshot-health.warn {
+  color: var(--warn, #b45309);
+}
+
+.comm-snapshot-current {
+  font-size: 10px;
+  font-weight: 850;
+  color: var(--navy);
+  text-transform: uppercase;
+}
+
+@media (max-width: 560px) {
+  .comm-snapshot-line {
+    grid-template-columns: 1fr auto;
+  }
 }
 
 .comm-teams > summary {

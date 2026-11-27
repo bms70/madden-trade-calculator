@@ -120,6 +120,23 @@ Body: `{ token, league_id?, limit? }`. The limit is 1–1000 and defaults to 200
   - 404 when the team isn't in this league
 - A change is audited as `TEAM_UPDATED` (actor COMMISSIONER, with before and after values). `changed: false` means nothing differed, and no event is written.
 
+## `commissioner-picks` (new in Web v3.0)
+
+| Body | Result |
+|---|---|
+| `{ token, league_id?, action: "LIST" }` (default) | 200 `{ ok, currentDraftYear, rolloverDue, latestSeason, picks: [ { pickId, draftYear, round, originalTeamId, originalAbbreviation, ownerTeamId, ownerAbbreviation } ] }`. `currentDraftYear` null = picks not set up |
+| `{ token, league_id?, action: "SET_OWNER", pick_id, owner_team_id, commissioner_name }` | 200 `{ ok, pick: { pickId, ownerTeamId, ownerAbbreviation, changed } }`. Audited as `PICK_OWNERSHIP_CHANGED` |
+| `{ token, league_id?, action: "DRAFT_COMPLETE", expected_year, commissioner_name }` | 200 `{ ok, draft: { currentDraftYear, picksRetired, picksCreated } }`. Audited as `DRAFT_COMPLETED`. A different `expected_year` (double click) is a 400 |
+
+## `commissioner-snapshots` (new in Web v3.0)
+
+| Body | Result |
+|---|---|
+| `{ token, league_id?, action: "LIST" }` (default) | 200 `{ ok, snapshots: [ { snapshotId, receivedAt, status, season, stageIndex, week, rostersReceived, teamsInLeague, missingRosters, complete, players, freeAgents, historyFailed, isCurrent } ] }`, newest 10 |
+| `{ token, league_id?, action: "MARK_CURRENT", snapshot_id, commissioner_name }` | 200 `{ ok, snapshot: { snapshotId, season, week, changed } }`. Audited as `SNAPSHOT_MARKED_CURRENT`. An export still arriving is a 400 |
+
+Errors for both functions are the same as for `commissioner-teams`. Database reasons (for example "That pick has already been used.") are shown; server errors aren't.
+
 ## Deploy (release step 3, not now)
 
 PowerShell, in the repo folder:

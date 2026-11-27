@@ -1,5 +1,5 @@
 /*
- * Madden League Trade Calculator - league mode (Web v2.0)
+ * Madden League Trade Calculator - league mode (Web v2.0; picks Web v3.0)
  *
  * The Practice / League switch, the league bar, the two team pickers, the
  * display-only team names, and the league submission built on top of the
@@ -8,6 +8,11 @@
  * DISPLAY ONLY: valuation.js writes "User Team" / "CPU Team" into its text.
  * displayTeams() swaps in the chosen team names on screen. The stored snapshot
  * (buildTradeSnapshot in calculator-ui.js) keeps the engine text unchanged.
+ *
+ * Web v3.0 draft picks: when the entered league tracks picks
+ * (currentDraftYear), every Draft Pick in a League trade names the pick being
+ * traded (asset.pick_id), chosen from the giving team's picks of that round
+ * and year. One matching pick is chosen automatically.
  *
  * Loaded after valuation.js and before calculator-ui.js. Event wiring runs
  * from LeagueMode.init(), which calculator-ui.js calls before its first
@@ -31,7 +36,14 @@
     teamA: '',          // "Your team" (side A, user_team_*)
     teamB: '',          // "Other team" (side B, cpu_team_*)
     busy: false,
-    message: ''         // last league-entry message (unknown name, errors)
+    message: '',        // last league-entry message (unknown name, errors)
+    picks: {            // Web v3.0: the two chosen teams' picks
+      key: '',          // teams (and correction trade) the rows are for
+      loading: false,
+      error: '',
+      rows: []          // rows from league_pick_choices
+    },
+    correctionTradeId: null  // set by commissioner.js while correcting
   };
 
   // --------------------------------------------------------------------------
@@ -97,6 +109,138 @@
     if (!teamsReady()) return side === 'A' ? 'USER TEAM ADJUSTED' : 'CPU TEAM ADJUSTED';
     let team = findTeam(side === 'A' ? league.teamA : league.teamB);
     return `${team.abbreviation} ADJUSTED`;
+  }
+
+  // --------------------------------------------------------------------------
+  // Draft picks (Web v3.0)
+  // --------------------------------------------------------------------------
+
+  // '1.05' / 'Future Mid 1st' -> 1, 'Early 2nd' -> 2, 'Late 3rd' -> 3, '4th'..'7th'.
+  // Same rule as the database's pick_round().
+  function pickRound(label) {
+    let s = String(label ?? '');
+    if (/^1\.\d{2}$/.test(s) || /1st/i.test(s)) return 1;
+    if (/2nd/i.test(s)) return 2;
+    if (/3rd/i.test(s)) return 3;
+    let m = /^([4-7])th$/.exec(s);
+    return m ? Number(m[1]) : null;
+  }
+
+  function pickYearOffset(timing) {
+    return { 'Current draft': 0, 'Next year': 1, 'Two years away': 2 }[timing] ?? null;
+  }
+
+  function ordinal(round) {
+    return { 1: '1st', 2: '2nd', 3: '3rd' }[round] || `${round}th`;
+  }
+
+  // League mode, a league that tracks picks, and two teams chosen.
+  function pickTracking() {
+    return teamsReady() && typeof league.entered.currentDraftYear === 'number';
+  }
+
+  // Side A lists what your team receives, so the other team gives it.
+  function givingTeam(side) {
+    return side === 'A' ? league.teamB : league.teamA;
+  }
+
+  function pickYear(asset) {
+    let offset = pickYearOffset(asset.timing);
+    return offset === null || !league.entered ? null : league.entered.currentDraftYear + offset;
+  }
+
+  // The giving team's picks matching the asset's round and year.
+  function pickChoices(side, asset) {
+    if (!pickTracking() || !asset || asset.type !== 'Draft Pick') return [];
+    let round = pickRound(asset.pick);
+    let year = pickYear(asset);
+    let giving = givingTeam(side);
+    return league.picks.rows.filter(r =>
+      r.owner_team_id === giving && r.round === round && r.draft_year === year);
+  }
+
+  // '2029 2nd · own' or '2029 2nd · via DAL'
+  function pickOptionLabel(row, side) {
+    let own = row.original_team_id === givingTeam(side);
+    return `${row.draft_year} ${ordinal(row.round)} · ${own ? 'own' : `via ${row.original_abbreviation}`}`;
+  }
+
+  // What the "Whose pick" field shows for an asset.
+  // { tracking, loading, choices: [{ value, label }], selected, empty }
+  function pickField(side, asset) {
+    if (!pickTracking() || !asset || asset.type !== 'Draft Pick') return { tracking: false };
+    let choices = pickChoices(side, asset).map(r => ({ value: r.pick_id, label: pickOptionLabel(r, side) }));
+    let giving = findTeam(givingTeam(side));
+    let year = pickYear(asset);
+    let round = pickRound(asset.pick);
+    return {
+      tracking: true,
+      loading: league.picks.loading,
+      choices,
+      selected: choices.some(c => c.value === asset.pick_id) ? asset.pick_id : '',
+      empty: `${giving ? giving.abbreviation : 'The team'} has no ${year ?? ''} ${round ? ordinal(round) : ''} pick`.replace(/\s+/g, ' ')
+    };
+  }
+
+  // Keeps every Draft Pick's pick_id valid: kept when it's still a choice,
+  // chosen when exactly one pick fits (and no other asset in the trade has it),
+  // blank otherwise. Outside pick tracking pick_id is blank.
+  function resolvePicks(sides) {
+    let all = ['A', 'B'].flatMap(side => ((sides && sides[side]) || []).map(asset => ({ side, asset })));
+    for (let { side, asset } of all) {
+      if (asset.type !== 'Draft Pick' || !pickTracking()) { asset.pick_id = ''; continue; }
+      if (league.picks.loading) continue;
+      let choices = pickChoices(side, asset);
+      if (choices.some(c => c.pick_id === asset.pick_id)) continue;
+      let taken = new Set(all.filter(x => x.asset !== asset && x.asset.pick_id).map(x => x.asset.pick_id));
+      let free = choices.filter(c => !taken.has(c.pick_id));
+      asset.pick_id = free.length === 1 && choices.length === 1 ? free[0].pick_id : '';
+    }
+  }
+
+  // { ok, error }: every Draft Pick names a pick, and no pick is used twice.
+  function picksReady(sides) {
+    if (!pickTracking()) return { ok: true, error: '' };
+    if (league.picks.loading) return { ok: false, error: 'Loading draft picks...' };
+    if (league.picks.error) return { ok: false, error: league.picks.error };
+    let seen = new Set();
+    for (let side of ['A', 'B']) {
+      for (let asset of (sides && sides[side]) || []) {
+        if (asset.type !== 'Draft Pick') continue;
+        if (!asset.pick_id) return { ok: false, error: `Choose whose pick ${asset.pick} (${asset.timing}) is.` };
+        if (seen.has(asset.pick_id)) return { ok: false, error: 'The same pick is in the trade twice.' };
+        seen.add(asset.pick_id);
+      }
+    }
+    return { ok: true, error: '' };
+  }
+
+  // Loads the two teams' picks (again when force is set, e.g. after a submit).
+  async function loadPicks(force) {
+    if (!pickTracking()) {
+      league.picks = { key: '', loading: false, error: '', rows: [] };
+      return;
+    }
+    let key = `${league.entered.id}|${league.teamA}|${league.teamB}|${league.correctionTradeId || ''}`;
+    if (!force && league.picks.key === key) return;
+    league.picks = { key, loading: true, error: '', rows: [] };
+    refresh();
+    let result = await window.MaddenStorage.leaguePickChoices(
+      league.entered.name, league.teamA, league.teamB, league.correctionTradeId);
+    if (league.picks.key !== key) return;  // teams changed while loading
+    league.picks = {
+      key,
+      loading: false,
+      error: result.ok ? '' : (result.error || 'Draft picks could not be loaded.'),
+      rows: result.ok ? result.picks : []
+    };
+    refresh();
+  }
+
+  // commissioner.js: correcting a trade lists the picks that trade moved.
+  function setCorrectionTrade(tradeId) {
+    league.correctionTradeId = tradeId || null;
+    return loadPicks(true);
   }
 
   function checkSubmitter(name, note) {
@@ -243,7 +387,11 @@
         return;
       }
 
-      league.entered = { id: found.league.id, name: found.league.name };
+      league.entered = {
+        id: found.league.id,
+        name: found.league.name,
+        currentDraftYear: typeof found.league.currentDraftYear === 'number' ? found.league.currentDraftYear : null
+      };
       league.teams = teams.teams;
       league.teamA = '';
       league.teamB = '';
@@ -271,6 +419,7 @@
     if (!findTeam(league.teamB)) league.teamB = '';
     fillTeamPickers();
     refresh();
+    loadPicks();
   }
 
   function leaveLeague() {
@@ -314,7 +463,7 @@
 
     for (let [id, key] of [['#teamA', 'teamA'], ['#teamB', 'teamB']]) {
       let select = q(id);
-      if (select) select.onchange = () => { league[key] = select.value; refresh(); };
+      if (select) select.onchange = () => { league[key] = select.value; refresh(); loadPicks(); };
     }
 
     // Practice is the default; a returning member comes back to their league.
@@ -346,6 +495,16 @@
     checkSubmitter,
     buildSubmission,
     submissionKey,
+    pickRound,
+    pickYearOffset,
+    pickTracking,
+    pickChoices,
+    pickField,
+    resolvePicks,
+    picksReady,
+    loadPicks,
+    reloadPicks: () => loadPicks(true),
+    setCorrectionTrade,
     rememberedSubmitter: () => storageGet(STORE_SUBMITTER) || '',
     rememberSubmitter: name => storageSet(STORE_SUBMITTER, name)
   });

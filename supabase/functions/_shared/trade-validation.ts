@@ -4,15 +4,19 @@
 
 import { trimmedString, uuidPattern } from "./http.ts";
 
-// Accepted Web Release / Ruleset pairs from Web v2.1. Every accepted pair is
+// Accepted Web Release / Ruleset pairs from Web v3.0. Every accepted pair is
 // a league release (league fields required).
-//   v2.1 / v4.4   current site
-//   v2.0 / v4.4   pages still open from v2.0 (same snapshot shape)
-// No longer accepted: v1.5.0 / v4.4 (the v2.0 switchover pair, removed in
-// v2.1 as launch runbook step 8) and v1.4.0 / v4.2.
+//   v3.0 / v4.4   current site: Draft Pick assets carry pick_id in League mode
+//   v2.1 / v4.4   pages still open from v2.1 (same shape without pick_id; once
+//                 a league tracks picks, the database refuses their pick trades
+//                 with "reload the page")
+//   v2.0 / v4.4   pages still open from v2.0
+// No longer accepted: v1.5.0 / v4.4 and v1.4.0 / v4.2.
+// v3.0 launch runbook: remove v2.0 and v2.1 once open pages have reloaded.
 export const SUPPORTED_RELEASES: Record<string, string> = {
   "v2.0": "v4.4",
   "v2.1": "v4.4",
+  "v3.0": "v4.4",
 };
 
 const allowedVerdicts = new Set(["FAIR", "QUESTIONABLE", "UNFAIR", "LEAGUE-BREAKING"]);
