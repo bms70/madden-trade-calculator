@@ -164,3 +164,11 @@ Web v3.1 changes `web_release` to `"v3.1"`, changes how a Draft Pick is entered 
 | 5 | `calculator-ui.js` | `web_release` `v3.1`; pick entry; `pick_number` per asset | 27751 | `9de03ac50675d44f059fee1e45715b93c7fc0c1e0018d16b1c801c7fd5b2479e` | `da99868a78bd59c9542b5dac92bb66085a2e53d2` |
 | 6 | `trade-history.js` | "Pick 2.14" for numbered current picks | 16674 | `8f0714a745c557552ea416203cfa0d1ada18ede6815cea6b3a5541d21342a880` | `8a75a20d8cfe2851e0156d079f061c85af8b882a` |
 | 10b | `supabase/functions/_shared/trade-validation.ts` | Accepted pairs: v2.0, v2.1, v3.0 and v3.1 / v4.4 | 7456 | `d50e5588e08e9b8f1dbd9e3bf2edc11b3c3bbf78f2eee5b9297927620cc62ed1` | `a3bddf04681cdac3a0754de7ea2f16bc1038e5e1` |
+
+## Addendum: maintenance, old pages refused (2026-11-27)
+
+`accept-trade` and `review-trade` accept only **v3.1 / v4.4**. Trades from pages left open since before an update (v3.0, v2.1, v2.0) are refused with "Unsupported Web Release version"; the member reloads and submits again. This is the v3.0 runbook's step 11, brought forward. Valuation and the site are unchanged.
+
+| # | File | Change | Bytes | SHA-256 | Git blob |
+|---|---|---|---|---|---|
+| 10b | `supabase/functions/_shared/trade-validation.ts` | Accepted pairs: v3.1 / v4.4 only | 7171 | `de1d6a263e7df5ee8f256064ed8e06aa7c9451bbec5885fcbf80109e85179133` | `e50bf2f7f379d8ebe123216103a23b7f6f1842ff` |
