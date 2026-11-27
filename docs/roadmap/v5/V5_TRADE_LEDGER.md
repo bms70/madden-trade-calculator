@@ -3,7 +3,7 @@
 Phase 4 groundwork, **backend only**. No Web Release and no site change. Ruleset v4.4, `valuation.js`, the snapshot contract and stored trades are unchanged. Decided 2026-11-24.
 
 - Migration: `supabase/migrations/20261124030000_trade_ledger.sql`
-- Tests: `tests/trade-ledger-db.test.py` (53 / 53)
+- Tests: `tests/trade-ledger-db.test.py` (53 / 53), `tests/free-agents-db.test.py` (20 / 20)
 - Builds on import history ([`V5_IMPORT_HISTORY.md`](V5_IMPORT_HISTORY.md)).
 
 ## What it gives v5.0
@@ -39,7 +39,9 @@ Draft picks are listed but not linked (pick ownership is deferred, Q33).
 - **Roster moves:** players whose team changed between two consecutive exports.
   - `LOGGED`: a linked league trade moved him between those two teams, submitted from 30 days before the earlier export to 7 days after the later one.
   - `NOT LOGGED`: no trade explains the move. That can mean a trade made in Madden but never logged, a release followed by a signing, or a logged trade whose player isn't linked yet.
-  - Moves to or from free agency aren't shown, because free agents aren't in history.
+  - `SIGNING`: free agent to a team. `RELEASE`: a team to free agency (added 2026-11-27, once free agents were saved). They're never flagged and sort last.
+  - `from_status` / `to_status`: ROSTER, PRACTICE SQUAD, IR or FREE AGENT. A status change on the same team (say roster to practice squad) isn't a move.
+  - `contract_changed` (team-to-team moves only): a traded player normally keeps his contract, while a player cut and picked up before the next export usually has a new one. It's a hint, not proof; it's not known how Madden treats waiver claims.
   - `from_control` / `to_control` show whether each team is `USER` or `CPU`, using its current setting. **`check_this`** is true for a NOT LOGGED move involving a human team: probably a trade that should have gone through the calculator. Those sort first in each export. A NOT LOGGED move between two CPU teams is usually Madden's own CPU trade and needs nothing (added 2026-11-27, `20261127010000_roster_moves_control.sql`).
 
 ## Owner commands (Supabase dashboard → SQL editor)
@@ -47,7 +49,7 @@ Draft picks are listed but not linked (pick ownership is deferred, Q33).
 | Task | Run |
 |---|---|
 | The league's ledger, newest trade first | `select * from owner_trade_ledger('<LEAGUE NAME>');` |
-| Players who changed teams between exports | `select * from owner_roster_moves('<LEAGUE NAME>');` |
+| Players who changed teams, signed or were released between exports | `select * from owner_roster_moves('<LEAGUE NAME>');` |
 | Link a player by hand | `select * from owner_link_trade_player('<LEAGUE NAME>', <trade #>, '<asset>', <roster ID>);` |
 | Return a player to automatic matching | `select * from owner_link_trade_player('<LEAGUE NAME>', <trade #>, '<asset>', null);` |
 
@@ -83,4 +85,3 @@ Teams are compared as league teams, not raw Madden IDs, so a new set of team IDs
 
 - A commissioner Ledger panel (a Web Release).
 - Linking draft picks once pick ownership exists (post-v5.0).
-- Moves to and from free agency.

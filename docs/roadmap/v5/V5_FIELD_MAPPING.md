@@ -21,7 +21,7 @@ Every response carries `"success": true` and an empty `message`. The format matc
 | Route | Count per export | Body | Size |
 |---|---|---|---|
 | `team/{teamId}/roster` | one per team | `rosterInfoList` | about 185 kB |
-| `freeagents/roster` | 1 | `rosterInfoList` (free agents) | not captured |
+| `freeagents/roster` | 1 | `rosterInfoList` (free agents) | not in the 2026-11-21 capture; saved to import history since 2026-11-27 |
 | `week/reg/{week}/passing`, `rushing`, `receiving`, `defense`, `kicking`, `punting`, `teamstats`, `schedules` | 8 for the exported week | stats lists; `gameScheduleInfoList` for schedules | schedules about 3 kB |
 | `standings` | 1 | `teamStandingInfoList` | about 28 kB |
 | `leagueteams` | 1 | `leagueTeamInfoList` | about 8 kB |

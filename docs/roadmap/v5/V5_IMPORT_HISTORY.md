@@ -5,12 +5,12 @@ Backend only. **No Web Release**, no site change, Ruleset v4.4 and `valuation.js
 **Why:** the player picker and pre-fill (Web v3.0, Phase 3) wait, but Ruleset v5.0 needs history now: posture, aging, development, durability and cap efficiency all need many weeks of data, and raw exports are only kept for a limited number of exports. So every export is copied into small typed history tables as it arrives. Decided 2026-11-24.
 
 - Migration: `supabase/migrations/20261124020000_import_history.sql`
-- Tests: `tests/import-history-db.test.py` (44 / 44)
+- Tests: `tests/import-history-db.test.py` (45 / 45), `tests/free-agents-db.test.py` (20 / 20)
 - No Edge Function change: the receiver's database function does the work, so launch is one `db push`.
 
 ## How it works
 
-- **On arrival.** When a `team/<id>/roster` or `standings` payload is stored, `record_snallabot_payload` builds its history rows in the same call.
+- **On arrival.** When a `team/<id>/roster`, `freeagents/roster`, `standings` or `leagueteams` payload is stored, `record_snallabot_payload` builds its history rows in the same call. The free-agent list was added 2026-11-27 (`20261127020000_free_agents_and_roster_status.sql`, which also backfilled the stored exports).
 - **Never blocks an export.** If building history fails, the payload is still stored and marked `FAILED` with the reason (`import_payloads.history_status`, `history_error`). Snallabot still gets `200`.
 - **Every export kept.** A manual export and an auto update in the same week are both kept. The `*_latest` views use the newest export for each league week.
 - **Duplicates.** A body that's identical to one already in the same export isn't stored again, so it adds no history rows.
@@ -20,6 +20,8 @@ Backend only. **No Web Release**, no site change, Ruleset v4.4 and `valuation.js
 ## Tables
 
 ### `player_history`: one row per player per roster payload
+
+Free agents are saved the same way from `freeagents/roster`, with `team_id` blank and `is_free_agent` true. A team roster with no player list is marked `FAILED`; a missing free-agent list just means no free agents.
 
 Key: (`payload_id`, `roster_id`). `roster_id` is Madden's `rosterId`, which is stable across weeks and trades. Every player on the roster is kept, including practice squad and IR players, with flags.
 
@@ -44,7 +46,7 @@ Values that aren't whole numbers or true/false are stored as blank, not guessed.
 
 | View | What it adds |
 |---|---|
-| `player_history_view` | The export's `season`, `stage_index` and `week`, plus the v4.4 reading: `v44_position` (LT/RT→OT, LG/RG/C→IOL, LEDG/REDG→EDGE, MIKE/WILL/SAM→LB, FS/SS→S; LS blank until v5.0), `cap_hit_m` ($M), `v44_years_left` (0 → blank) |
+| `player_history_view` | `roster_status` (ROSTER, PRACTICE SQUAD, IR or FREE AGENT; IR wins over practice squad), the export's `season`, `stage_index` and `week`, plus the v4.4 reading: `v44_position` (LT/RT→OT, LG/RG/C→IOL, LEDG/REDG→EDGE, MIKE/WILL/SAM→LB, FS/SS→S; LS blank until v5.0), `cap_hit_m` ($M), `v44_years_left` (0 → blank) |
 | `player_history_latest` | One row per player per league week: the newest export |
 | `team_history_latest` | One row per team per league week: the newest export |
 
@@ -55,7 +57,7 @@ Values that aren't whole numbers or true/false are stored as blank, not guessed.
 | What history holds, one row per export | `select * from owner_import_history('<LEAGUE NAME>');` |
 | Build history for stored exports (backfill / repair; safe to re-run) | `select * from owner_build_import_history('<LEAGUE NAME>');` |
 
-- `owner_import_history` columns: `received`, `season`, `stage_index`, `week`, `roster_payloads`, `players`, `teams`, `failed`, `not_built`. A healthy current export shows 32 roster payloads, about 2,000 players, 32 teams, and `failed` and `not_built` both 0.
+- `owner_import_history` columns: `received`, `season`, `stage_index`, `week`, `roster_payloads`, `players` (on teams), `free_agents`, `teams`, `failed`, `not_built`. A healthy current export shows 32 roster payloads, about 2,000 players, some free agents, 32 teams, and `failed` and `not_built` both 0.
 - `owner_build_import_history` columns: `payloads_built`, `payloads_failed`, `players`, `teams` (league totals), `skipped_trimmed` (payloads whose body was already trimmed, so they can't be built).
 - Neither command changes league data, so neither is written to the audit log.
 
