@@ -1,4 +1,4 @@
-// accept-trade request handling (Web v2.1). index.ts wires in Supabase; this
+// accept-trade request handling (Web v2.1; posture Web v4.0). index.ts wires in Supabase; this
 // file has no Deno or Supabase APIs, so it is tested in Node.
 //
 // Every accepted release (v2.0 and v2.1, both Ruleset v4.4) is a league
@@ -65,6 +65,7 @@ export async function handleAcceptTrade(request: Request, deps: AcceptTradeDeps)
     p_submitter_name: league.fields.submitterName,
     p_submitter_note: league.fields.submitterNote,
     p_trade: trade,
+    p_posture: league.fields.posture,
   });
 
   if (error) {

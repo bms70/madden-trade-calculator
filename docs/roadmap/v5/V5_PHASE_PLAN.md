@@ -80,6 +80,7 @@ The finish line is **Web v5.0 + Ruleset v5.0**. Releases before that follow thes
 - **Exit:** a normal trade can be built mostly by picking real league assets.
 
 ### Phase 4 — Transaction ledger · **Web v4.0**
+- **Web v4.0 (2026-11-27):** the commissioner's **League activity** panel (unlogged moves with a handled mark, trades to check, player linking), released together with the Phase 5 posture FYI. Spec: [`V5_WEB_V4.0_SPEC.md`](V5_WEB_V4.0_SPEC.md).
 - **Backend groundwork built 2026-11-24** (no release): `trade_ledger`, player links to `rosterId`, duplicate and in-game checks, and roster-move evidence, read with owner SQL commands. Details: [`V5_TRADE_LEDGER.md`](V5_TRADE_LEDGER.md). A commissioner Ledger panel and any snapshot-contract change remain for the Web Release.
 - A normalized store of approved league trades (teams, players, picks, season, week or stage) with frozen v4.4 values.
 - Duplicate detection, plus roster-diff detection of player moves between snapshots (treated as evidence only).
@@ -87,6 +88,7 @@ The finish line is **Web v5.0 + Ruleset v5.0**. Releases before that follow thes
 - **Exit:** completed trades can be queried consistently.
 
 ### Phase 5 — League context · **Web v4.1+**
+- **Trade posture FYI shipped in Web v4.0 (2026-11-27)**, stored with each submission. Scheme fit, cap room, need and injuries remain for later.
 - A **League context** panel next to the verdict, kept separate from the official reads:
   - A **trade posture FYI** for both teams (Win-now / Bubble / Rebuilding, with strength and weight), plus a warning for a human owner whose trade cuts against their team's situation.
   - Scheme fit, cap room, positional need, and injuries or durability.

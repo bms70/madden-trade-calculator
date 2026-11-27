@@ -538,3 +538,10 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/commissioner-snapshots/deno.json"
 entrypoint = "./functions/commissioner-snapshots/index.ts"
+
+[functions.commissioner-activity]
+enabled = true
+# Web v4.0. The browser sends the publishable key; the commissioner token is checked by the function.
+verify_jwt = false
+import_map = "./functions/commissioner-activity/deno.json"
+entrypoint = "./functions/commissioner-activity/index.ts"

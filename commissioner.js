@@ -14,6 +14,10 @@
  * Correction mode loads a trade into the calculator; v4.4 re-runs as usual
  * and Save correction sends buildTradeSnapshot() with a reason.
  *
+ * Web v4.0: League activity (roster moves between recent exports, with a
+ * handled mark; trades to check, with player linking) and a "Posture
+ * warning" flag in the review queue.
+ *
  * Web v3.0: Draft picks (move a pick by hand, Draft complete) and Exports
  * (review each Snallabot export, mark one current). Corrections keep each
  * pick's choice; the picks the trade moved are offered again.
@@ -43,7 +47,10 @@
     pickNotice: '',
     confirmDraft: false,  // Draft complete asks once more
     snapshots: [],        // v3.0: newest exports
-    snapshotNotice: ''
+    snapshotNotice: '',
+    activity: null,       // v4.0: { moves, issues }
+    activityNotice: '',
+    candidates: {}        // v4.0: trade id -> player list
   };
 
   const ACTIONS = {
@@ -61,7 +68,9 @@
     PICK_OWNERSHIP_CHANGED: 'Pick moved',
     PICKS_SET_UP: 'Draft picks set up',
     DRAFT_COMPLETED: 'Draft complete',
-    SNAPSHOT_MARKED_CURRENT: 'Export marked current'
+    SNAPSHOT_MARKED_CURRENT: 'Export marked current',
+    ROSTER_MOVE_HANDLED: 'Roster move handled',
+    TRADE_PLAYER_LINKED: 'Trade player linked'
   };
 
   const CONTROL = { USER: 'Human', CPU: 'CPU' };
@@ -132,6 +141,9 @@
       return same || mirror;
     });
     if (twin) flags.push('Possible duplicate');
+    // v4.0: the posture FYI warned a human owner at submission.
+    let warnings = trade.posture && Array.isArray(trade.posture.warnings) ? trade.posture.warnings : [];
+    if (warnings.length) flags.push(`Posture warning (${warnings.map(w => w.team).join(', ')})`);
     return flags;
   }
 
@@ -269,6 +281,11 @@
     area.snapshotNotice = '';
     $('#commSnapshots').innerHTML = '';
     text('#commSnapshotsStatus', '');
+    area.activity = null;
+    area.activityNotice = '';
+    area.candidates = {};
+    for (let id of ['#commActivityCheck', '#commActivityHandled', '#commActivityIssues', '#commActivityOther']) $(id).innerHTML = '';
+    text('#commActivityStatus', '');
     text('#commStatus', message || '');
     paint();
   }
@@ -336,12 +353,13 @@
     text('#commQueueStatus', 'Loading trades...');
     text('#commAuditStatus', 'Loading the audit log...');
 
-    let [history, audit, teams, picks, snapshots] = await Promise.all([
+    let [history, audit, teams, picks, snapshots, activity] = await Promise.all([
       window.MaddenStorage.leagueHistory(league.name),
       window.MaddenStorage.commissionerAuditLog(token, league.id),
       window.MaddenStorage.commissionerTeams(token, league.id),
       window.MaddenStorage.commissionerPicks(token, league.id),
-      window.MaddenStorage.commissionerSnapshots(token, league.id)
+      window.MaddenStorage.commissionerSnapshots(token, league.id),
+      window.MaddenStorage.commissionerActivity(token, league.id)
     ]);
 
     if (!sessionValid() || entered() !== league) return;
@@ -383,6 +401,174 @@
     } else {
       handleFailure(snapshots, '#commSnapshotsStatus');
     }
+
+    if (!sessionValid()) return;
+    if (activity.ok) {
+      setActivity(activity.data);
+    } else {
+      handleFailure(activity, '#commActivityStatus');
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // League activity (v4.0)
+  // --------------------------------------------------------------------------
+
+  const MOVE_STATUS = {
+    'NOT LOGGED': 'Not logged',
+    LOGGED: 'Logged',
+    SIGNING: 'Signed',
+    RELEASE: 'Released',
+    'PRACTICE SQUAD': 'Practice squad move'
+  };
+
+  function setActivity(data) {
+    area.activity = {
+      moves: Array.isArray(data.moves) ? data.moves : [],
+      issues: Array.isArray(data.issues) ? data.issues : []
+    };
+    renderActivity();
+  }
+
+  function moveKey(m) {
+    return `${m.rosterId}|${m.toSnapshotId}`;
+  }
+
+  function sideText(team, status, control) {
+    if (!team) return status === 'FREE AGENT' ? 'Free agent' : 'Unknown team';
+    let bits = [team];
+    if (status && status !== 'ROSTER') bits.push(status === 'PRACTICE SQUAD' ? 'practice squad' : status.toLowerCase());
+    if (control) bits.push(CONTROL[control] || control);
+    return bits.length > 1 ? `${bits[0]} (${bits.slice(1).join(', ')})` : bits[0];
+  }
+
+  function moveLine(m, withActions) {
+    let key = attr(moveKey(m));
+    let what = `${m.player} (${[m.pos, m.ovr].filter(x => x !== null && x !== undefined && x !== '').join(' ')})`;
+    let hint = [];
+    if (m.status === 'LOGGED' && m.loggedTradeNumber) hint.push(`trade #${m.loggedTradeNumber}`);
+    else hint.push(MOVE_STATUS[m.status] || m.status);
+    if (m.contractChanged === true) hint.push('new contract');
+    let handled = m.handledBy
+      ? `<div class="comm-move-handled">Handled by ${esc(m.handledBy)}${m.handledNote ? `: ${esc(m.handledNote)}` : ''} <button type="button" class="btn comm-move-undo" data-move="${key}">Undo</button></div>`
+      : '';
+    let actions = withActions && !m.handledBy
+      ? `<div class="comm-move-actions"><input type="text" maxlength="300" placeholder="Note (optional)" data-move-note="${key}" aria-label="Note for ${attr(m.player)}"><button type="button" class="btn comm-move-done" data-move="${key}">Mark handled</button></div>`
+      : '';
+    return `
+      <div class="comm-move${m.checkThis && !m.handledBy ? ' check' : ''}">
+        <div class="comm-move-main"><b>${esc(what)}</b> ${esc(sideText(m.fromTeam, m.fromStatus, m.fromControl))} → ${esc(sideText(m.toTeam, m.toStatus, m.toControl))}</div>
+        <div class="comm-move-meta">Week ${esc(m.fromWeek ?? '?')} → ${esc(m.toWeek ?? '?')} · ${esc(hint.join(' · '))}</div>
+        ${handled}${actions}
+      </div>`;
+  }
+
+  function issueLine(i) {
+    let id = attr(`${i.tradeId}|${i.assetRef}`);
+    let what = `Trade #${i.tradeNumber} · ${i.asset}${i.pos ? ` (${[i.pos, i.ovr].filter(x => x !== null && x !== undefined).join(' ')})` : ''}`;
+    let why = i.issue === 'NOT LINKED'
+      ? (i.matchStatus === 'AMBIGUOUS' ? 'More than one player fits; choose the right one.' : 'No matching player found; choose the right one.')
+      : `Linked to ${i.matchedPlayer || 'a player'}, but a later export still doesn't show him on ${i.toTeam}.`;
+    let players = area.candidates[i.tradeId];
+    let picker = players
+      ? `<select data-issue-player="${id}" aria-label="Player for ${attr(what)}"><option value="">Choose the player</option>${players.map(p => `<option value="${attr(p.rosterId)}">${esc(`${p.player} · ${p.pos || ''} ${p.ovr ?? ''} · ${p.team}`)}</option>`).join('')}</select><button type="button" class="btn comm-issue-link" data-issue="${id}">Link</button>`
+      : `<button type="button" class="btn comm-issue-choose" data-issue="${id}">Choose player</button>`;
+    return `
+      <div class="comm-move check">
+        <div class="comm-move-main"><b>${esc(what)}</b> ${esc(i.fromTeam || '')} → ${esc(i.toTeam || '')}</div>
+        <div class="comm-move-meta">${esc(why)}</div>
+        <div class="comm-move-actions">${picker}</div>
+      </div>`;
+  }
+
+  function renderActivity() {
+    let info = area.activity;
+    if (!info) return;
+    let open = info.moves.filter(m => m.checkThis && !m.handledBy);
+    let handled = info.moves.filter(m => m.checkThis && m.handledBy);
+    let other = info.moves.filter(m => !m.checkThis);
+    let toCheck = open.length + info.issues.length;
+    text('#commActivitySummary', toCheck ? `${toCheck} to check` : 'nothing to check');
+    $('#commActivityCheck').innerHTML = open.map(m => moveLine(m, true)).join('') || '<p class="comm-empty">No unlogged moves involving human teams.</p>';
+    $('#commActivityHandled').innerHTML = handled.map(m => moveLine(m, false)).join('');
+    $('#commActivityHandledWrap').hidden = !handled.length;
+    $('#commActivityIssues').innerHTML = info.issues.map(issueLine).join('') || '<p class="comm-empty">Every traded player is linked and was seen on his new team.</p>';
+    $('#commActivityOther').innerHTML = other.map(m => moveLine(m, false)).join('');
+    text('#commActivityOtherCount', `${other.length} other ${other.length === 1 ? 'move' : 'moves'} (logged trades, CPU trades, signings, releases, practice squad)`);
+    text('#commActivityStatus', area.activityNotice || 'Moves between the newest exports. A move between human teams that no submitted trade explains needs a look: submit the trade, or mark it handled with a note.');
+    for (let button of document.querySelectorAll('#commActivity [data-move]')) {
+      button.onclick = () => markMove(button.dataset.move, !button.classList.contains('comm-move-undo'));
+    }
+    for (let button of document.querySelectorAll('#commActivity .comm-issue-choose')) {
+      button.onclick = () => loadCandidates(button.dataset.issue.split('|')[0]);
+    }
+    for (let button of document.querySelectorAll('#commActivity .comm-issue-link')) {
+      button.onclick = () => {
+        let [tradeId, assetRef] = button.dataset.issue.split('|');
+        let select = document.querySelector(`[data-issue-player="${button.dataset.issue}"]`);
+        linkPlayer(tradeId, assetRef, select && select.value ? Number(select.value) : null);
+      };
+    }
+  }
+
+  async function reloadActivity() {
+    if (!sessionValid()) return;
+    let result = await window.MaddenStorage.commissionerActivity(area.session.token, area.session.leagueId);
+    if (result.ok) setActivity(result.data);
+    else handleFailure(result, '#commActivityStatus');
+  }
+
+  async function markMove(key, handled) {
+    let move = area.activity && area.activity.moves.find(m => moveKey(m) === key);
+    if (!move) return;
+    if (!sessionValid()) { signOut('Your commissioner session ended. Sign in again.'); return; }
+    let name = commissionerName();
+    if (!name) {
+      text('#commActivityStatus', 'Add your name at the top first; it goes in the audit log. Nothing was saved.');
+      return;
+    }
+    let noteField = document.querySelector(`[data-move-note="${key}"]`);
+    let note = handled && noteField ? String(noteField.value || '').trim() : '';
+    let result = await window.MaddenStorage.markMoveHandled({
+      token: area.session.token, leagueId: area.session.leagueId,
+      rosterId: Number(move.rosterId), toSnapshotId: move.toSnapshotId, handled, note, commissionerName: name
+    });
+    if (!result.ok) { handleFailure(result, '#commActivityStatus'); return; }
+    move.handledBy = handled ? name : null;
+    move.handledNote = handled ? (note || null) : null;
+    area.activityNotice = handled ? `${move.player}: marked handled.` : `${move.player}: back on the list.`;
+    renderActivity();
+    await loadAudit();
+  }
+
+  async function loadCandidates(tradeId) {
+    if (!sessionValid()) { signOut('Your commissioner session ended. Sign in again.'); return; }
+    let result = await window.MaddenStorage.playerCandidates({ token: area.session.token, leagueId: area.session.leagueId, tradeId });
+    if (!result.ok) { handleFailure(result, '#commActivityStatus'); return; }
+    area.candidates[tradeId] = Array.isArray(result.data.players) ? result.data.players : [];
+    if (!area.candidates[tradeId].length) area.activityNotice = 'No players from that trade\'s export to choose from.';
+    renderActivity();
+  }
+
+  async function linkPlayer(tradeId, assetRef, rosterId) {
+    if (!sessionValid()) { signOut('Your commissioner session ended. Sign in again.'); return; }
+    let name = commissionerName();
+    if (!name) {
+      text('#commActivityStatus', 'Add your name at the top first; it goes in the audit log. Nothing was saved.');
+      return;
+    }
+    if (!rosterId) {
+      text('#commActivityStatus', 'Choose the player first.');
+      return;
+    }
+    let result = await window.MaddenStorage.linkTradePlayer({
+      token: area.session.token, leagueId: area.session.leagueId, tradeId, assetRef, rosterId, commissionerName: name
+    });
+    if (!result.ok) { handleFailure(result, '#commActivityStatus'); return; }
+    area.activityNotice = `Linked to ${result.data.link.matchedPlayer || 'that player'}.`;
+    delete area.candidates[tradeId];
+    await reloadActivity();
+    await loadAudit();
   }
 
   // --------------------------------------------------------------------------
@@ -961,6 +1147,9 @@
     _saveTeam: saveTeam,
     _savePickOwner: savePickOwner,
     _draftComplete: draftComplete,
-    _markCurrent: markCurrent
+    _markCurrent: markCurrent,
+    _markMove: markMove,
+    _loadCandidates: loadCandidates,
+    _linkPlayer: linkPlayer
   });
 })();

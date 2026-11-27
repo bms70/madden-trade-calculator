@@ -310,12 +310,31 @@ function historyTradeDetail(trade) {
       <b>Suggested Correction</b>
       <span>${historyText(trade,trade.suggested_correction||'No stored correction.')}</span>
     </div>
+    ${historyPosture(trade)}
     ${corrected?`
       <div class="history-original">
         <button type="button" class="btn history-original-toggle" aria-expanded="false">Show original submission</button>
         <div class="history-original-body" hidden></div>
       </div>
     `:''}
+  `;
+}
+
+// Web v4.0: the posture FYI shown when the trade was submitted.
+function historyPosture(trade) {
+  const posture=trade&&typeof trade.posture==='object'&&trade.posture?trade.posture:null;
+  if(!posture||!Array.isArray(posture.teams)||!posture.teams.length)return '';
+  const labels={WIN_NOW:'Win-now',BUBBLE:'Bubble',REBUILDING:'Rebuilding'};
+  const asOf=posture.as_of||{};
+  const warnings=Array.isArray(posture.warnings)?posture.warnings:[];
+  const warningText={SELLING_WHILE_WINNING:'is Win-now but gave up players for draft picks',BUYING_WHILE_REBUILDING:'is Rebuilding but traded picks or young players for veterans'};
+  return `
+    <div class="history-posture">
+      <b>League context at submission (FYI)</b>
+      ${posture.teams.map(t=>`<span>${esc(t.team||'')}: ${esc(labels[t.label]||t.label||'')} (${esc([t.wins,t.losses,t.ties].join('-'))}${t.edited?', edited':''})</span>`).join('')}
+      ${asOf.week!==null&&asOf.week!==undefined?`<span class="history-time">Week ${esc(asOf.week)}${asOf.season?`, ${esc(asOf.season)} season`:''}</span>`:''}
+      ${warnings.map(w=>`<span class="history-posture-warning">⚠ ${esc(w.team||'')} ${esc(warningText[w.code]||w.code||'')}</span>`).join('')}
+    </div>
   `;
 }
 

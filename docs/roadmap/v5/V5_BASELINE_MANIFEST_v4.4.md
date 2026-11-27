@@ -172,3 +172,13 @@ Web v3.1 changes `web_release` to `"v3.1"`, changes how a Draft Pick is entered 
 | # | File | Change | Bytes | SHA-256 | Git blob |
 |---|---|---|---|---|---|
 | 10b | `supabase/functions/_shared/trade-validation.ts` | Accepted pairs: v3.1 / v4.4 only | 7171 | `de1d6a263e7df5ee8f256064ed8e06aa7c9451bbec5885fcbf80109e85179133` | `e50bf2f7f379d8ebe123216103a23b7f6f1842ff` |
+
+## Addendum: Web Release v4.0 (2026-11-27)
+
+Web v4.0 changes `web_release` to `"v4.0"`. The frozen trade snapshot is otherwise unchanged; the League submission adds `posture` (the FYI shown), stored outside the evaluation. **Valuation is unchanged:** `valuation.js` is byte-identical to the baseline tag, and every parity scenario gives the v1.5.0 snapshot apart from `web_release`, `pick_id` and `pick_number`.
+
+| # | File | Change | Bytes | SHA-256 | Git blob |
+|---|---|---|---|---|---|
+| 5 | `calculator-ui.js` | `web_release` `v4.0`; League context panel hook; posture sent with the submission | 28072 | `10ba312b6cfac0dd238a24cd902e3a951d3d1b528173c663c73da951299a54bc` | `27383efda37f4560fa3f1ba3f33382c75a13703b` |
+| 5a | `league-mode.js` | Posture FYI: records, labels, strength, warnings, snapshot | 29570 | `4a6ef2b8df1fe45f7dfe6e5517f8bc6ed2bda2781ecf138718e9dc8dba31c559` | `766b1807a507752239c0b72f13a75bd16a8542b3` |
+| 10b | `supabase/functions/_shared/trade-validation.ts` | Accepted pairs: v3.1 and v4.0 / v4.4; posture validated | 7539 | `14a096df62a85e795feb01305434219f39e82fb2fd145a7079d19391cbdc34bb` | `3eadaef2fb63ea99e2f80f546a81c0ad324a1f61` |
