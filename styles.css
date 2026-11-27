@@ -1830,3 +1830,171 @@ textarea:focus-visible {
   }
 }
     
+/* Web v4.0: League context (posture FYI) */
+.posture-panel {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  font-size: 12px;
+}
+
+.posture-panel[hidden] {
+  display: none;
+}
+
+.posture-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+  color: var(--navy);
+}
+
+.posture-week {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.posture-week input,
+.posture-record input {
+  width: 44px;
+  padding: 2px 4px;
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 11px;
+  text-align: center;
+}
+
+.posture-team {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 3px 0;
+}
+
+.posture-abbr {
+  font-weight: 850;
+}
+
+.posture-label {
+  font-weight: 700;
+}
+
+.posture-win_now .posture-label {
+  color: var(--fair, #15803d);
+}
+
+.posture-rebuilding .posture-label {
+  color: var(--warn, #b45309);
+}
+
+.posture-record i {
+  margin: 0 2px;
+  font-style: normal;
+  color: var(--muted);
+}
+
+.posture-record em {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.posture-warning {
+  margin-top: 6px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: var(--questionable-bg);
+  font-weight: 700;
+}
+
+.posture-note {
+  margin: 6px 0 0;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.history-posture {
+  display: grid;
+  gap: 2px;
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+.history-posture-warning {
+  font-weight: 700;
+  color: var(--warn, #b45309);
+}
+
+/* Web v4.0: League activity */
+.comm-activity-head {
+  margin: 12px 0 4px;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.comm-move-list {
+  display: grid;
+  gap: 6px;
+}
+
+.comm-move {
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+}
+
+.comm-move.check {
+  border-color: var(--warn, #b45309);
+}
+
+.comm-move-main {
+  font-size: 12px;
+}
+
+.comm-move-meta,
+.comm-move-handled,
+.comm-empty {
+  margin: 2px 0 0;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.comm-move-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.comm-move-actions input,
+.comm-move-actions select {
+  flex: 1;
+  min-width: 140px;
+  padding: 4px 6px;
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 11px;
+}
+
+.comm-activity-other {
+  margin-top: 12px;
+}
+
+.comm-activity-other > summary {
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--muted);
+}

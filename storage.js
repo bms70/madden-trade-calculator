@@ -103,6 +103,26 @@
 
       markSnapshotCurrent: async function () {
         return { ok: false, data: null, error: message, status: null };
+      },
+
+      leaguePostureInputs: async function () {
+        return { ok: false, rows: [], error: message };
+      },
+
+      commissionerActivity: async function () {
+        return { ok: false, data: null, error: message, status: null };
+      },
+
+      markMoveHandled: async function () {
+        return { ok: false, data: null, error: message, status: null };
+      },
+
+      playerCandidates: async function () {
+        return { ok: false, data: null, error: message, status: null };
+      },
+
+      linkTradePlayer: async function () {
+        return { ok: false, data: null, error: message, status: null };
       }
     });
 
@@ -332,6 +352,23 @@
     }
   }
 
+  // Web v4.0: each team's record from the current export, for the posture
+  // FYI. { ok, rows: [{ team_id, abbreviation, wins, losses, ties, season,
+  // stage_index, week, received_at, is_current }] }
+  async function leaguePostureInputs(name) {
+    try {
+      const { data, error } = await client.rpc('league_posture_inputs', { p_name: String(name || '').trim() });
+      if (error) {
+        console.error('Posture inputs failed:', error);
+        return { ok: false, rows: [], error: 'Team records could not be loaded.' };
+      }
+      return { ok: true, rows: Array.isArray(data) ? data : [], error: null };
+    } catch (error) {
+      console.error('Posture inputs connection failed:', error);
+      return { ok: false, rows: [], error: 'Team records could not be loaded.' };
+    }
+  }
+
   // The v2.0 submission goes to accept-trade; the response shape is the same
   // as acceptTrade (plus trade.leagueName).
   async function submitLeagueTrade(submission) {
@@ -548,6 +585,34 @@
     );
   }
 
+  // Web v4.0 League activity. data = { moves: [...], issues: [...] }
+  function commissionerActivity(token, leagueId) {
+    return invokeFunction('commissioner-activity', { token, league_id: leagueId, action: 'LIST' },
+      'League activity could not be loaded.');
+  }
+
+  // data.move = { handled, changed }
+  function markMoveHandled({ token, leagueId, rosterId, toSnapshotId, handled, note, commissionerName }) {
+    return invokeFunction('commissioner-activity', {
+      token, league_id: leagueId, action: 'MARK_HANDLED', roster_id: rosterId, to_snapshot_id: toSnapshotId,
+      handled, note: note || null, commissioner_name: commissionerName
+    }, 'The move could not be updated.');
+  }
+
+  // data.players = [{ rosterId, player, pos, ovr, age, team }]
+  function playerCandidates({ token, leagueId, tradeId }) {
+    return invokeFunction('commissioner-activity', { token, league_id: leagueId, action: 'CANDIDATES', trade_id: tradeId },
+      'The players could not be loaded.');
+  }
+
+  // data.link = { assetRef, matchStatus, matchedPlayer, rosterId }
+  function linkTradePlayer({ token, leagueId, tradeId, assetRef, rosterId, commissionerName }) {
+    return invokeFunction('commissioner-activity', {
+      token, league_id: leagueId, action: 'LINK_PLAYER', trade_id: tradeId, asset_ref: assetRef,
+      roster_id: rosterId, commissioner_name: commissionerName
+    }, 'The player could not be linked.');
+  }
+
   window.MaddenStorage = Object.freeze({
     isConfigured: true,
     acceptTrade,
@@ -567,6 +632,11 @@
     setPickOwner,
     draftComplete,
     commissionerSnapshots,
-    markSnapshotCurrent
+    markSnapshotCurrent,
+    leaguePostureInputs,
+    commissionerActivity,
+    markMoveHandled,
+    playerCandidates,
+    linkTradePlayer
   });
 })();

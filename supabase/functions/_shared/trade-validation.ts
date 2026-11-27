@@ -4,15 +4,14 @@
 
 import { trimmedString, uuidPattern } from "./http.ts";
 
-// Accepted Web Release / Ruleset pairs from Web v3.1. Every accepted pair is
+// Accepted Web Release / Ruleset pairs from Web v4.0. Every accepted pair is
 // a league release (league fields required).
-//   v3.1 / v4.4   current site (pick_id in League mode, pick_number for
-//                 current-draft picks)
-// No longer accepted (2026-11-27, v3.0 runbook step 11 brought forward):
-// v3.0, v2.1 and v2.0 (pages left open from before an update: the member
-// reloads and submits again), and v1.5.0 / v1.4.0.
+//   v4.0 / v4.4   current site: the submission adds the trade posture FYI
+//   v3.1 / v4.4   pages still open from v3.1 (same trade, no posture). To
+//                 remove a few days after launch (v4.0 runbook)
 export const SUPPORTED_RELEASES: Record<string, string> = {
   "v3.1": "v4.4",
+  "v4.0": "v4.4",
 };
 
 const allowedVerdicts = new Set(["FAIR", "QUESTIONABLE", "UNFAIR", "LEAGUE-BREAKING"]);
@@ -160,6 +159,7 @@ export type LeagueFields = {
   otherTeamId: string;
   submitterName: string;
   submitterNote: string | null;
+  posture: Record<string, unknown> | null;
 };
 
 export type LeagueValidation =
@@ -206,8 +206,17 @@ export function validateLeagueFields(body: Record<string, unknown>): LeagueValid
     submitterNote = note.length > 0 ? note : null;
   }
 
+  // Web v4.0: the trade posture FYI shown at submission (information only).
+  let posture: Record<string, unknown> | null = null;
+  if (body.posture !== undefined && body.posture !== null) {
+    if (!isPlainObject(body.posture) || JSON.stringify(body.posture).length > 4000) {
+      return { valid: false, message: "The posture information is invalid." };
+    }
+    posture = body.posture;
+  }
+
   return {
     valid: true,
-    fields: { leagueName, submittingTeamId, otherTeamId, submitterName, submitterNote },
+    fields: { leagueName, submittingTeamId, otherTeamId, submitterName, submitterNote, posture },
   };
 }

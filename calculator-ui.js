@@ -16,6 +16,8 @@
  * pick, 1-32, for a current-draft pick; null otherwise). The stored pick
  * label stays the Ruleset v4.4 value key ("1.14", "Mid 2nd", "Future Early
  * 1st", "5th"), so valuation is unchanged.
+ * Web v4.0: web_release "v4.0". The trade snapshot is otherwise unchanged; the
+ * League submission adds the posture FYI shown (league-mode.js).
  * Practice mode doesn't log trades.
  *
  * Initial render() runs at the end of this file, so everything render() calls
@@ -308,7 +310,7 @@ function buildTradeSnapshot() {
   let requiredTarget= typeof v.requiredTarget==='number' ? v.requiredTarget : null;
   let fairMaximum= typeof v.fairMaximum==='number' ? v.fairMaximum : null;
   return {
-    web_release:'v3.1',
+    web_release:'v4.0',
     ruleset_version:'v4.4',
     user_team_assets:A.arr.map(snapshotAsset),
     cpu_team_assets:B.arr.map(snapshotAsset),
@@ -431,6 +433,8 @@ function render() {
     ['SUGGESTED CORRECTION',v.correction]
   ];
   $('#reads').innerHTML=reads.map(r=>`<div class="read"><b>${r[0]}</b><span>${shown(r[1],true)}</span></div>`).join('');
+  // Web v4.0: League context (posture FYI), information only.
+  if(window.LeagueMode)window.LeagueMode.paintPosture({A:A.arr,B:B.arr});
   bindCards()
 }
 
@@ -577,7 +581,7 @@ async function logAcceptedTrade(name,note) {
     render();
     return;
   }
-  let submission=window.LeagueMode?.buildSubmission(snapshot,name,note);
+  let submission=window.LeagueMode?.buildSubmission(snapshot,name,note,{A:totals('A').arr,B:totals('B').arr});
   if(!submission) {
     $('#status').textContent= 'Enter your league, choose both teams and add your name first.';
     return;

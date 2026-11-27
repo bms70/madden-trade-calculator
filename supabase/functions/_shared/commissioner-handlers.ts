@@ -1,7 +1,8 @@
 // Request handling for the Web v2.0 commissioner functions:
 //   commissioner-login, commissioner-session-check, review-trade,
 //   commissioner-audit-log, commissioner-teams (v2.1),
-//   commissioner-picks and commissioner-snapshots (v3.0)
+//   commissioner-picks and commissioner-snapshots (v3.0),
+//   commissioner-activity (v4.0)
 // Each function's index.ts wires in Supabase and the secret; this file has no
 // Deno or Supabase APIs, so it is tested in Node.
 
@@ -552,4 +553,152 @@ export async function handleCommissionerSnapshots(request: Request, deps: Commis
     ok: true,
     snapshot: { snapshotId: row.snapshot_id, season: row.season, week: row.week, changed: row.changed === true },
   });
+}
+
+// ---------------------------------------------------------------------------
+// commissioner-activity (Web v4.0):
+//   { token, league_id?, action: "LIST" }  -> recent roster moves and trades to check
+//   { token, league_id?, action: "MARK_HANDLED", roster_id, to_snapshot_id, handled, note?, commissioner_name }
+//   { token, league_id?, action: "CANDIDATES", trade_id }  -> players who could be in that trade
+//   { token, league_id?, action: "LINK_PLAYER", trade_id, asset_ref, roster_id|null, commissioner_name }
+// ---------------------------------------------------------------------------
+export async function handleCommissionerActivity(request: Request, deps: CommissionerDeps): Promise<Response> {
+  const start = await begin(request, deps);
+  if ("response" in start) return start.response;
+  const { body, secret } = start;
+
+  const session = await requireSession(body, secret, deps);
+  if ("response" in session) return session.response;
+
+  const action = typeof body.action === "string" ? body.action.trim().toUpperCase() : "LIST";
+  const fail = (error: { code?: string; message: string }, fallback: string, what: string) => {
+    const status = statusForDatabaseError(error.code);
+    logger(deps)(what, error);
+    return failure(status === 500 ? fallback : error.message, status);
+  };
+
+  if (action === "LIST") {
+    const [moves, issues] = await Promise.all([
+      deps.rpc("commissioner_roster_moves", { p_league_id: session.leagueId, p_exports: 4 }),
+      deps.rpc("commissioner_ledger_issues", { p_league_id: session.leagueId }),
+    ]);
+    if (moves.error) return fail(moves.error, "League activity could not be loaded.", "Roster moves failed:");
+    if (issues.error) return fail(issues.error, "League activity could not be loaded.", "Ledger issues failed:");
+    const rows = (data: unknown) => (Array.isArray(data) ? data as Record<string, unknown>[] : []);
+    return jsonResponse({
+      ok: true,
+      moves: rows(moves.data).map((r) => ({
+        toSnapshotId: r.to_snapshot_id,
+        receivedAt: r.received_at,
+        fromWeek: r.from_week,
+        toSeason: r.to_season,
+        toWeek: r.to_week,
+        rosterId: r.roster_id,
+        player: r.player,
+        pos: r.pos,
+        ovr: r.ovr,
+        fromTeam: r.from_team,
+        fromStatus: r.from_status,
+        fromControl: r.from_control,
+        toTeam: r.to_team,
+        toStatus: r.to_status,
+        toControl: r.to_control,
+        status: r.status,
+        checkThis: r.check_this === true,
+        contractChanged: r.contract_changed,
+        loggedTradeNumber: r.logged_trade_number,
+        handledBy: r.handled_by,
+        handledNote: r.handled_note,
+        handledAt: r.handled_at,
+      })),
+      issues: rows(issues.data).map((r) => ({
+        tradeId: r.trade_id,
+        tradeNumber: r.trade_number,
+        acceptedAt: r.accepted_at,
+        reviewStatus: r.review_status,
+        assetRef: r.asset_ref,
+        fromTeam: r.from_team,
+        toTeam: r.to_team,
+        asset: r.asset,
+        pos: r.pos,
+        ovr: r.ovr,
+        matchStatus: r.match_status,
+        matchedPlayer: r.matched_player,
+        rosterId: r.roster_id,
+        seenInGame: r.seen_in_game,
+        issue: r.issue,
+      })),
+    });
+  }
+
+  const commissionerName = trimmedString(body.commissioner_name, 60);
+  const rosterId = body.roster_id;
+  const validRoster = (v: unknown) => typeof v === "number" && Number.isInteger(v) && v > 0;
+
+  if (action === "MARK_HANDLED") {
+    const snapshotId = typeof body.to_snapshot_id === "string" ? body.to_snapshot_id.trim() : "";
+    if (!validRoster(rosterId)) return failure("A valid player is required.", 400);
+    if (!uuidPattern.test(snapshotId)) return failure("A valid export is required.", 400);
+    if (typeof body.handled !== "boolean") return failure("Say whether the move is handled.", 400);
+    let note: string | null = null;
+    if (body.note !== undefined && body.note !== null) {
+      if (typeof body.note !== "string") return failure("The note must be text.", 400);
+      const trimmed = body.note.trim();
+      if (trimmed.length > 300) return failure("The note must be 300 characters or fewer.", 400);
+      note = trimmed.length ? trimmed : null;
+    }
+    if (!commissionerName) return failure("Commissioner name must be 1 to 60 characters.", 400);
+    const { data, error } = await deps.rpc("commissioner_mark_move_handled", {
+      p_league_id: session.leagueId,
+      p_roster_id: rosterId,
+      p_to_snapshot_id: snapshotId,
+      p_handled: body.handled,
+      p_note: note,
+      p_commissioner_name: commissionerName,
+    });
+    if (error) return fail(error, "The move could not be updated.", "Mark handled failed:");
+    const row = firstRow(data);
+    if (!row) return failure("The move could not be updated.", 500);
+    return jsonResponse({ ok: true, move: { handled: row.handled === true, changed: row.changed === true } });
+  }
+
+  const tradeId = typeof body.trade_id === "string" ? body.trade_id.trim() : "";
+
+  if (action === "CANDIDATES") {
+    if (!uuidPattern.test(tradeId)) return failure("A valid trade is required.", 400);
+    const { data, error } = await deps.rpc("commissioner_player_candidates", {
+      p_league_id: session.leagueId,
+      p_trade_id: tradeId,
+    });
+    if (error) return fail(error, "The players could not be loaded.", "Player candidates failed:");
+    const rows = Array.isArray(data) ? data as Record<string, unknown>[] : [];
+    return jsonResponse({
+      ok: true,
+      players: rows.map((r) => ({ rosterId: r.roster_id, player: r.player, pos: r.pos, ovr: r.ovr, age: r.age, team: r.team })),
+    });
+  }
+
+  if (action === "LINK_PLAYER") {
+    const assetRef = typeof body.asset_ref === "string" ? body.asset_ref.trim().toUpperCase() : "";
+    if (!uuidPattern.test(tradeId)) return failure("A valid trade is required.", 400);
+    if (!/^[SO][0-9]{1,2}$/.test(assetRef)) return failure("A valid asset is required.", 400);
+    if (rosterId !== null && !validRoster(rosterId)) return failure("A valid player is required.", 400);
+    if (!commissionerName) return failure("Commissioner name must be 1 to 60 characters.", 400);
+    const { data, error } = await deps.rpc("commissioner_link_trade_player", {
+      p_league_id: session.leagueId,
+      p_trade_id: tradeId,
+      p_asset_ref: assetRef,
+      p_roster_id: rosterId,
+      p_commissioner_name: commissionerName,
+    });
+    if (error) return fail(error, "The player could not be linked.", "Link player failed:");
+    const row = firstRow(data);
+    if (!row) return failure("The player could not be linked.", 500);
+    return jsonResponse({
+      ok: true,
+      link: { assetRef: row.asset_ref, matchStatus: row.match_status, matchedPlayer: row.matched_player, rosterId: row.roster_id },
+    });
+  }
+
+  return failure("Unknown activity action.", 400);
 }

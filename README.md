@@ -2,7 +2,7 @@
 
 A responsive web calculator for evaluating Player and Draft Pick trades in a Madden league. League mode logs each league's trades for commissioner review, and a practice mode is available for trying trades freely.
 
-**Current Web Release:** v3.1  
+**Current Web Release:** v4.0  
 **Current Ruleset:** v4.4
 
 ---
@@ -11,11 +11,13 @@ A responsive web calculator for evaluating Player and Draft Pick trades in a Mad
 
 The current production mapping is:
 
-**Web Release v3.1 | Ruleset v4.4**
+**Web Release v4.0 | Ruleset v4.4**
 
 Web Releases and Rulesets are versioned independently.
 
-Web Release v3.1 makes **draft-pick entry** follow Madden: Timing, then Round, then the actual **Pick number** for the current draft or **Early / Mid / Late** for future picks. Values are unchanged.
+Web Release v4.0 adds the **League context (FYI)** box (each team's Win-now / Bubble / Rebuilding situation, with warnings, saved with the trade) and the commissioner's **League activity** panel (unlogged moves, trades to check, player linking). Values are unchanged.
+
+Web Release v3.1 made **draft-pick entry** follow Madden: Timing, then Round, then the actual **Pick number** for the current draft or **Early / Mid / Late** for future picks. Values are unchanged.
 
 Web Release v3.0 added **draft-pick ownership**: in League mode each Draft Pick names whose pick it is, and submitted trades move picks to their new teams automatically. The Commissioner tab adds **Draft picks** (move a pick by hand, Draft complete) and **Exports** (review each Snallabot export and mark one current).
 
@@ -280,6 +282,7 @@ Current governed Ruleset files include:
 
 Release notes and governed release records.
 
+- `RELEASE_NOTES_v4.0.md`
 - `RELEASE_NOTES_v3.1.md`
 - `RELEASE_NOTES_v3.0.md`
 - `RELEASE_NOTES_v2.1.md`
@@ -406,6 +409,16 @@ A Ruleset version identifies the governed trade-valuation framework.
 ---
 
 ## Release Validation
+
+### Web Release v4.0 / Ruleset v4.4
+
+Full record: `docs/validation/VALIDATION_v4.0.md`.
+
+- Ruleset v4.4 regression: **64 / 64 PASS**. `valuation.js` matches its baseline hash.
+- Browser scripts: **182 / 182 PASS**
+- Edge Function logic: **147 / 147 PASS**
+- League activity and posture database (`tests/web-v4.0-db.test.py`): **37 / 37 PASS**
+- Live check: **PENDING release-owner sign-off**
 
 ### Web Release v3.1 / Ruleset v4.4
 

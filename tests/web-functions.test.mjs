@@ -468,5 +468,76 @@ async function json(response) { return { status: response.status, body: await re
   check('snapshots: no token 401', r.status === 401);
 }
 
+// ---------------------------------------------------------------------------
+// Web v4.0: posture with the submission, commissioner-activity
+// ---------------------------------------------------------------------------
+{
+  check('v4.0 / v4.4 accepted', validation.validateTradePayload(snapshot({ web_release: 'v4.0' })).valid === true);
+  const POSTURE = { version: 1, teams: [{ side: 'A', team: 'DAL', wins: 7, losses: 1, ties: 0, label: 'WIN_NOW' }], warnings: [] };
+  const lf = validation.validateLeagueFields(leagueBody({ posture: POSTURE }));
+  check('league fields keep the posture', lf.valid && lf.fields.posture.teams[0].label === 'WIN_NOW');
+  check('no posture -> null', validation.validateLeagueFields(leagueBody()).fields.posture === null);
+  check('posture must be an object', validation.validateLeagueFields(leagueBody({ posture: [1, 2] })).message === 'The posture information is invalid.');
+  check('posture over 4000 characters refused', validation.validateLeagueFields(leagueBody({ posture: { pad: 'x'.repeat(4001) } })).valid === false);
+
+  const db = fakeRpc({
+    league_lookup: { data: [{ league_id: LEAGUE, league_name: 'Sample League', madden_version: '27' }], error: null },
+    submit_league_trade: { data: [{ trade_id: TRADE_ID, trade_number: 50, accepted_at: '2026-11-27T12:00:00Z' }], error: null },
+  });
+  let r = await json(await accept.handleAcceptTrade(post(leagueBody({ web_release: 'v4.0', posture: POSTURE })), { rpc: db.rpc, log: quiet }));
+  check('accept-trade passes the posture to the database', r.status === 200 && db.calls[1].args.p_posture.teams[0].team === 'DAL');
+  check('posture stays out of the frozen trade', !('posture' in db.calls[1].args.p_trade) && Object.keys(db.calls[1].args.p_trade).length === 16);
+  r = await json(await accept.handleAcceptTrade(post(leagueBody({ web_release: 'v4.0', posture: 'strong' })), { rpc: db.rpc, log: quiet }));
+  check('bad posture 400, nothing logged', r.status === 400 && db.calls.length === 2);
+
+  const base = { secret: SECRET, nowSeconds: () => NOW, log: quiet };
+  const token = (await sessions.createCommissionerSession(SECRET, LEAGUE, NOW)).token;
+  const SNAP = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+  const moveRow = { to_snapshot_id: SNAP, received_at: '2026-11-27T16:32:26Z', from_week: 8, to_season: 2027, to_week: 9, roster_id: 555221362, player: 'Pat Bryant II', pos: 'WR', ovr: 74, from_team: 'KC', from_status: 'ROSTER', from_control: 'USER', to_team: 'DET', to_status: 'ROSTER', to_control: 'CPU', status: 'NOT LOGGED', check_this: true, contract_changed: true, logged_trade_number: null, handled_by: null, handled_note: null, handled_at: null };
+  const issueRow = { trade_id: TRADE_ID, trade_number: 12, accepted_at: '2026-11-22T12:00:00Z', review_status: 'REVIEWED', asset_ref: 'O1', from_team: 'DAL', to_team: 'PHI', asset: 'Ed Olivr', pos: 'DT', ovr: 82, match_status: 'UNMATCHED', matched_player: null, roster_id: null, seen_in_game: null, issue: 'NOT LINKED' };
+  let adb = fakeRpc({ commissioner_roster_moves: { data: [moveRow], error: null }, commissioner_ledger_issues: { data: [issueRow], error: null } });
+  r = await json(await handlers.handleCommissionerActivity(post({ token }), { ...base, rpc: adb.rpc }));
+  check('activity: LIST returns moves and issues', r.status === 200 && r.body.moves[0].checkThis === true && r.body.moves[0].fromControl === 'USER' && r.body.issues[0].issue === 'NOT LINKED' && r.body.issues[0].assetRef === 'O1');
+  check('activity: LIST uses the token league for both', adb.calls.length === 2 && adb.calls.every(c => c.args.p_league_id === LEAGUE) && adb.calls[0].args.p_exports === 4);
+  r = await json(await handlers.handleCommissionerActivity(post({ action: 'LIST' }), { ...base, rpc: adb.rpc }));
+  check('activity: no token 401', r.status === 401);
+  r = await json(await handlers.handleCommissionerActivity(post({ token, league_id: OTHER_LEAGUE }), { ...base, rpc: adb.rpc }));
+  check('activity: other league 403', r.status === 403);
+
+  adb = fakeRpc({ commissioner_mark_move_handled: { data: [{ handled: true, changed: true }], error: null } });
+  const mark = (o) => handlers.handleCommissionerActivity(post({ token, action: 'mark_handled', roster_id: 555221362, to_snapshot_id: SNAP, handled: true, note: '  Waiver claim ', commissioner_name: 'Commish', ...o }), { ...base, rpc: adb.rpc });
+  r = await json(await mark({}));
+  check('activity: MARK_HANDLED ok, note trimmed', r.status === 200 && r.body.move.handled === true && adb.calls[0].args.p_note === 'Waiver claim' && adb.calls[0].args.p_roster_id === 555221362);
+  adb = fakeRpc({});
+  r = await json(await mark({ roster_id: '555' }));
+  check('activity: roster id must be a number', r.status === 400 && adb.calls.length === 0);
+  r = await json(await mark({ handled: 'yes' }));
+  check('activity: handled must be true/false', r.status === 400 && adb.calls.length === 0);
+  r = await json(await mark({ note: 'x'.repeat(301) }));
+  check('activity: long note 400', r.status === 400 && adb.calls.length === 0);
+  r = await json(await mark({ to_snapshot_id: 'week9' }));
+  check('activity: bad export 400', r.status === 400 && adb.calls.length === 0);
+
+  adb = fakeRpc({ commissioner_player_candidates: { data: [{ roster_id: 555223010, player: 'Ed Oliver', pos: 'DT', ovr: 82, age: 28, team: 'DAL' }], error: null } });
+  r = await json(await handlers.handleCommissionerActivity(post({ token, action: 'CANDIDATES', trade_id: TRADE_ID }), { ...base, rpc: adb.rpc }));
+  check('activity: CANDIDATES', r.status === 200 && r.body.players[0].player === 'Ed Oliver' && adb.calls[0].args.p_trade_id === TRADE_ID);
+
+  adb = fakeRpc({ commissioner_link_trade_player: { data: [{ asset_ref: 'O1', match_status: 'MANUAL', matched_player: 'Ed Oliver', roster_id: 555223010 }], error: null } });
+  const link = (o) => handlers.handleCommissionerActivity(post({ token, action: 'LINK_PLAYER', trade_id: TRADE_ID, asset_ref: 'o1', roster_id: 555223010, commissioner_name: 'Commish', ...o }), { ...base, rpc: adb.rpc });
+  r = await json(await link({}));
+  check('activity: LINK_PLAYER ok (asset uppercased)', r.status === 200 && r.body.link.matchStatus === 'MANUAL' && adb.calls[0].args.p_asset_ref === 'O1');
+  adb = fakeRpc({ commissioner_link_trade_player: { data: [{ asset_ref: 'O1', match_status: 'UNMATCHED', matched_player: null, roster_id: null }], error: null } });
+  r = await json(await link({ roster_id: null }));
+  check('activity: LINK_PLAYER null returns to automatic', r.status === 200 && adb.calls[0].args.p_roster_id === null);
+  adb = fakeRpc({});
+  r = await json(await link({ asset_ref: 'X9' }));
+  check('activity: bad asset 400', r.status === 400 && adb.calls.length === 0);
+  adb = fakeRpc({ commissioner_link_trade_player: { data: null, error: { code: 'P0002', message: 'That trade has no such player.' } } });
+  r = await json(await link({}));
+  check('activity: database reason shown', r.status === 404 && r.body.error === 'That trade has no such player.');
+  r = await json(await handlers.handleCommissionerActivity(post({ token, action: 'DELETE' }), { ...base, rpc: adb.rpc }));
+  check('activity: unknown action 400', r.status === 400);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

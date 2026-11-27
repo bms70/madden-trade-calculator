@@ -14,6 +14,12 @@
  * traded (asset.pick_id), chosen from the giving team's picks of that round
  * and year. One matching pick is chosen automatically.
  *
+ * Web v4.0 trade posture FYI: each team's record (from the league's current
+ * export, editable) and the week give a label (Win-now / Bubble / Rebuilding)
+ * and a strength, plus warnings for a human team selling while winning or
+ * buying while rebuilding. Information only: it never changes a value or the
+ * verdict. The posture shown is sent with the submission.
+ *
  * Loaded after valuation.js and before calculator-ui.js. Event wiring runs
  * from LeagueMode.init(), which calculator-ui.js calls before its first
  * render(); every DOM handler here calls the global render() at event time.
@@ -43,7 +49,16 @@
       error: '',
       rows: []          // rows from league_pick_choices
     },
-    correctionTradeId: null  // set by commissioner.js while correcting
+    correctionTradeId: null, // set by commissioner.js while correcting
+    posture: {          // Web v4.0: records behind the posture FYI
+      leagueId: '',
+      loaded: false,
+      loading: false,
+      error: '',
+      rows: [],         // rows from league_posture_inputs
+      edits: { A: null, B: null },  // { wins, losses, ties } typed by the member
+      week: null        // week typed by the member (null = the export's)
+    }
   };
 
   // --------------------------------------------------------------------------
@@ -243,6 +258,205 @@
     return loadPicks(true);
   }
 
+  // --------------------------------------------------------------------------
+  // Trade posture FYI (Web v4.0). The Ruleset v5.0 roadmap rules for timing:
+  // no effect weeks 1-3, a squared ramp to full at week 9; preseason fades
+  // last season's record to zero by week 3; other stages count fully.
+  // Labels: Win-now at .600+, Rebuilding at .400 or below, else Bubble.
+  // Record strength: full at .250 from .500 (e.g. 6-2 or 2-6).
+  // --------------------------------------------------------------------------
+
+  const POSTURE_LABELS = { WIN_NOW: 'Win-now', BUBBLE: 'Bubble', REBUILDING: 'Rebuilding' };
+
+  function postureWeight(week, stageIndex) {
+    let w = Number(week);
+    if (!Number.isFinite(w)) return 0;
+    if (stageIndex === 1) {
+      if (w <= 3) return 0;
+      if (w >= 9) return 1;
+      return Math.pow((w - 3) / 6, 2);
+    }
+    if (stageIndex === 0) return w >= 3 ? 0 : Math.pow((3 - Math.max(0, w)) / 3, 2);
+    return 1;
+  }
+
+  // { wins, losses, ties, games, pct, label, recordStrength, weight, strength }
+  function postureOf(record, week, stageIndex) {
+    let wins = Math.max(0, Number(record && record.wins) || 0);
+    let losses = Math.max(0, Number(record && record.losses) || 0);
+    let ties = Math.max(0, Number(record && record.ties) || 0);
+    let games = wins + losses + ties;
+    let pct = games ? (wins + ties / 2) / games : 0.5;
+    let label = !games ? 'BUBBLE' : pct >= 0.6 ? 'WIN_NOW' : pct <= 0.4 ? 'REBUILDING' : 'BUBBLE';
+    let recordStrength = Math.min(1, Math.abs(pct - 0.5) / 0.25);
+    let weight = postureWeight(week, stageIndex);
+    return { wins, losses, ties, games, pct, label, recordStrength, weight, strength: recordStrength * weight };
+  }
+
+  function postureWord(p) {
+    if (p.weight === 0) return 'too early';
+    if (p.strength < 0.15) return 'slight';
+    if (p.strength < 0.5) return 'moderate';
+    return 'strong';
+  }
+
+  function postureReady() {
+    return teamsReady() && !league.posture.loading && league.posture.leagueId === league.entered.id && league.posture.rows.length > 0;
+  }
+
+  function postureAsOf() {
+    let row = league.posture.rows[0] || {};
+    return {
+      season: row.season ?? null,
+      stage_index: row.stage_index ?? null,
+      week: league.posture.week ?? row.week ?? null,
+      export_week: row.week ?? null,
+      received_at: row.received_at ?? null,
+      from_current: row.is_current === true
+    };
+  }
+
+  function postureRecord(side) {
+    let teamId = side === 'A' ? league.teamA : league.teamB;
+    let row = league.posture.rows.find(r => r.team_id === teamId);
+    let base = row ? { wins: row.wins ?? 0, losses: row.losses ?? 0, ties: row.ties ?? 0 } : { wins: 0, losses: 0, ties: 0 };
+    let edit = league.posture.edits[side];
+    return { record: edit || base, edited: !!edit, base };
+  }
+
+  function postureFor(side) {
+    let asOf = postureAsOf();
+    let { record, edited } = postureRecord(side);
+    return Object.assign(postureOf(record, asOf.week, asOf.stage_index), { edited });
+  }
+
+  // Warnings for human teams whose trade cuts against their situation.
+  // sides = { A: [assets with value], B: [...] }; A lists what team A receives.
+  function postureWarnings(sides) {
+    let warnings = [];
+    for (let side of ['A', 'B']) {
+      let team = findTeam(side === 'A' ? league.teamA : league.teamB);
+      if (!team || team.controlled_by !== 'USER') continue;
+      let p = postureFor(side);
+      if (p.label === 'BUBBLE' || p.strength < 0.15) continue;
+      let received = (sides && sides[side]) || [];
+      let given = (sides && sides[side === 'A' ? 'B' : 'A']) || [];
+      let sum = (list, test) => list.filter(test).reduce((s, a) => s + (Number(a.value) || 0), 0);
+      let isPlayer = a => a.type !== 'Draft Pick';
+      let isPick = a => a.type === 'Draft Pick';
+      if (p.label === 'WIN_NOW') {
+        let playerOut = sum(given, isPlayer), playerIn = sum(received, isPlayer), pickIn = sum(received, isPick);
+        if (playerOut > playerIn && pickIn > 0) {
+          warnings.push({ side, team: team.abbreviation, code: 'SELLING_WHILE_WINNING',
+            text: `${team.abbreviation} is Win-now but is giving up players for draft picks.` });
+        }
+      } else {
+        let total = sum(received, () => true);
+        let vetIn = sum(received, a => isPlayer(a) && Number(a.age) >= 29);
+        let futureOut = sum(given, a => isPick(a) || (isPlayer(a) && Number(a.age) > 0 && Number(a.age) <= 25));
+        if (vetIn > 0 && vetIn >= total / 2 && futureOut > 0) {
+          warnings.push({ side, team: team.abbreviation, code: 'BUYING_WHILE_REBUILDING',
+            text: `${team.abbreviation} is Rebuilding but is trading picks or young players for veterans.` });
+        }
+      }
+    }
+    return warnings;
+  }
+
+  // What's sent with a submission (null when the FYI isn't available).
+  function postureSnapshot(sides) {
+    if (!postureReady()) return null;
+    let round = x => Math.round(x * 1000) / 1000;
+    let asOf = postureAsOf();
+    return {
+      version: 1,
+      as_of: { season: asOf.season, stage_index: asOf.stage_index, week: asOf.week, export_week: asOf.export_week,
+               received_at: asOf.received_at, from_current_export: asOf.from_current },
+      teams: ['A', 'B'].map(side => {
+        let p = postureFor(side);
+        let team = findTeam(side === 'A' ? league.teamA : league.teamB);
+        return { side, team: team ? team.abbreviation : '', control: team ? team.controlled_by : '',
+                 wins: p.wins, losses: p.losses, ties: p.ties, label: p.label,
+                 strength: round(p.strength), weight: round(p.weight), edited: p.edited };
+      }),
+      warnings: postureWarnings(sides).map(w => ({ team: w.team, code: w.code }))
+    };
+  }
+
+  async function loadPosture() {
+    if (!teamsReady() || !window.MaddenStorage?.leaguePostureInputs) return;
+    if (league.posture.leagueId === league.entered.id && (league.posture.loaded || league.posture.loading)) return;
+    let entered = league.entered;
+    league.posture = { leagueId: entered.id, loaded: false, loading: true, error: '', rows: [], edits: { A: null, B: null }, week: null };
+    let result = await window.MaddenStorage.leaguePostureInputs(entered.name);
+    if (league.entered !== entered) return;
+    league.posture.loading = false;
+    league.posture.loaded = true;
+    league.posture.rows = result.ok ? result.rows : [];
+    league.posture.error = result.ok ? '' : (result.error || 'Team records could not be loaded.');
+    refresh();
+  }
+
+  function setPostureRecord(side, field, value) {
+    let current = Object.assign({}, postureRecord(side).record);
+    let n = Math.max(0, Math.min(25, Math.floor(Number(value) || 0)));
+    current[field] = n;
+    let base = postureRecord(side).base;
+    league.posture.edits[side] = (current.wins === base.wins && current.losses === base.losses && current.ties === base.ties) ? null : current;
+  }
+
+  function setPostureWeek(value) {
+    let n = Math.floor(Number(value));
+    league.posture.week = Number.isFinite(n) && n >= 0 && n <= 30 && n !== postureAsOf().export_week ? n : null;
+  }
+
+  function escHtml(v) {
+    return String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  }
+
+  // Draws the FYI panel (#posturePanel). sides: assets with value.
+  function paintPosture(sides) {
+    let panel = q('#posturePanel');
+    if (!panel) return;
+    let show = league.mode === 'LEAGUE' && teamsReady();
+    panel.hidden = !show;
+    if (!show) return;
+    if (league.posture.leagueId !== league.entered.id || (!league.posture.loaded && !league.posture.loading)) {
+      loadPosture();
+    }
+    if (league.posture.loading) { panel.innerHTML = '<div class="posture-head"><b>League context (FYI)</b></div><p class="posture-note">Loading team records...</p>'; return; }
+    if (!postureReady()) {
+      panel.innerHTML = `<div class="posture-head"><b>League context (FYI)</b></div><p class="posture-note">${escHtml(league.posture.error || 'No team records yet. They come from the league\'s Snallabot exports.')}</p>`;
+      return;
+    }
+    let asOf = postureAsOf();
+    let rows = ['A', 'B'].map(side => {
+      let p = postureFor(side);
+      let team = findTeam(side === 'A' ? league.teamA : league.teamB);
+      let num = (k, v) => `<input type="number" min="0" max="25" inputmode="numeric" data-posture-side="${side}" data-posture-k="${k}" value="${v}" aria-label="${escHtml(team.abbreviation)} ${k}">`;
+      return `
+        <div class="posture-team posture-${p.label.toLowerCase()}">
+          <span class="posture-abbr">${escHtml(team.abbreviation)}</span>
+          <span class="posture-label">${POSTURE_LABELS[p.label]} · ${postureWord(p)}</span>
+          <span class="posture-record">${num('wins', p.wins)}<i>-</i>${num('losses', p.losses)}<i>-</i>${num('ties', p.ties)}${p.edited ? ' <em>edited</em>' : ''}</span>
+        </div>`;
+    }).join('');
+    let warnings = postureWarnings(sides);
+    let source = asOf.season ? `${asOf.season} season, ${asOf.stage_index === 1 ? 'week' : `stage ${asOf.stage_index}, week`}` : 'Week';
+    panel.innerHTML = `
+      <div class="posture-head"><b>League context (FYI)</b>
+        <label class="posture-week">${escHtml(source)} <input type="number" min="0" max="30" data-posture-week value="${asOf.week ?? ''}" aria-label="Week"></label>
+      </div>
+      ${rows}
+      ${warnings.map(w => `<div class="posture-warning">⚠ ${escHtml(w.text)}</div>`).join('')}
+      <p class="posture-note">Information only. It doesn't change any value or the verdict. Records are from the ${asOf.from_current ? 'current' : 'newest'} export; correct them if it's behind.</p>`;
+    for (let input of panel.querySelectorAll ? panel.querySelectorAll('[data-posture-side]') : []) {
+      input.onchange = () => { setPostureRecord(input.dataset.postureSide, input.dataset.postureK, input.value); refresh(); };
+    }
+    let week = panel.querySelector ? panel.querySelector('[data-posture-week]') : null;
+    if (week && week.dataset !== undefined) week.onchange = () => { setPostureWeek(week.value); refresh(); };
+  }
+
   function checkSubmitter(name, note) {
     let n = String(name ?? '').trim();
     let t = String(note ?? '').trim();
@@ -255,8 +469,9 @@
     return { ok: true, name: n, note: t.length ? t : null };
   }
 
-  // The v2.0 submission: the frozen snapshot, unchanged, plus the league fields.
-  function buildSubmission(snapshot, name, note) {
+  // The v2.0 submission: the frozen snapshot, unchanged, plus the league
+  // fields; v4.0 adds the posture FYI shown (sides: assets with value).
+  function buildSubmission(snapshot, name, note, sides) {
     if (!snapshot || !teamsReady()) return null;
     let who = checkSubmitter(name, note);
     if (!who.ok) return null;
@@ -266,7 +481,8 @@
       submitting_team_id: league.teamA,
       other_team_id: league.teamB,
       submitter_name: who.name,
-      submitter_note: who.note
+      submitter_note: who.note,
+      posture: postureSnapshot(sides)
     });
   }
 
@@ -463,7 +679,13 @@
 
     for (let [id, key] of [['#teamA', 'teamA'], ['#teamB', 'teamB']]) {
       let select = q(id);
-      if (select) select.onchange = () => { league[key] = select.value; refresh(); loadPicks(); };
+      if (select) select.onchange = () => {
+        league[key] = select.value;
+        league.posture.edits = { A: null, B: null };
+        refresh();
+        loadPicks();
+        loadPosture();
+      };
     }
 
     // Practice is the default; a returning member comes back to their league.
@@ -504,6 +726,15 @@
     picksReady,
     loadPicks,
     reloadPicks: () => loadPicks(true),
+    postureOf,
+    postureWeight,
+    postureFor,
+    postureWarnings,
+    postureSnapshot,
+    paintPosture,
+    loadPosture,
+    setPostureRecord,
+    setPostureWeek,
     setCorrectionTrade,
     rememberedSubmitter: () => storageGet(STORE_SUBMITTER) || '',
     rememberSubmitter: name => storageSet(STORE_SUBMITTER, name)

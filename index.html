@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Madden League Trade Calculator</title>
-    <link rel="stylesheet" href="styles.css?v=3.1.0">
+    <link rel="stylesheet" href="styles.css?v=4.0.0">
   </head>
   <body>
     <header class="top">
@@ -12,7 +12,7 @@
         <div class="brandrow">
           <div>
             <div class="brand">MADDEN LEAGUE TRADE CALCULATOR</div>
-            <div class="ver">Web Release v3.1 · Ruleset v4.4</div>
+            <div class="ver">Web Release v4.0 · Ruleset v4.4</div>
           </div>
           <div class="brand-actions">
             <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false">Dark mode</button>
@@ -90,6 +90,7 @@
             <button type="button" class="add">+ Add asset</button>
           </section>
         </div>
+        <section class="posture-panel" id="posturePanel" aria-live="polite" hidden></section>
         <section class="analysis" id="analysis">
           <button type="button" id="analysisBtn" aria-expanded="false"><span>TRADE ANALYSIS</span><span id="chev">▾</span></button>
           <div class="primary" id="primary"><b>Primary Read:</b> Add assets to both sides.</div>
@@ -206,6 +207,16 @@
             <p><b>Primary Read</b> stays visible. Expand Trade Analysis for Best Asset, Raw Value, Adjusted
               Value, Draft Capital, Package Structure, and Suggested Correction.</p>
             <p>The verdict tells you what the calculator decided; Trade Analysis helps explain why.</p>
+          </div>
+          <div class="rulecard">
+            <h2>League Context (FYI)</h2>
+            <p>In League mode, a <b>League context</b> box below the trade shows each team's situation:
+              <b>Win-now</b> (winning .600 or better), <b>Bubble</b>, or <b>Rebuilding</b> (.400 or worse), with
+              how strong it is. It counts for nothing in weeks 1–3 and grows to full strength by week 9.</p>
+            <p>Records come from the league's latest Snallabot export. If it's behind, correct the record or the
+              week in the box. A human team trading against its situation (selling players for picks while
+              winning, or buying veterans while rebuilding) gets a warning, and the commissioner sees it too.</p>
+            <p><b>Information only:</b> it never changes a value or the verdict. It's saved with the trade.</p>
           </div>
           <div class="rulecard">
             <h2>Common Trade Types</h2>
@@ -399,6 +410,28 @@
             <div class="admin-status" id="commTeamsStatus" aria-live="polite"></div>
             <div class="comm-team-groups" id="commTeams"></div>
           </details>
+          <details class="admin-section comm-teams comm-activity" id="commActivityPanel">
+            <summary class="comm-teams-summary">
+              <span class="comm-teams-title">League activity</span>
+              <span class="comm-teams-count" id="commActivitySummary"></span>
+              <span class="comm-teams-hint">Roster moves and trades to check</span>
+            </summary>
+            <div class="admin-status" id="commActivityStatus" aria-live="polite"></div>
+            <div id="commActivity">
+              <h3 class="comm-activity-head">Needs a look</h3>
+              <div class="comm-move-list" id="commActivityCheck"></div>
+              <h3 class="comm-activity-head">Trades to check</h3>
+              <div class="comm-move-list" id="commActivityIssues"></div>
+              <div id="commActivityHandledWrap" hidden>
+                <h3 class="comm-activity-head">Handled</h3>
+                <div class="comm-move-list" id="commActivityHandled"></div>
+              </div>
+              <details class="comm-activity-other">
+                <summary id="commActivityOtherCount"></summary>
+                <div class="comm-move-list" id="commActivityOther"></div>
+              </details>
+            </div>
+          </details>
           <details class="admin-section comm-teams comm-picks" id="commPicksPanel">
             <summary class="comm-teams-summary">
               <span class="comm-teams-title">Draft picks</span>
@@ -468,13 +501,13 @@
     <!-- ?v= on local files: bump it with every Web Release so browsers fetch the
          new files instead of mixing cached old scripts with the new page. -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./supabase-config.js?v=3.1.0"></script>
-    <script src="./storage.js?v=3.1.0"></script>
-    <script src="./theme.js?v=3.1.0"></script>
-    <script src="./valuation.js?v=3.1.0"></script>
-    <script src="./league-mode.js?v=3.1.0"></script>
-    <script src="./calculator-ui.js?v=3.1.0"></script>
-    <script src="./trade-history.js?v=3.1.0"></script>
-    <script src="./commissioner.js?v=3.1.0"></script>
+    <script src="./supabase-config.js?v=4.0.0"></script>
+    <script src="./storage.js?v=4.0.0"></script>
+    <script src="./theme.js?v=4.0.0"></script>
+    <script src="./valuation.js?v=4.0.0"></script>
+    <script src="./league-mode.js?v=4.0.0"></script>
+    <script src="./calculator-ui.js?v=4.0.0"></script>
+    <script src="./trade-history.js?v=4.0.0"></script>
+    <script src="./commissioner.js?v=4.0.0"></script>
   </body>
 </html>

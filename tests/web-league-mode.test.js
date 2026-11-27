@@ -183,12 +183,12 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
     const strip = list => list.map(({ pick_id, pick_number, ...x }) => x);
     restA.user_team_assets = strip(restA.user_team_assets);
     restA.cpu_team_assets = strip(restA.cpu_team_assets);
-    if (keysOk && wa === 'v3.1' && wb === 'v1.5.0' && lastKeys && numbersOk && pickIds.every(x => x === null) && JSON.stringify(restA) === JSON.stringify(restB)) same++;
+    if (keysOk && wa === 'v4.0' && wb === 'v1.5.0' && lastKeys && numbersOk && pickIds.every(x => x === null) && JSON.stringify(restA) === JSON.stringify(restB)) same++;
     else mismatch.push(scenario.n);
   }
 
   check(`all ${scenarios.length} parity scenarios produce a snapshot`, compared === scenarios.length, mismatch.join(', '));
-  check('v3.1 snapshot = v1.5.0 snapshot apart from web_release, pick_id: null and pick_number (league without pick tracking)', same === compared && compared > 0, mismatch.join(', '));
+  check('v4.0 snapshot = v1.5.0 snapshot apart from web_release, pick_id: null and pick_number (league without pick tracking)', same === compared && compared > 0, mismatch.join(', '));
 
   const w = current();
   setTrade(w, scenarios[0]);
@@ -322,7 +322,7 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   el('#submitterNote').value = 'Deadline deal';
   await el('#acceptConfirm').onsubmit({ preventDefault() {} });
   const submitted = calls.find(c => c[0] === 'submit');
-  check('submitted the v3.1 league submission', submitted && submitted[1].web_release === 'v3.1' && submitted[1].submitter_note === 'Deadline deal' && submitted[1].other_team_id === TEAMS[1].team_id);
+  check('submitted the v4.0 league submission', submitted && submitted[1].web_release === 'v4.0' && submitted[1].submitter_note === 'Deadline deal' && submitted[1].other_team_id === TEAMS[1].team_id);
   check('confirmation message', el('#status').textContent === 'Logged as trade #42, Unreviewed.');
   check('name remembered, note cleared', w.localStore.get('maddenTrade.submitterName') === 'Sam' && el('#submitterNote').value === '');
 
@@ -445,6 +445,7 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
     commissionerPicks: async (token, id) => { ccalls.push(['picks', token, id]); return { ok: true, data: { ok: true, currentDraftYear: null, rolloverDue: false, latestSeason: null, picks: [] }, error: null, status: 200 }; },
     commissionerSnapshots: async (token, id) => { ccalls.push(['snapshots', token, id]); return { ok: true, data: { ok: true, snapshots: [] }, error: null, status: 200 }; },
     leaguePickChoices: async () => ({ ok: true, picks: [], currentDraftYear: null }),
+    commissionerActivity: async (token, id) => { ccalls.push(['activity', token, id]); return { ok: true, data: { ok: true, moves: [], issues: [] }, error: null, status: 200 }; },
   });
   const cw = makeWindow({ storage: cstorage });
   load(cw, PAGE);
@@ -529,7 +530,7 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   reviewReply = { ok: true, data: { ok: true, trade: { tradeNumber: 70, reviewStatus: 'REVIEWED', currentRevision: 1 } }, error: null, status: 200 };
   await cel('#saveCorrection').onclick();
   const correctCall = ccalls.filter(c => c[0] === 'review')[1];
-  check('correction sends CORRECT with the edited v3.1 snapshot', correctCall && correctCall[1].action === 'CORRECT' && correctCall[1].reason === 'Missing pick' && correctCall[1].trade.web_release === 'v3.1' && correctCall[1].trade.cpu_team_assets.length === snapA.cpu_team_assets.length + 1);
+  check('correction sends CORRECT with the edited v4.0 snapshot', correctCall && correctCall[1].action === 'CORRECT' && correctCall[1].reason === 'Missing pick' && correctCall[1].trade.web_release === 'v4.0' && correctCall[1].trade.cpu_team_assets.length === snapA.cpu_team_assets.length + 1);
   check('correction snapshot keeps engine side names', /User Team|CPU Team/.test(JSON.stringify(correctCall[1].trade.trade_intelligence)));
   check('after save: bar hidden, teams restored, trade cleared', !CA.isCorrecting() && cel('#correctionBar').hidden === true && CLM.state.teamA === TEAMS[1].team_id && CLM.state.teamB === '' && vm.runInContext('state.A.length + state.B.length', cw.ctx) === 0);
 
@@ -659,7 +660,7 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   pel('#submitterName').value = 'Sam';
   await pel('#acceptConfirm').onsubmit({ preventDefault() {} });
   const psub = pcalls.find(c => c[0] === 'submit');
-  check('submission carries each pick_id (players: null)', psub && psub[1].web_release === 'v3.1' && psub[1].user_team_assets.map(a => a.pick_id).join(',') === `${P(4)},${P(2)}` && psub[1].cpu_team_assets[0].pick_id === null);
+  check('submission carries each pick_id (players: null)', psub && psub[1].web_release === 'v4.0' && psub[1].user_team_assets.map(a => a.pick_id).join(',') === `${P(4)},${P(2)}` && psub[1].cpu_team_assets[0].pick_id === null);
   check('after submit the pick choices reload', pcalls.filter(c => c[0] === 'choices').length >= 2 && pcalls.at(-1)[0] === 'choices');
 
   // Practice mode: no pick tracking, pick_id null.
@@ -720,6 +721,65 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   }
 
   // -------------------------------------------------------------------------
+  // 9c. Web v4.0 trade posture FYI
+  // -------------------------------------------------------------------------
+  {
+    const PLM2 = vm.runInContext('LeagueMode', pw.ctx);
+    const close = (a, b) => Math.abs(a - b) < 1e-9;
+    check('weight: none weeks 1-3, squared ramp, full from week 9', [1, 3, 4, 6, 9, 15].map(w => PLM2.postureWeight(w, 1)).every((x, i) => close(x, [0, 0, 1 / 36, 9 / 36, 1, 1][i])));
+    check('weight: preseason fades to 0 by week 3; other stages full', close(PLM2.postureWeight(1, 0), 4 / 9) && PLM2.postureWeight(3, 0) === 0 && PLM2.postureWeight(2, 3) === 1);
+    const p71 = PLM2.postureOf({ wins: 7, losses: 1, ties: 0 }, 9, 1);
+    check('7-1 at week 9: Win-now, full strength', p71.label === 'WIN_NOW' && p71.strength === 1);
+    const p44 = PLM2.postureOf({ wins: 4, losses: 4, ties: 0 }, 9, 1);
+    check('4-4: Bubble, no strength', p44.label === 'BUBBLE' && p44.strength === 0);
+    const p35 = PLM2.postureOf({ wins: 3, losses: 5, ties: 0 }, 6, 1);
+    check('3-5 at week 6: Rebuilding (.375), half record strength x weight .25', p35.label === 'REBUILDING' && close(p35.recordStrength, 0.5) && close(p35.strength, 0.125));
+    check('.600 exactly is Win-now, .400 is Rebuilding, 0-0 is Bubble', PLM2.postureOf({ wins: 3, losses: 2 }, 9, 1).label === 'WIN_NOW' && PLM2.postureOf({ wins: 2, losses: 3 }, 9, 1).label === 'REBUILDING' && PLM2.postureOf({}, 9, 1).label === 'BUBBLE');
+    check('ties count as half a win', close(PLM2.postureOf({ wins: 5, losses: 2, ties: 1 }, 9, 1).pct, 5.5 / 8));
+
+    // Records: DAL (human) 7-1, OMH (human) 1-7, export week 9.
+    vm.runInContext(`LeagueMode.state.posture = { leagueId: '${LEAGUE.id}', loaded: true, loading: false, error: '', week: null, edits: { A: null, B: null }, rows: [
+      { team_id: '${DAL}', abbreviation: 'DAL', wins: 7, losses: 1, ties: 0, season: 2027, stage_index: 1, week: 9, received_at: '2026-11-27T16:00:00Z', is_current: true },
+      { team_id: '${OMH}', abbreviation: 'OMH', wins: 1, losses: 7, ties: 0, season: 2027, stage_index: 1, week: 9, received_at: '2026-11-27T16:00:00Z', is_current: true } ] };`, pw.ctx);
+    pstorage.leaguePickChoices = async (name, a, b, tradeId) => ({ ok: true, picks: pickRows, currentDraftYear: 2028 });
+    await PLM2.reloadPicks();
+    // DAL (Win-now) gives a player and gets a pick: selling while winning.
+    prun(`state = { A: [${pickAsset(951, 'Late 3rd', 'Next year')}], B: [${player(952)}] }; render();`);
+    const panel = pel('#posturePanel');
+    check('panel shown with both teams, records and labels', panel.hidden === false && panel.innerHTML.includes('DAL') && panel.innerHTML.includes('Win-now · strong') && panel.innerHTML.includes('Rebuilding · strong') && panel.innerHTML.includes('value="7"'));
+    check('selling-while-winning warning for the human Win-now team', panel.innerHTML.includes('DAL is Win-now but is giving up players for draft picks.'));
+    check('panel says it is information only', panel.innerHTML.includes("doesn't change any value or the verdict"));
+    // OMH (Rebuilding, made human here) gets a 30-year-old for a pick: buying while rebuilding.
+    vm.runInContext(`LeagueMode.state.teams = LeagueMode.state.teams.map(t => t.team_id === '${OMH}' ? Object.assign({}, t, { controlled_by: 'USER' }) : t);`, pw.ctx);
+    prun(`state = { A: [${pickAsset(953, 'Late 3rd', 'Next year')}], B: [Object.assign(emptyAsset(), { id: 954, type: 'Player', name: 'Vet', pos: 'WR', ovr: '85', age: '30', dev: 'Normal' })] }; render();`);
+    const warns = PLM2.postureWarnings(vm.runInContext("({ A: totals('A').arr, B: totals('B').arr })", pw.ctx));
+    check('buying-while-rebuilding warning for the human Rebuilding team', warns.some(w => w.team === 'OMH' && w.code === 'BUYING_WHILE_REBUILDING'));
+    const snapP = PLM2.postureSnapshot(vm.runInContext("({ A: totals('A').arr, B: totals('B').arr })", pw.ctx));
+    check('posture snapshot: as of week 9, both teams, warnings by code', snapP.version === 1 && snapP.as_of.week === 9 && snapP.as_of.from_current_export === true && snapP.teams.map(t => `${t.side}:${t.team}:${t.label}:${t.wins}-${t.losses}`).join(',') === 'A:DAL:WIN_NOW:7-1,B:OMH:REBUILDING:1-7' && snapP.warnings.some(w => w.code === 'BUYING_WHILE_REBUILDING'));
+    // A CPU team gets no warnings.
+    vm.runInContext(`LeagueMode.state.teams = LeagueMode.state.teams.map(t => t.team_id === '${OMH}' ? Object.assign({}, t, { controlled_by: 'CPU' }) : t);`, pw.ctx);
+    check('CPU teams get no warning', !PLM2.postureWarnings(vm.runInContext("({ A: totals('A').arr, B: totals('B').arr })", pw.ctx)).some(w => w.team === 'OMH'));
+    // Editing a record and the week.
+    PLM2.setPostureRecord('A', 'losses', '5');
+    check('edited record: 7-5 -> Bubble, marked edited', PLM2.postureFor('A').label === 'BUBBLE' && PLM2.postureFor('A').edited === true);
+    PLM2.setPostureRecord('A', 'losses', '1');
+    check('back to the export record: not edited', PLM2.postureFor('A').edited === false);
+    PLM2.setPostureWeek('4');
+    check('earlier week lowers the strength (week 4)', close(PLM2.postureFor('A').weight, 1 / 36));
+    PLM2.setPostureWeek('9');
+    check('typing the export week clears the override', vm.runInContext('LeagueMode.state.posture.week', pw.ctx) === null);
+    // Submission carries the posture.
+    pcalls.length = 0;
+    prun(`state.A[0].pick_id = '${P(4)}'; render();`);
+    run(pw, 'openAcceptConfirmation()');
+    pel('#submitterName').value = 'Sam';
+    await pel('#acceptConfirm').onsubmit({ preventDefault() {} });
+    const psub2 = pcalls.find(c => c[0] === 'submit');
+    check('submission includes the posture shown', psub2 && psub2[1].posture && psub2[1].posture.teams.length === 2 && psub2[1].posture.teams[0].team === 'DAL');
+    check('history shows the posture at submission', vm.runInContext(`historyPosture({ posture: ${JSON.stringify({ teams: [{ team: 'DAL', label: 'WIN_NOW', wins: 7, losses: 1, ties: 0 }], warnings: [{ team: 'DAL', code: 'SELLING_WHILE_WINNING' }], as_of: { week: 9, season: 2027 } })} })`, pw.ctx).includes('DAL: Win-now (7-1-0)') && vm.runInContext(`historyPosture({ posture: { teams: [], warnings: [] } })`, pw.ctx) === '' && vm.runInContext('historyPosture({})', pw.ctx) === '');
+  }
+
+  // -------------------------------------------------------------------------
   // 10. Web v3.0 commissioner: Draft picks and Exports
   // -------------------------------------------------------------------------
   const commPick = (n, year, round, orig, origAbbr, owner, ownerAbbr) => ({ pickId: P(n), draftYear: year, round, originalTeamId: orig, originalAbbreviation: origAbbr, ownerTeamId: owner, ownerAbbreviation: ownerAbbr });
@@ -730,11 +790,20 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
     { snapshotId: 'snap-9', receivedAt: '2026-11-27T16:32:26Z', status: 'RECEIVING', season: 2027, stageIndex: 1, week: 9, rostersReceived: 32, teamsInLeague: 32, missingRosters: 0, complete: true, players: 2056, freeAgents: 580, historyFailed: 0, isCurrent: false },
     { snapshotId: 'snap-8', receivedAt: '2026-11-25T04:47:29Z', status: 'RECEIVED', season: 2027, stageIndex: 1, week: 8, rostersReceived: 31, teamsInLeague: 32, missingRosters: 1, complete: false, players: 1990, freeAgents: 581, historyFailed: 0, isCurrent: true } ] };
   const kcalls = [];
+  let activityData = { ok: true, moves: [
+    { toSnapshotId: 'snap-9', receivedAt: '2026-11-27T16:32:26Z', fromWeek: 8, toSeason: 2027, toWeek: 9, rosterId: 555221173, player: 'Carson Beck', pos: 'QB', ovr: 71, fromTeam: 'OMH', fromStatus: 'ROSTER', fromControl: 'USER', toTeam: 'GB', toStatus: 'ROSTER', toControl: 'CPU', status: 'NOT LOGGED', checkThis: true, contractChanged: false, loggedTradeNumber: null, handledBy: null, handledNote: null },
+    { toSnapshotId: 'snap-9', receivedAt: '2026-11-27T16:32:26Z', fromWeek: 8, toSeason: 2027, toWeek: 9, rosterId: 555222275, player: 'Donovan Jackson', pos: 'IOL', ovr: 79, fromTeam: 'SF', fromStatus: 'ROSTER', fromControl: 'CPU', toTeam: 'SEA', toStatus: 'ROSTER', toControl: 'USER', status: 'LOGGED', checkThis: false, contractChanged: false, loggedTradeNumber: 15, handledBy: null, handledNote: null },
+    { toSnapshotId: 'snap-9', receivedAt: '2026-11-27T16:32:26Z', fromWeek: 8, toSeason: 2027, toWeek: 9, rosterId: 555221300, player: 'Austin Corbett', pos: 'IOL', ovr: 74, fromTeam: null, fromStatus: 'FREE AGENT', fromControl: null, toTeam: 'OMH', toStatus: 'ROSTER', toControl: 'USER', status: 'SIGNING', checkThis: false, contractChanged: null, loggedTradeNumber: null, handledBy: null, handledNote: null } ],
+    issues: [{ tradeId: 'trade-12', tradeNumber: 12, acceptedAt: '2026-11-22T12:00:00Z', reviewStatus: 'REVIEWED', assetRef: 'O1', fromTeam: 'DAL', toTeam: 'PHI', asset: 'Ed Olivr', pos: 'DT', ovr: 82, matchStatus: 'UNMATCHED', matchedPlayer: null, rosterId: null, seenInGame: null, issue: 'NOT LINKED' }] };
   const kstorage = Object.assign({}, cstorage, {
     commissionerPicks: async (t, id) => { kcalls.push(['picks', t, id]); return { ok: true, data: picksData, error: null, status: 200 }; },
     commissionerSnapshots: async (t, id) => { kcalls.push(['snapshots', t, id]); return { ok: true, data: snapsData, error: null, status: 200 }; },
     setPickOwner: async args => { kcalls.push(['setOwner', args]); return { ok: true, data: { ok: true, pick: { pickId: args.pickId, ownerTeamId: args.ownerTeamId, ownerAbbreviation: 'OMH', changed: true } }, error: null, status: 200 }; },
     draftComplete: async args => { kcalls.push(['draft', args]); return { ok: true, data: { ok: true, draft: { currentDraftYear: 2029, picksRetired: 224, picksCreated: 224 } }, error: null, status: 200 }; },
+    commissionerActivity: async (t, id) => { kcalls.push(['activity', t, id]); return { ok: true, data: activityData, error: null, status: 200 }; },
+    markMoveHandled: async args => { kcalls.push(['handled', args]); return { ok: true, data: { ok: true, move: { handled: args.handled, changed: true } }, error: null, status: 200 }; },
+    playerCandidates: async args => { kcalls.push(['candidates', args]); return { ok: true, data: { ok: true, players: [{ rosterId: 555223010, player: 'Ed Oliver', pos: 'DT', ovr: 82, age: 28, team: 'DAL' }] }, error: null, status: 200 }; },
+    linkTradePlayer: async args => { kcalls.push(['link', args]); return { ok: true, data: { ok: true, link: { assetRef: args.assetRef, matchStatus: 'MANUAL', matchedPlayer: 'Ed Oliver', rosterId: args.rosterId } }, error: null, status: 200 }; },
     markSnapshotCurrent: async args => { kcalls.push(['mark', args]); return { ok: true, data: { ok: true, snapshot: { snapshotId: args.snapshotId, season: 2027, week: 9, changed: true } }, error: null, status: 200 }; },
     commissionerAuditLog: async () => ({ ok: true, data: { ok: true, events: [{ occurredAt: iso(NOW), action: 'DRAFT_COMPLETED', tradeNumber: null, actorRole: 'COMMISSIONER', actorName: 'Commish', reason: null, details: {} }] }, error: null, status: 200 }),
   });
@@ -781,6 +850,30 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   const mc = kcalls.find(c => c[0] === 'mark');
   check('mark current sends token, league, export, name', mc && mc[1].snapshotId === 'snap-9' && mc[1].token === 'tok-123' && mc[1].commissionerName === 'Commish');
   check('mark current updates the list', kel('#commSnapshotsSummary').textContent === 'current: 2027, week 9' && kel('#commSnapshotsStatus').textContent === 'Marked current: 2027, week 9.');
+
+  // League activity (v4.0)
+  check('activity: loaded with the token and league', kcalls.some(c => c[0] === 'activity' && c[1] === 'tok-123' && c[2] === LEAGUE.id));
+  check('activity: summary counts moves and trades to check', kel('#commActivitySummary').textContent === '2 to check');
+  const checkHtml = kel('#commActivityCheck').innerHTML;
+  check('activity: unlogged human move listed with teams and a handled button', checkHtml.includes('Carson Beck (QB 71)') && checkHtml.includes('OMH (Human) → GB (CPU)') && checkHtml.includes('Mark handled'));
+  check('activity: logged trade and signing go under other moves', kel('#commActivityOther').innerHTML.includes('trade #15') && kel('#commActivityOther').innerHTML.includes('Free agent → OMH (Human)') && kel('#commActivityOtherCount').textContent.startsWith('2 other moves'));
+  check('activity: trade to check with a Choose player button', kel('#commActivityIssues').innerHTML.includes('Trade #12 · Ed Olivr (DT 82)') && kel('#commActivityIssues').innerHTML.includes('Choose player'));
+  kw.document.querySelector('[data-move-note="555221173|snap-9"]').value = '  Cut, not a trade ';
+  await KCA._markMove('555221173|snap-9', true);
+  const hm = kcalls.find(c => c[0] === 'handled');
+  check('mark handled sends the move, trimmed note and name', hm && hm[1].rosterId === 555221173 && hm[1].toSnapshotId === 'snap-9' && hm[1].handled === true && hm[1].note === 'Cut, not a trade' && hm[1].commissionerName === 'Commish');
+  check('handled move moves to Handled with the note', kel('#commActivityHandledWrap').hidden === false && kel('#commActivityHandled').innerHTML.includes('Handled by Commish: Cut, not a trade') && kel('#commActivitySummary').textContent === '1 to check');
+  await KCA._markMove('555221173|snap-9', false);
+  check('undo puts it back', kcalls.filter(c => c[0] === 'handled').at(-1)[1].handled === false && kel('#commActivitySummary').textContent === '2 to check');
+  await KCA._loadCandidates('trade-12');
+  check('choose player loads that trade\'s players', kcalls.some(c => c[0] === 'candidates' && c[1].tradeId === 'trade-12') && kel('#commActivityIssues').innerHTML.includes('Ed Oliver · DT 82 · DAL'));
+  await KCA._linkPlayer('trade-12', 'O1', null);
+  check('link needs a player chosen', !kcalls.some(c => c[0] === 'link') && kel('#commActivityStatus').textContent === 'Choose the player first.');
+  activityData = { ok: true, moves: activityData.moves, issues: [] };
+  await KCA._linkPlayer('trade-12', 'O1', 555223010);
+  const lk = kcalls.find(c => c[0] === 'link');
+  check('link sends trade, asset, player and name; list reloads', lk && lk[1].tradeId === 'trade-12' && lk[1].assetRef === 'O1' && lk[1].rosterId === 555223010 && kel('#commActivityIssues').innerHTML.includes('Every traded player is linked'));
+  check('queue flag for a posture warning', KCA._tradeFlags({ id: 'p1', verdict: 'FAIR', posture: { warnings: [{ team: 'DAL', code: 'SELLING_WHILE_WINNING' }] } }, []).includes('Posture warning (DAL)'));
 
   console.log(`\n${pass} / ${pass + fail} ${fail ? 'FAIL' : 'PASS'}`);
   process.exit(fail ? 1 : 0);

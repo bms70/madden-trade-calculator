@@ -36,6 +36,8 @@ Last updated: 2026-11-22.
 
 | Question | Answer |
 |---|---|
+| **Posture FYI rules?** (2026-11-27) | **Web v4.0:** win % bands (Win-now .600+, Rebuilding .400 or below); strength full at .250 from .500, times the timing weight; warnings for human teams selling while winning or buying while rebuilding; records from the current export, editable; posture saved with each submission. FYI choices only; v5.0 sets effect sizes from the stored evidence |
+| **League activity actions?** (2026-11-27) | View, **mark handled** with a note, and **link a trade's player**, all audited (Web v4.0) |
 | **How are draft picks entered?** (2026-11-27) | **Web v3.1:** Timing → Round → **Pick number 1–32** for the current draft (the actual pick, as Madden shows it), or **Projected Early / Mid / Late** for future picks (1st round also Unknown; rounds 4–7 round only). Current-draft 2nd/3rd map to Early 1–10, Mid 11–21, Late 22–32 (v4.4 values, no rules change). Rejected: setting slots from standings (Snallabot's standings don't include Madden's tie-breakers) |
 | Madden version / platform | Madden 27, cross-play |
 | Third-party league site? | None before this work; NeonSportz ruled out |
