@@ -11,4 +11,4 @@ Web Release v4.0 launch. Ruleset v4.4 unchanged. **Database and functions go liv
 | 5 | Site, League mode | Choose two teams and add assets (don't submit) | **League context (FYI)** shows both teams' records and labels |
 | 6 | Site, Commissioner | Sign in and open **League activity** | Unlogged human moves are listed under Needs a look; mark any already resolved as handled |
 | 7 | Release | Tag `v4.0` and publish the release; update the wiki | — |
-| 8 | A few days later (or right away) | Maintenance PR: accept v4.0 only, then redeploy `accept-trade` and `review-trade` | — |
+| 8 | **Done 2026-11-27** (same day) | Maintenance PR: only v4.0 accepted; `accept-trade` and `review-trade` redeployed | — |

@@ -1,4 +1,4 @@
-// Web v2.0 – v3.1 functions: trade validation, commissioner sessions and the five
+// Web v2.0 – v4.0 functions: trade validation, commissioner sessions and the five
 // request handlers (accept-trade, commissioner-login, commissioner-session-check,
 // review-trade, commissioner-audit-log), with a fake database RPC.
 // Run from the repo root: node --experimental-strip-types tests/web-functions.test.mjs
@@ -31,7 +31,7 @@ const NOW = 1_800_000_000;
 
 function snapshot(overrides = {}) {
   return {
-    web_release: 'v3.1',
+    web_release: 'v4.0',
     ruleset_version: 'v4.4',
     user_team_assets: [{ type: 'PLAYER', name: 'Player A', pos: 'QB', ovr: 80 }],
     cpu_team_assets: [{ type: 'PICK', round: 1 }],
@@ -93,11 +93,11 @@ async function json(response) { return { status: response.status, body: await re
 // ---------------------------------------------------------------------------
 {
   const v = validation.validateTradePayload;
-  check('v3.1/v4.4 accepted', v(snapshot()).valid);
-  check('old pages refused: v3.0, v2.1, v2.0, v1.5.0', ['v3.0', 'v2.1', 'v2.0', 'v1.5.0'].every(r => v(snapshot({ web_release: r })).message === 'Unsupported Web Release version.'));
-  check('v3.1 with v4.2 refused', !v(snapshot({ ruleset_version: 'v4.2' })).valid);
+  check('v4.0/v4.4 accepted', v(snapshot()).valid);
+  check('old pages refused: v3.1, v3.0, v2.1, v2.0, v1.5.0', ['v3.1', 'v3.0', 'v2.1', 'v2.0', 'v1.5.0'].every(r => v(snapshot({ web_release: r })).message === 'Unsupported Web Release version.'));
+  check('v4.0 with v4.2 refused', !v(snapshot({ ruleset_version: 'v4.2' })).valid);
   check('v1.4.0/v4.2 rejected', !v(snapshot({ web_release: 'v1.4.0', ruleset_version: 'v4.2' })).valid);
-  check('v3.1 with v4.2: ruleset message', v(snapshot({ ruleset_version: 'v4.2' })).message === 'Unsupported Ruleset version.');
+  check('v4.0 with v4.2: ruleset message', v(snapshot({ ruleset_version: 'v4.2' })).message === 'Unsupported Ruleset version.');
   check('7 assets rejected', !v(snapshot({ user_team_assets: Array(7).fill({}) })).valid);
   check('0 assets rejected', !v(snapshot({ cpu_team_assets: [] })).valid);
   check('NaN value rejected', !v(snapshot({ user_raw_value: NaN })).valid);
@@ -189,7 +189,7 @@ async function json(response) { return { status: response.status, body: await re
   check('v2.1 page refused (reload), no database call', r.status === 400 && r.body.error === 'Unsupported Web Release version.' && db.calls.length === 2);
 
   r = await json(await accept.handleAcceptTrade(post(snapshot()), deps));
-  check('v3.1 without league fields rejected', r.status === 400 && r.body.error === 'Only league trades can be logged.');
+  check('v4.0 without league fields rejected', r.status === 400 && r.body.error === 'Only league trades can be logged.');
 
   r = await json(await accept.handleAcceptTrade(post(snapshot({ web_release: 'v1.4.0', ruleset_version: 'v4.2' })), deps));
   check('v1.4.0 rejected', r.status === 400);
@@ -389,11 +389,11 @@ async function json(response) { return { status: response.status, body: await re
 // ---------------------------------------------------------------------------
 {
   check('v3.0 / v4.4 refused from the cleanup', validation.validateTradePayload(snapshot({ web_release: 'v3.0' })).valid === false);
-  check('v3.1 / v4.4 accepted', validation.validateTradePayload(snapshot({ web_release: 'v3.1' })).valid === true);
-  const numbered = validation.tradeForStorage(validation.validateTradePayload(snapshot({ web_release: 'v3.1', cpu_team_assets: [{ type: 'Draft Pick', pick: 'Mid 2nd', timing: 'Current draft', pick_number: 14 }] })).trade);
+  check('v3.1 / v4.4 refused from the v4.0 cleanup', validation.validateTradePayload(snapshot({ web_release: 'v3.1' })).message === 'Unsupported Web Release version.');
+  const numbered = validation.tradeForStorage(validation.validateTradePayload(snapshot({ cpu_team_assets: [{ type: 'Draft Pick', pick: 'Mid 2nd', timing: 'Current draft', pick_number: 14 }] })).trade);
   check('pick_number kept in the stored assets', numbered.cpu_team_assets[0].pick_number === 14);
-  check('v3.1 with another ruleset refused', validation.validateTradePayload(snapshot({ web_release: 'v3.1', ruleset_version: 'v4.2' })).valid === false);
-  const withPick = snapshot({ web_release: 'v3.1', cpu_team_assets: [{ type: 'Draft Pick', pick: 'Mid 2nd', timing: 'Next year', pick_id: TRADE_ID }] });
+  check('v4.0 with another ruleset refused', validation.validateTradePayload(snapshot({ ruleset_version: 'v4.2' })).valid === false);
+  const withPick = snapshot({ cpu_team_assets: [{ type: 'Draft Pick', pick: 'Mid 2nd', timing: 'Next year', pick_id: TRADE_ID }] });
   const stored = validation.tradeForStorage(validation.validateTradePayload(withPick).trade);
   check('pick_id kept in the stored assets', stored.cpu_team_assets[0].pick_id === TRADE_ID);
 
