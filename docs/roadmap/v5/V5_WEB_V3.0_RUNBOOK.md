@@ -14,6 +14,6 @@ Web Release v3.0 launch. Ruleset v4.4 unchanged. **Order matters:** database and
 | 8 | Site, Commissioner tab | Sign in, open **Draft picks**, then **Exports** | Picks moved by earlier trades are underlined. Mark the newest healthy export current |
 | 9 | Site, League mode | Choose two teams and add a Draft Pick (don't submit) | **Whose pick** lists the giving team's picks |
 | 10 | Release | Tag `web-v3.0`, publish the release, update the wiki | — |
-| 11 | A few days later | Maintenance PR: remove v2.0 and v2.1 from `trade-validation.ts`, then redeploy `accept-trade` and `review-trade` | — |
+| 11 | **Done 2026-11-27** (after Web v3.1) | Maintenance PR: only v3.1 accepted; `accept-trade` and `review-trade` redeployed | — |
 
 **If something goes wrong after step 6:** members on old pages see "reload the page" for pick trades, which is expected. To pause tracking, run `update public.leagues set current_draft_year = null where name_key = lower('<LEAGUE NAME>');`. Trades then submit without pick checks. Set it back to resume; the picks are kept.

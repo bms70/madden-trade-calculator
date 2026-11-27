@@ -6,18 +6,12 @@ import { trimmedString, uuidPattern } from "./http.ts";
 
 // Accepted Web Release / Ruleset pairs from Web v3.1. Every accepted pair is
 // a league release (league fields required).
-//   v3.1 / v4.4   current site: Draft Pick assets add pick_number (current draft)
-//   v3.0 / v4.4   pages still open from v3.0: Draft Pick assets carry pick_id
-//   v2.1 / v4.4   pages still open from v2.1 (same shape without pick_id; once
-//                 a league tracks picks, the database refuses their pick trades
-//                 with "reload the page")
-//   v2.0 / v4.4   pages still open from v2.0
-// No longer accepted: v1.5.0 / v4.4 and v1.4.0 / v4.2.
-// v3.0 launch runbook: remove v2.0 and v2.1 once open pages have reloaded.
+//   v3.1 / v4.4   current site (pick_id in League mode, pick_number for
+//                 current-draft picks)
+// No longer accepted (2026-11-27, v3.0 runbook step 11 brought forward):
+// v3.0, v2.1 and v2.0 (pages left open from before an update: the member
+// reloads and submits again), and v1.5.0 / v1.4.0.
 export const SUPPORTED_RELEASES: Record<string, string> = {
-  "v2.0": "v4.4",
-  "v2.1": "v4.4",
-  "v3.0": "v4.4",
   "v3.1": "v4.4",
 };
 

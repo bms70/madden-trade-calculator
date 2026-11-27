@@ -23,7 +23,7 @@ This replaces the long Pick list (1.01–1.32, Early/Mid/Late 2nd, Future 1sts .
 
 ## Backend
 
-- **`accept-trade` / `review-trade`:** accept **v3.1 / v4.4**, along with v3.0, v2.1 and v2.0 for pages left open.
+- **`accept-trade` / `review-trade`:** accept **v3.1 / v4.4**, along with v3.0, v2.1 and v2.0 for pages left open. A same-day maintenance update then removed the older pairs: a page left open from before an update says "Unsupported Web Release version", and the member reloads.
 - **No database change.** The pick number is kept in the stored trade snapshot.
 
 ## Snapshot contract
