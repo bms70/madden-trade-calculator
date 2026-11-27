@@ -186,8 +186,10 @@ check("before: free-agent lists stored but not built",
       psql("select count(*) from import_payloads where route = 'freeagents/roster' and history_status is null;") == "2")
 
 # ---------------------------------------------------------------- apply (backfill)
-with open(os.path.join(ROOT, "supabase", "migrations", FIX), encoding="utf-8") as f:
-    psql(f.read())
+for m in migrations:
+    if m >= FIX:
+        with open(os.path.join(ROOT, "supabase", "migrations", m), encoding="utf-8") as f:
+            psql(f.read())
 
 check("backfill: free-agent lists built", psql("select count(*) from import_payloads where route = 'freeagents/roster' and history_status = 'DONE';") == "2")
 check("free agents saved with no team and the free-agent flag",
@@ -206,16 +208,16 @@ def moves():
 
 mv = moves()
 check("4 moves (a status change on the same team is not a move)", len(mv) == 4 and "Patrick Mahomes" not in mv, list(mv))
-check("trade: practice squad -> roster, same contract, flagged (human team, not logged)",
-      mv.get("Travis Kelce") == f"Travis Kelce,{A_ABBR},PRACTICE SQUAD,USER,{B_ABBR},ROSTER,CPU,NOT LOGGED,true,false", mv.get("Travis Kelce"))
+check("unlogged move off a practice squad: PRACTICE SQUAD, not flagged (20261127030000)",
+      mv.get("Travis Kelce") == f"Travis Kelce,{A_ABBR},PRACTICE SQUAD,USER,{B_ABBR},ROSTER,CPU,PRACTICE SQUAD,false,false", mv.get("Travis Kelce"))
 check("cut and picked up between exports: still flagged, contract_changed true",
       mv.get("John Smith") == f"John Smith,{A_ABBR},ROSTER,USER,{B_ABBR},ROSTER,CPU,NOT LOGGED,true,true", mv.get("John Smith"))
 check("signing: free agent -> team, not flagged",
       mv.get("Aaron Jones") == f"Aaron Jones,-,FREE AGENT,-,{A_ABBR},ROSTER,USER,SIGNING,false,-", mv.get("Aaron Jones"))
 check("release: team -> free agent, not flagged",
       mv.get("Joe Burrow") == f"Joe Burrow,{B_ABBR},ROSTER,CPU,-,FREE AGENT,-,RELEASE,false,-", mv.get("Joe Burrow"))
-check("flagged moves sort first, signings and releases last",
-      psql(f"select string_agg(status, ',') from owner_roster_moves('{LEAGUE}');").startswith("NOT LOGGED,NOT LOGGED,"))
+check("flagged moves sort first; practice squad, signings and releases after",
+      psql(f"select string_agg(status, ',') from owner_roster_moves('{LEAGUE}');") == "NOT LOGGED,SIGNING,RELEASE,PRACTICE SQUAD")
 
 # ---------------------------------------------------------------- a later export through the receiver
 _, T1 = submit(trade([asset(name="Joe Burrow", pos="QB")], [asset(id=2, type="Draft Pick", pick="7th")]))
@@ -232,6 +234,24 @@ check("ledger ignores free-agent rows when matching (trade logged for a free age
       psql(f"select match_status from owner_trade_ledger('{LEAGUE}') where trade_number = {T1} and asset_ref = 'S1';") == "UNMATCHED")
 check("free agents never count as a team for 'seen in game'",
       psql(f"select count(*) from trade_ledger where league_id = '{LEAGUE_ID}' and seen_in_game = 'YES';") == "0")
+
+# ---------------------------------------------------------------- practice squad + logged trade; contract hint
+CHASE2 = dict(CHASE, isOnPracticeSquad=True)
+SMITH3 = dict(SMITH, contractSalary=1500000)
+new_burst()
+export([dict(MAHOMES, isOnPracticeSquad=True), dict(JONES, salary=3000000, contractSalary=3000000), dict(BURROW, salary=5000000, contractSalary=5000000)],
+       [CHASE2, dict(KELCE, isOnPracticeSquad=False), SMITH3], [])
+_, T2 = submit(trade([asset(name="Ja'Marr Chase", pos="WR")], [asset(id=2, type="Draft Pick", pick="6th")]))
+# Chase traded off B's practice squad to A's roster; like a real trade, bonus and cap hit
+# change but salary, length and years left don't.
+new_burst()
+export([dict(MAHOMES, isOnPracticeSquad=True), dict(JONES, salary=3000000, contractSalary=3000000), dict(BURROW, salary=5000000, contractSalary=5000000),
+        dict(CHASE, contractBonus=0, capHit=300)],
+       [dict(KELCE, isOnPracticeSquad=False), SMITH3], [])
+row = psql(f"select concat_ws(',', from_status, to_status, status, check_this, contract_changed, logged_trade_number) "
+           f"from owner_roster_moves('{LEAGUE}') where roster_id = 201;")
+check("practice-squad move explained by a logged trade: LOGGED", row == f"PRACTICE SQUAD,ROSTER,LOGGED,f,f,{T2}", row)
+check("contract hint ignores bonus and cap hit (they change with every trade)", row.split(",")[4] == "f", row)
 
 # ---------------------------------------------------------------- odd payloads
 record("team/776994850/roster", json.dumps({"success": True}))

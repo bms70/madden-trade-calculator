@@ -5,7 +5,7 @@ Backend only. **No Web Release**, no site change, Ruleset v4.4 and `valuation.js
 **Why:** the player picker and pre-fill (Web v3.0, Phase 3) wait, but Ruleset v5.0 needs history now: posture, aging, development, durability and cap efficiency all need many weeks of data, and raw exports are only kept for a limited number of exports. So every export is copied into small typed history tables as it arrives. Decided 2026-11-24.
 
 - Migration: `supabase/migrations/20261124020000_import_history.sql`
-- Tests: `tests/import-history-db.test.py` (45 / 45), `tests/free-agents-db.test.py` (20 / 20)
+- Tests: `tests/import-history-db.test.py` (45 / 45), `tests/free-agents-db.test.py` (22 / 22)
 - No Edge Function change: the receiver's database function does the work, so launch is one `db push`.
 
 ## How it works

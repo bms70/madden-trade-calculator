@@ -410,7 +410,7 @@ Full record: `docs/validation/VALIDATION_v2.1.md`.
 - Import history database (`tests/import-history-db.test.py`): **45 / 45 PASS**
 - Trade ledger database (`tests/trade-ledger-db.test.py`): **53 / 53 PASS**
 - Team ID changes database (`tests/team-id-changes-db.test.py`): **22 / 22 PASS**
-- Free agents and roster status database (`tests/free-agents-db.test.py`): **20 / 20 PASS**
+- Free agents and roster status database (`tests/free-agents-db.test.py`): **22 / 22 PASS**
 - Live check: **PENDING release-owner sign-off**
 
 ### Web Release v2.0 / Ruleset v4.4
