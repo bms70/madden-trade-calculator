@@ -102,7 +102,7 @@ The finish line is **Web v5.0 + Ruleset v5.0**. Releases before that follow thes
 - **Exit:** repeatable evidence for what to keep, retune, add or reject.
 
 ### Phase 7 — v5.0 model proposal · docs
-- **Scope (2026-11-27): all seven candidates below plus per-pick 2nd/3rd values (Q34)**, with starting values set by judgment and checked in shadow mode.
+- **Scope (2026-11-27): the candidates below plus per-pick 2nd/3rd values (Q34), except development trajectory (dropped)**, with starting values set by judgment and checked in shadow mode. Aging is by position only (QB from 31, K/P/LS from 33).
 Each candidate factor is classified Keep / Retune / Add / Reject, with evidence:
 
 | Candidate | Notes |

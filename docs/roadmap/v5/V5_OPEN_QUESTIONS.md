@@ -8,7 +8,7 @@ Last updated: 2026-11-27.
 
 | # | Question | Blocks | Doc |
 |---|---|---|---|
-| 35 | **Player picker for v5.0:** bring it back with shadow mode (Web v4.1), so choosing a player fills in the new v5 fields (injury rating, experience points, maybe speed) from the export? Or keep it on hold and type them in | How the new v5 fields are entered (Web v4.1) | `V5_RULESET_V5.0_WORKLIST.md` |
+| 35 | **Player picker for v5.0:** bring it back with shadow mode (Web v4.1), so choosing a player fills in the new v5 field (injury rating) from the export? Or keep it on hold and type it in | How the new v5 fields are entered (Web v4.1) | `V5_RULESET_V5.0_WORKLIST.md` |
 
 ## Future enhancements (not scheduled)
 
@@ -37,7 +37,8 @@ Last updated: 2026-11-27.
 
 | Question | Answer |
 |---|---|
-| **Ruleset v5.0 scope?** (2026-11-27) | **All 7 candidates:** posture, long snapper, per-pick 2nd/3rd values, durability, position-specific aging, development trajectory, cap efficiency (`V5_RULESET_V5.0_WORKLIST.md`) |
+| **Ruleset v5.0 scope?** (2026-11-27) | **6 changes:** posture, long snapper, per-pick 2nd/3rd values, durability, position-specific aging, cap efficiency (`V5_RULESET_V5.0_WORKLIST.md`). **Development trajectory dropped:** v4.4 already rewards youth |
+| **Aging by position?** (2026-11-27) | **Position only** (no speed). Decline starts: HB 28 · WR / CB / S / LB / EDGE 30 · OL / TE / DT 31 · **QB 31** · **K / P / LS 33** |
 | **How are v5.0 values set?** (2026-11-27) | **Judgment first, checked by shadow mode**; Phase 6 confirms or adjusts where the evidence allows |
 | **When does v5.0 take over?** (2026-11-27) | **As soon as it passes the gates**, mid-season if need be |
 | **Posture FYI rules?** (2026-11-27) | **Web v4.0:** win % bands (Win-now .600+, Rebuilding .400 or below); strength full at .250 from .500, times the timing weight; warnings for human teams selling while winning or buying while rebuilding; records from the current export, editable; posture saved with each submission. FYI choices only; v5.0 sets effect sizes from the stored evidence |
