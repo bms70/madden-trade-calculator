@@ -213,7 +213,7 @@ function pickMeta(side,a) {
   let f=window.LeagueMode?window.LeagueMode.pickField(side,a):{tracking:false};
   if(!f.tracking||f.loading)return '';
   let chosen=f.choices.find(c=>c.value===f.selected);
-  return chosen?` · ${chosen.label.split(' · ')[1]}`:' · choose whose pick';
+  return chosen?` · ${chosen.label.split(' · ')[1]}`:f.choices.length?' · choose whose pick':' · not owned';
 }
 
 function card(a,side,val) {

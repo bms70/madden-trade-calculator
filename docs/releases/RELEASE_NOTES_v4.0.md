@@ -32,3 +32,7 @@ In League mode, a box below the trade shows each team's situation:
 ## Launch
 
 See `docs/roadmap/v5/V5_WEB_V4.0_RUNBOOK.md`.
+
+## Maintenance (2026-11-27)
+
+- **Picks a team doesn't own:** when the giving team owns no pick in the chosen round and year, the "Whose pick" box now says **"None: KC doesn't own a 2029 2nd pick"**, and the message below the trade says the same, with a pointer to the commissioner's Draft picks panel. Before, the message said "Choose whose pick", which read as if a pick still had to be chosen. Display only; `web_release` stays v4.0 and cache tags move to `?v=4.0.1`.
