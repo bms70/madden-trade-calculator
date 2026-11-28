@@ -96,11 +96,13 @@ The finish line is **Web v5.0 + Ruleset v5.0**. Releases before that follow thes
 - **Exit:** members can tell official v4.4 valuation apart from descriptive context.
 
 ### Phase 6 — Historical calibration lab · **Web v4.x** (commissioner-only tools)
+- **2026-11-27:** run as SQL plus an evidence report rather than on-site tools. Part 1 (trade replay) now; part 2 (league-wide player history) after the first offseason export. Work list: [`V5_RULESET_V5.0_WORKLIST.md`](V5_RULESET_V5.0_WORKLIST.md).
 - Replay logged and imported history under frozen v4.4. Look for gaps by asset class, position, premium status, draft timing, quantity-for-quality and **posture**.
 - At an assumed 10–30 trades per season, expect to lean on judgment plus shadow results, and document the sample-size limits.
 - **Exit:** repeatable evidence for what to keep, retune, add or reject.
 
 ### Phase 7 — v5.0 model proposal · docs
+- **Scope (2026-11-27): all seven candidates below plus per-pick 2nd/3rd values (Q34)**, with starting values set by judgment and checked in shadow mode.
 Each candidate factor is classified Keep / Retune / Add / Reject, with evidence:
 
 | Candidate | Notes |
