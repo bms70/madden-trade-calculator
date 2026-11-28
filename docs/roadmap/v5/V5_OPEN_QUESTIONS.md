@@ -2,19 +2,20 @@
 
 Running log of v5.0 planning questions. Questions the commissioner skipped get a stated assumption under "Assumed" until they're confirmed. Answered questions keep their answer and date.
 
-Last updated: 2026-11-22.
+Last updated: 2026-11-27.
 
 ## Open
 
 | # | Question | Blocks | Doc |
 |---|---|---|---|
-| — | None open | | |
+| 35 | **Player picker for v5.0:** bring it back with shadow mode (Web v4.1), so choosing a player fills in the new v5 field (injury rating) from the export? Or keep it on hold and type it in | How the new v5 fields are entered (Web v4.1) | `V5_RULESET_V5.0_WORKLIST.md` |
 
 ## Future enhancements (not scheduled)
 
 | # | Enhancement | Notes |
 |---|---|---|
-| 34 | **Per-pick values for 2nd and 3rd rounds:** smooth values for each pick (2.01 ... 3.32), like the 1st round, instead of Early / Mid / Late | v5.0 candidate (2026-11-27). Web v3.1 records the actual pick number, so the ledger can show whether the three-tier values hold up. Needs a Ruleset change and regression |
+| — | **Morale** (future idea, 2026-11-27): a 0–99 morale field entered by hand, as a small value factor for players in the last year or two of their contract (unhappy players are likelier to leave). Neutral point and curve shape undecided | Not in v5.0 |
+| 34 | **Per-pick values for 2nd and 3rd rounds:** smooth values for each pick (2.01 ... 3.32), like the 1st round, instead of Early / Mid / Late | **In Ruleset v5.0** (2026-11-27 scope). Web v3.1 records the actual pick number, so the ledger can show whether the three-tier values hold up. Needs a Ruleset change and regression |
 | 33 | **Draft-pick ownership screen** | **Built in Web v3.0** (2026-11-27, reversing the 2026-11-24 deferral). All 7 rounds × 3 draft years; picks move on submit and move back on reversal; members choose **Whose pick** from the giving team's picks; the full table is commissioner only; **Draft complete** by the commissioner (automatic rollover possible later); `owner_replay_pick_trades` for trades logged before tracking. Spec: `V5_WEB_V3.0_SPEC.md` |
 | 32 | **"Gives" layout:** each box shows what that team **gives**, with headings **USER TEAM** (left) and **CPU TEAM** (right), or the team names in League mode. The league found "receives" confusing | **Planned for Web v5.0** (decided 2026-11-23). Display only: the page maps each box to the engine's opposite side, so valuation, the snapshot and stored trades are unchanged. Update How to Use, the wiki and the Excel workbook to match |
 | 31 | **Site-owner screen** on the website: create, rename and archive leagues, set commissioner passwords, fix teams | Needs its own sign-in, stronger than a league password, because it controls every league. Most useful once there are several leagues. Until then: the owner toolkit's SQL commands |
@@ -36,6 +37,10 @@ Last updated: 2026-11-22.
 
 | Question | Answer |
 |---|---|
+| **Ruleset v5.0 scope?** (2026-11-27) | **6 changes:** posture, long snapper, per-pick 2nd/3rd values, durability, position-specific aging, cap efficiency (`V5_RULESET_V5.0_WORKLIST.md`). **Development trajectory dropped:** v4.4 already rewards youth |
+| **Aging by position?** (2026-11-27) | **Position only** (no speed). Decline starts: HB 28 · WR / CB / S / LB / EDGE 30 · OL / TE / DT 31 · **QB 31** · **K / P / LS 33** |
+| **How are v5.0 values set?** (2026-11-27) | **Judgment first, checked by shadow mode**; Phase 6 confirms or adjusts where the evidence allows |
+| **When does v5.0 take over?** (2026-11-27) | **As soon as it passes the gates**, mid-season if need be |
 | **Posture FYI rules?** (2026-11-27) | **Web v4.0:** win % bands (Win-now .600+, Rebuilding .400 or below); strength full at .250 from .500, times the timing weight; warnings for human teams selling while winning or buying while rebuilding; records from the current export, editable; posture saved with each submission. FYI choices only; v5.0 sets effect sizes from the stored evidence |
 | **League activity actions?** (2026-11-27) | View, **mark handled** with a note, and **link a trade's player**, all audited (Web v4.0) |
 | **How are draft picks entered?** (2026-11-27) | **Web v3.1:** Timing → Round → **Pick number 1–32** for the current draft (the actual pick, as Madden shows it), or **Projected Early / Mid / Late** for future picks (1st round also Unknown; rounds 4–7 round only). Current-draft 2nd/3rd map to Early 1–10, Mid 11–21, Late 22–32 (v4.4 values, no rules change). Rejected: setting slots from standings (Snallabot's standings don't include Madden's tie-breakers) |
