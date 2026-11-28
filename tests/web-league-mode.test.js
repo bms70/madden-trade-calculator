@@ -647,7 +647,8 @@ const scenarios = JSON.parse(read('tests/parity-scenarios-v4.4.json'));
   // No fit: OMH owns no 2030 3rd ("Late 3rd, Two years away").
   prun(`state.A.push(${pickAsset(904, 'Late 3rd', 'Two years away')}); render();`);
   const aHtml3 = pel('.side[data-side="A"]').querySelector('.assets').innerHTML;
-  check('no fitting pick: says so, submit disabled', aHtml3.includes('OMH has no 2030 3rd pick') && pel('#acceptTrade').disabled === true);
+  check('no fitting pick: says so, submit disabled', aHtml3.includes("None: OMH doesn't own a 2030 3rd pick") && pel('#acceptTrade').disabled === true);
+  check('no fitting pick: the notice says the team does not own it (not "Choose")', pel('#pickNotice').hidden === false && pel('#pickNotice').textContent === "OMH doesn't own a 2030 3rd pick, so it can't trade one. If that's wrong, the commissioner can fix it under Draft picks." && aHtml3.includes('Two years away · not owned'));
   prun('state.A.pop(); render();');
 
   // Changing the round drops a choice that no longer fits.

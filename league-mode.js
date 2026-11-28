@@ -193,7 +193,7 @@
       loading: league.picks.loading,
       choices,
       selected: choices.some(c => c.value === asset.pick_id) ? asset.pick_id : '',
-      empty: `${giving ? giving.abbreviation : 'The team'} has no ${year ?? ''} ${round ? ordinal(round) : ''} pick`.replace(/\s+/g, ' ')
+      empty: `None: ${giving ? giving.abbreviation : 'the team'} doesn't own a ${year ?? ''} ${round ? ordinal(round) : ''} pick`.replace(/\s+/g, ' ')
     };
   }
 
@@ -222,7 +222,17 @@
     for (let side of ['A', 'B']) {
       for (let asset of (sides && sides[side]) || []) {
         if (asset.type !== 'Draft Pick') continue;
-        if (!asset.pick_id) return { ok: false, error: `Choose whose pick ${asset.pick} (${asset.timing}) is.` };
+        if (!asset.pick_id) {
+          // The giving team owns no pick in that round and year: say so,
+          // rather than asking for a choice the list can't offer.
+          if (!pickChoices(side, asset).length) {
+            let giving = findTeam(givingTeam(side));
+            let year = pickYear(asset);
+            let round = pickRound(asset.pick);
+            return { ok: false, error: `${giving ? giving.abbreviation : 'That team'} doesn't own a ${year ?? ''} ${round ? ordinal(round) : ''} pick, so it can't trade one. If that's wrong, the commissioner can fix it under Draft picks.`.replace(/\s+/g, ' ') };
+          }
+          return { ok: false, error: `Choose whose pick ${asset.pick} (${asset.timing}) is.` };
+        }
         if (seen.has(asset.pick_id)) return { ok: false, error: 'The same pick is in the trade twice.' };
         seen.add(asset.pick_id);
       }

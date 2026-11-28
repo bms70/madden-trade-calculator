@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Madden League Trade Calculator</title>
-    <link rel="stylesheet" href="styles.css?v=4.0.0">
+    <link rel="stylesheet" href="styles.css?v=4.0.1">
   </head>
   <body>
     <header class="top">
@@ -182,8 +182,9 @@
             </ul>
             <p>In League mode, if your league tracks draft picks, choose <b>Whose pick</b> too: the list shows
               the picks the giving team owns for that round and year (its own, or "via" the team it came from).
-              If only one fits, it's chosen for you. When the trade is submitted, the picks move to their new
-              teams.</p>
+              If only one fits, it's chosen for you. If it says <b>None</b>, the giving team doesn't own a pick
+              in that round and year; if that's wrong, ask the commissioner to fix it under Draft picks. When the
+              trade is submitted, the picks move to their new teams.</p>
           </div>
           <div class="rulecard">
             <h2>Optional Fields & Defaults</h2>
@@ -501,13 +502,13 @@
     <!-- ?v= on local files: bump it with every Web Release so browsers fetch the
          new files instead of mixing cached old scripts with the new page. -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./supabase-config.js?v=4.0.0"></script>
-    <script src="./storage.js?v=4.0.0"></script>
-    <script src="./theme.js?v=4.0.0"></script>
-    <script src="./valuation.js?v=4.0.0"></script>
-    <script src="./league-mode.js?v=4.0.0"></script>
-    <script src="./calculator-ui.js?v=4.0.0"></script>
-    <script src="./trade-history.js?v=4.0.0"></script>
-    <script src="./commissioner.js?v=4.0.0"></script>
+    <script src="./supabase-config.js?v=4.0.1"></script>
+    <script src="./storage.js?v=4.0.1"></script>
+    <script src="./theme.js?v=4.0.1"></script>
+    <script src="./valuation.js?v=4.0.1"></script>
+    <script src="./league-mode.js?v=4.0.1"></script>
+    <script src="./calculator-ui.js?v=4.0.1"></script>
+    <script src="./trade-history.js?v=4.0.1"></script>
+    <script src="./commissioner.js?v=4.0.1"></script>
   </body>
 </html>
